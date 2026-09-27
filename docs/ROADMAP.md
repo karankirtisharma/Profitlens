@@ -1,6 +1,6 @@
 # ProfitLens delivery progress
 
-The project has a twelve-week development period. Detailed weekly planning is maintained privately by the team. This public record describes verified implementation state, not college approval. A milestone is complete only when its acceptance evidence exists and has been checked.
+The project has a twelve-week development period. This record describes verified implementation state, not college approval. A milestone is complete only when its acceptance evidence exists and has been checked.
 
 | Milestone | Verified evidence | Status |
 | --- | --- | --- |

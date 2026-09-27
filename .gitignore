@@ -26,7 +26,8 @@ node_modules/
 coverage/
 *.tsbuildinfo
 
-# Private coding-agent context and detailed planning
+# Local project notes and working instructions
+/AGENTS.md
 /brain.md
 /masterplan.md
 

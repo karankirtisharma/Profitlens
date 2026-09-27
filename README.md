@@ -58,7 +58,7 @@ The CLI prints a JSON report with `valid`, record counts, customer-period links,
 
 ## Delivery approach
 
-The project is planned over twelve weeks. Storage, authentication, and the first web screens come early; financial rules and a dashboard follow; then contract retrieval, evidence-backed investigations, output verification, quantization experiments, and a final demonstration. Detailed team planning is kept privately. The public [progress record](docs/ROADMAP.md) lists only verified work.
+The project is planned over twelve weeks. Storage, authentication, and the first web screens come early; financial rules and a dashboard follow; then contract retrieval, evidence-backed investigations, output verification, quantization experiments, and a final demonstration. The [progress record](docs/ROADMAP.md) lists verified work.
 
 The academic evaluation will use a reproducible synthetic dataset. Planned measures include calculation accuracy, anomaly precision and recall, access-control checks, retrieval relevance, citation support, answer correctness, and response time. A quantized embedding model will be compared with an unquantized counterpart for memory use and retrieval quality; no result is assumed in advance.
 
@@ -73,7 +73,6 @@ The academic evaluation will use a reproducible synthetic dataset. Planned measu
 | [Architecture](docs/ARCHITECTURE.md) | Planned components, provenance, security, and financial boundaries. |
 | [Data contracts](docs/DATA_CONTRACTS.md) | Supported Week 1 CSV fields and amount semantics. |
 | [Progress](docs/ROADMAP.md) | Completed milestones and current limitations. |
-| [Agent guide](AGENTS.md) | Conventions for the approved project team and coding agents. |
 
 ## Scope and use
 
