@@ -19,4 +19,6 @@ The project has a twelve-week development period. Detailed weekly planning is ma
 
 The importer is a local preview. Persistent storage, a running API, authentication, the web interface, profitability calculations, anomaly rules, semantic retrieval, and generative AI investigations are not yet implemented. The PDF module extracts selectable text; it does not perform OCR or verify contract terms.
 
+The next planned stage establishes PostgreSQL, an API, authenticated organization access, and a first web application shell. Subsequent work will add persistent business workflows, financial analysis, evidence retrieval, investigations, and evaluation. New features will appear in this record only after implementation and verification.
+
 The [project brief](PROJECT_BRIEF.md) and [architecture](ARCHITECTURE.md) describe the target product. Add future completed milestones here with dates, verification, and remaining limitations; design notes alone do not establish completion.
