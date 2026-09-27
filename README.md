@@ -8,7 +8,7 @@ The product separates **financial facts** from **AI explanation**. Validated rec
 
 ## Current status
 
-**Week 1 of 12 complete — repository foundation and data ingestion preview.** The repository currently contains a CSV validation and customer/period linking preview, text extraction for text-based PDF contracts, tests, architecture notes, and the delivery plan. It does **not** yet contain a production API, database, dashboard, authentication, or an AI integration. [Track the weekly milestones](docs/ROADMAP.md).
+**Week 1 of 12 complete — repository foundation and data ingestion preview.** The repository currently contains a CSV validation and customer/period linking preview, text extraction for text-based PDF contracts, tests, and architecture notes. It does **not** yet contain a production API, database, dashboard, authentication, or an AI integration. [View verified progress](docs/ROADMAP.md).
 
 ## Planned investigation flow
 
@@ -44,24 +44,11 @@ python -m unittest discover -s tests -v
 
 The preview writes a JSON summary to the terminal and does not persist uploaded data. An optional PDF can be supplied with `--contract-pdf path/to/contract.pdf --contract-customer-id C001`; do not use confidential business documents in the demo dataset.
 
-## Twelve-week delivery
+## Delivery approach
 
-| Week | Outcome |
-| --- | --- |
-| 1 | Repository, data contracts, CSV/PDF ingestion preview |
-| 2 | PostgreSQL schema, migrations, import persistence |
-| 3 | FastAPI service, organization and role-based access |
-| 4 | Customer, invoice, expense, and contract workflows |
-| 5 | Deterministic profitability engine and edge-case tests |
-| 6 | Anomaly rules and traceable findings |
-| 7 | Contract passage indexing and semantic retrieval |
-| 8 | Permission-aware, customer/period context retrieval |
-| 9 | Evidence-backed AI investigations |
-| 10 | Next.js dashboard and investigation experience |
-| 11 | Synthetic-data evaluation, including retrieval and quantization comparison |
-| 12 | Integration, security review, deployment, and college demo |
+The project follows a twelve-week development period. The target is an integrated web application with secure business-data workflows, deterministic profitability analysis, explainable findings, and evidence-linked AI investigations. Synthetic data and tests will develop alongside each feature, followed by controlled retrieval and embedding-quantization experiments and a final demonstration.
 
-The [roadmap](docs/ROADMAP.md) gives acceptance criteria and a truthful progress log. These milestones are planned and may be adjusted through recorded decisions; they are not claims of completed work.
+Detailed weekly planning is maintained privately by the team. The public [progress record](docs/ROADMAP.md) reports verified work, and the [project brief](docs/PROJECT_BRIEF.md) describes the intended scope.
 
 ## Boundaries
 
@@ -72,7 +59,7 @@ ProfitLens is a decision-support prototype, not an accounting or payment system.
 - [Project brief](docs/PROJECT_BRIEF.md) — goals, scope, and success criteria
 - [Architecture](docs/ARCHITECTURE.md) — components, data flow, and security boundaries
 - [Data contracts](docs/DATA_CONTRACTS.md) — Week 1 input formats and financial assumptions
-- [Roadmap](docs/ROADMAP.md) — Week 1–12 deliverables and progress
+- [Progress record](docs/ROADMAP.md) — verified milestones and current limitations
 - [Coding-agent guide](AGENTS.md) — implementation conventions and source-of-truth order
 
 ## Ownership

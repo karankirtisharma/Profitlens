@@ -26,8 +26,11 @@ node_modules/
 coverage/
 *.tsbuildinfo
 
-# Local data and generated artifacts
+# Private coding-agent context and detailed planning
 /brain.md
+/masterplan.md
+
+# Local data and generated artifacts
 data/private/
 data/uploads/
 data/exports/
