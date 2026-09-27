@@ -1,0 +1,3 @@
+expense_id,customer_id,billing_period,category,amount,currency
+E001,C001,2026-09,Infrastructure,2500.00,INR
+E002,C002,2026-09,Support,1200.00,INR

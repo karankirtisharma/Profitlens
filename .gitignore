@@ -1,0 +1,41 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js (later milestones)
+node_modules/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Local data and generated artifacts
+data/private/
+data/uploads/
+data/exports/
+*.sqlite3
+*.db
+*.log
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
