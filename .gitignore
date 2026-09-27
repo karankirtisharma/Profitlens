@@ -27,6 +27,7 @@ coverage/
 *.tsbuildinfo
 
 # Local data and generated artifacts
+/brain.md
 data/private/
 data/uploads/
 data/exports/

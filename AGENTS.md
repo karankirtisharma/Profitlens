@@ -4,6 +4,8 @@ This file is for contributors and coding agents working in this repository. It d
 
 ## Read first
 
+If local `brain.md` exists, read it for dated session context. It is Git-ignored agent memory, not the source of truth; verify it against the working tree and current user instructions.
+
 1. Read `README.md` for the public product description and truthful implementation status.
 2. Read `docs/ROADMAP.md` before selecting work. Week numbers are milestones, not evidence of completion.
 3. Read `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md`, and `docs/DATA_CONTRACTS.md` for current scope and contracts.
