@@ -4,7 +4,7 @@ The repository started in **Week 1**. Status labels below describe implementatio
 
 | Week | Focus | Acceptance evidence | Status |
 | --- | --- | --- | --- |
-| 1 | Project foundation and ingestion | Repository guide, data contracts, validated customer/invoice/expense CSV preview, PDF text extraction, tests | In progress |
+| 1 | Project foundation and ingestion | Repository guide, data contracts, validated customer/invoice/expense CSV preview, PDF text extraction, tests | Complete (2026-09-27) |
 | 2 | Storage | PostgreSQL schema and migrations for organizations, customers, periods, invoices, expenses, contracts, imports; idempotent import persistence | Planned |
 | 3 | API and access | FastAPI endpoints, authentication, organization membership and role checks, cross-tenant denial tests | Planned |
 | 4 | Business workflows | Create/list/detail workflows for core records and contract upload; import errors visible to users | Planned |
@@ -22,6 +22,8 @@ The repository started in **Week 1**. Status labels below describe implementatio
 - [x] Define the 12-week scope and current repository structure.
 - [x] Document CSV fields, validation rules, provenance, and financial edge cases.
 - [x] Add a local CSV/PDF ingestion preview and focused tests.
-- [ ] Verify the first GitHub push and repository description.
+- [x] Verify the first GitHub push and repository description.
+
+**2026-09-27 evidence:** Initial `main` push succeeded; the GitHub About description was set. The local preview passed its synthetic example and focused CSV/PDF tests. The preview links records by customer and billing period and warns about unmatched periods; it does not persist data or calculate profitability.
 
 Do not mark a future week complete merely because it has design notes. Record date, evidence, and any plan change here when a milestone is completed.

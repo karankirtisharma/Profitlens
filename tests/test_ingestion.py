@@ -63,6 +63,18 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual(result.invoices.rows[0].record.billing_period, "2026-09")
         self.assertEqual(result.invoices.rows[0].source_row, 2)
         self.assertEqual(result.invoices.rows[0].record.organization_id, "org-1")
+        self.assertEqual(result.period_links[0].invoice_ids, ["I001"])
+        self.assertEqual(result.period_links[0].expense_ids, ["E001"])
+        self.assertEqual(result.warnings, [])
+
+    def test_unmatched_periods_warn_without_claiming_zero_cost(self) -> None:
+        self.expenses.write_text(EXPENSES.replace("2026-09", "2026-10"), encoding="utf-8")
+        result = self.preview()
+        self.assertTrue(result.valid)
+        self.assertEqual(
+            {warning.code for warning in result.warnings},
+            {"cost_completeness_unknown", "unmatched_expense_period"},
+        )
 
     def test_total_mismatch_is_rejected(self) -> None:
         self.invoices.write_text(INVOICES.replace("101.20", "111.20"), encoding="utf-8")

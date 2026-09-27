@@ -113,11 +113,21 @@ class BundlePreview:
     invoices: ImportResult[Invoice]
     expenses: ImportResult[Expense]
     issues: list[ImportIssue]
+    warnings: list[ImportIssue]
     currency: str | None
+    period_links: list[PeriodLink]
 
     @property
     def valid(self) -> bool:
         return not self.issues
+
+
+@dataclass
+class PeriodLink:
+    customer_id: str
+    billing_period: str
+    invoice_ids: list[str] = field(default_factory=list)
+    expense_ids: list[str] = field(default_factory=list)
 
 
 def preview_bundle(
@@ -154,4 +164,40 @@ def preview_bundle(
     currencies = {row.record.currency for row in [*invoices.rows, *expenses.rows]}
     if len(currencies) > 1:
         issues.append(ImportIssue("mixed_currency", f"Mixed currencies: {sorted(currencies)}", "bundle"))
-    return BundlePreview(customers, invoices, expenses, issues, next(iter(currencies)) if len(currencies) == 1 else None)
+
+    links_by_key: dict[tuple[str, str], PeriodLink] = {}
+    for row in invoices.rows:
+        record = row.record
+        key = (record.customer_id, record.billing_period)
+        link = links_by_key.setdefault(key, PeriodLink(*key))
+        link.invoice_ids.append(record.invoice_id)
+    for row in expenses.rows:
+        record = row.record
+        key = (record.customer_id, record.billing_period)
+        link = links_by_key.setdefault(key, PeriodLink(*key))
+        link.expense_ids.append(record.expense_id)
+
+    warnings: list[ImportIssue] = []
+    for link in links_by_key.values():
+        if link.invoice_ids and not link.expense_ids:
+            warnings.append(
+                ImportIssue(
+                    "cost_completeness_unknown",
+                    f"No expense rows for {link.customer_id} in {link.billing_period}; do not assume zero cost",
+                    "bundle",
+                )
+            )
+        if link.expense_ids and not link.invoice_ids:
+            warnings.append(
+                ImportIssue(
+                    "unmatched_expense_period",
+                    f"Expenses have no invoice rows for {link.customer_id} in {link.billing_period}",
+                    "bundle",
+                )
+            )
+
+    links = [links_by_key[key] for key in sorted(links_by_key)]
+    return BundlePreview(
+        customers, invoices, expenses, issues, warnings,
+        next(iter(currencies)) if len(currencies) == 1 else None, links,
+    )

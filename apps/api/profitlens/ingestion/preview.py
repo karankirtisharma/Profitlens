@@ -48,6 +48,16 @@ def main() -> int:
         "billing_periods": sorted(
             {row.record.billing_period for row in [*bundle.invoices.rows, *bundle.expenses.rows]}
         ),
+        "period_links": [
+            {
+                "customer_id": link.customer_id,
+                "billing_period": link.billing_period,
+                "invoice_ids": link.invoice_ids,
+                "expense_ids": link.expense_ids,
+            }
+            for link in bundle.period_links
+        ],
+        "warnings": [warning.as_dict() for warning in bundle.warnings],
         "issues": [issue.as_dict() for issue in issues],
         "persisted": False,
     }

@@ -8,7 +8,7 @@ The product separates **financial facts** from **AI explanation**. Validated rec
 
 ## Current status
 
-**Week 1 of 12 — repository foundation and data ingestion preview.** The repository currently contains a CSV validation and linking preview, text extraction for text-based PDF contracts, tests, architecture notes, and the delivery plan. It does **not** yet contain a production API, database, dashboard, authentication, or an AI integration. [Track the weekly milestones](docs/ROADMAP.md).
+**Week 1 of 12 complete — repository foundation and data ingestion preview.** The repository currently contains a CSV validation and customer/period linking preview, text extraction for text-based PDF contracts, tests, architecture notes, and the delivery plan. It does **not** yet contain a production API, database, dashboard, authentication, or an AI integration. [Track the weekly milestones](docs/ROADMAP.md).
 
 ## Planned investigation flow
 
@@ -30,7 +30,7 @@ The diagram is a **target architecture**, not a claim that every component is al
 
 ## Week 1 preview
 
-The Python ingestion module validates three CSV record types, rejects malformed values and duplicate IDs, checks customer references and billing-period formatting, and extracts page-attributed text from a PDF. It reports errors before anything is saved. PDF parsing currently requires selectable text; OCR and verified contract-term extraction are later work.
+The Python ingestion module validates three CSV record types, rejects malformed values and duplicate IDs, checks customer references and billing-period formatting, links records by customer and period, and extracts page-attributed text from a PDF. It reports errors and incomplete-period warnings before anything is saved. PDF parsing currently requires selectable text; OCR and verified contract-term extraction are later work.
 
 Requirements: Python 3.11 or later. From the repository root:
 

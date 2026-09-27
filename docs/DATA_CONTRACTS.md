@@ -16,6 +16,7 @@ These are the **initial demo CSV schemas**, not a promise that arbitrary account
 - The expected payable invoice total is `subtotal - discount + tax - refund`. Week 1 validates this identity and reports mismatches. Tax is excluded from future revenue calculations.
 - Negative net revenue, impossible discounts/refunds, invalid months, duplicate IDs, unknown customer references, and mixed currencies are import errors.
 - A present expense row is an attributed cost. An absent expense row is **not evidence of zero cost**; completeness must be established separately before showing a final margin.
+- The Week 1 preview groups invoice and expense IDs by `(customer_id, billing_period)` and warns when only one side is present. It does not calculate a margin from incomplete groups.
 - A zero-revenue period has no margin percentage. Missing or conflicting source data blocks a confident finding.
 - Invoice and expense rows retain their CSV filename and row number; PDF passages retain page numbers.
 
