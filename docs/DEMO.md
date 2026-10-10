@@ -48,6 +48,8 @@ The seed also provisions `finance@profitlens.local` and `other@profitlens.local`
 - Charts use only the records accessible to the current account. The overview loads at most 200 records per type and 200 contracts; a limit note appears when a list reaches that cap. It is a preview of loaded records, not an unlimited analytics report.
 - The presentation seed provides twelve recorded months and reviewed/unreviewed contract examples. Importing or reviewing data updates the overview after navigation or **Refresh**. Graphs show actual stored record counts; financial profitability and AI features remain later milestones.
 
+The bottom-right mascot is a chatbot placeholder. Clicking it toggles a small **Under development** bubble; Escape or clicking elsewhere dismisses it. It does not send data or provide AI answers.
+
 ## Verified scope and limits
 
 The checked flows cover sign-in/out, customer/invoice/expense management, CSV preview/confirmation/retry, private PDF upload/download, manually reviewed monthly terms, and assigned-customer access. The presentation checks cover intro skip, repeat visits and sign-in, reduced motion, focus restoration, chart/API consistency, failure recovery, narrow layouts and automated WCAG checks for sign-in, overview and an invoice dialog. Automated accessibility checks supplement manual keyboard and visual inspection; they are not a complete accessibility certification.

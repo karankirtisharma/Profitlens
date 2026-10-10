@@ -43,6 +43,7 @@ import { sfx } from "../lib/sound";
 import { NavItem, SideNav } from "../components/side-nav";
 import { AnimatedInput } from "../components/animated-input";
 import { Stage } from "../components/stage";
+import { ChatbotLauncher } from "../components/chatbot-launcher";
 
 export default function Home() {
   const { play, ready } = useExperience();
@@ -997,6 +998,7 @@ export default function Home() {
           </footer>
         </main>
       </div>
+      <ChatbotLauncher />
       {editing && (
         <Modal
           heading={`${selected ? (canWrite ? "Edit" : "View") : "Add"} ${recordKind.slice(0, -1)}`}
