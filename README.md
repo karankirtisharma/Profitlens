@@ -27,7 +27,7 @@ The intended investigation path is:
 | CSV imports | Preview row errors; confirm valid records atomically; reject conflicts; safely retry without duplicates. |
 | Private contracts | Upload/download text-based PDFs, inspect page evidence and manually review fixed monthly pricing and effective dates. |
 | Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
-| Presentation | Responsive dark-glass interface, skippable logo intro, API-backed record activity, reduced motion and keyboard navigation. |
+| Presentation | Responsive liquid-glass interface ("Panes in Depth") in light and dark themes: record summaries with source previews, a WebGL background, an intro on every visit, optional interface sounds, animated typing, reduced-motion support and keyboard navigation. |
 | Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 29 Python checks and 11 browser acceptance tests. |
 
 ## Run the web application

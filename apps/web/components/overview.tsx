@@ -4,12 +4,9 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
-  Check,
   Database,
-  FileCheck2,
-  FileSpreadsheet,
   FileText,
-  Users,
+  Info,
 } from "lucide-react";
 import { Contract, RecordData, View } from "../lib/workspace";
 import { useExperience } from "./experience";
@@ -31,6 +28,20 @@ const monthLabel = (month: string) =>
     year: "2-digit",
     timeZone: "UTC",
   }).format(new Date(`${month}-01T00:00:00Z`));
+const ease = [0.23, 1, 0.32, 1] as const;
+// Names the files a set of records came from, for the source tab behind a figure.
+function sources(list: RecordData[]) {
+  if (!list.length) return "No records yet";
+  const counts = new Map<string, number>();
+  for (const record of list) {
+    const name =
+      record.source?.type === "csv"
+        ? record.source.filename || "CSV import"
+        : "manual entry";
+    counts.set(name, (counts.get(name) || 0) + 1);
+  }
+  return [...counts].map(([name, count]) => `${name} × ${count}`).join("  ·  ");
+}
 
 export function Overview({ customers, data, canWrite, changeView }: Props) {
   const { animate } = useExperience();
@@ -61,108 +72,116 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
   const metrics = [
     {
       label: "Customers",
+      name: "customers",
       value: customers.length,
-      caption: "Accessible in your workspace",
-      icon: Users,
+      origin: sources(customers),
       view: "customers" as View,
     },
     {
-      label: "Invoice records",
+      label: "Invoices",
+      name: "invoice records",
       value: invoices.length,
-      caption: "Linked to customer accounts",
-      icon: FileSpreadsheet,
+      origin: sources(invoices),
       view: "invoices" as View,
     },
     {
-      label: "Expense records",
+      label: "Expenses",
+      name: "expense records",
       value: expenses.length,
-      caption: "Organized by billing month",
-      icon: FileText,
+      origin: sources(expenses),
       view: "expenses" as View,
     },
     {
-      label: "Contract documents",
+      label: "Contracts",
+      name: "contract documents",
       value: contracts.length,
-      caption: `${reviewed} with reviewed monthly terms`,
-      icon: FileCheck2,
+      origin: contracts.length
+        ? `${reviewed} of ${contracts.length} with reviewed terms`
+        : canWrite
+          ? "Upload a contract PDF"
+          : "No contract PDFs yet",
       view: "contracts" as View,
     },
   ];
+  // The records these figures count, shown on the pane behind the inventory.
+  const nameOf = (id: string) =>
+    customers.find((c) => c.customer_id === id)?.name || id;
+  const amount = (value: unknown) =>
+    Number(value).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  const ledger = [
+    ...invoices.map((r) => [
+      String(r.invoice_id),
+      nameOf(r.customer_id),
+      amount(r.total),
+    ]),
+    ...expenses.map((r) => [
+      String(r.expense_id),
+      nameOf(r.customer_id),
+      amount(r.amount),
+    ]),
+  ];
+  const counted = (
+    ledger.length
+      ? ledger
+      : customers.map((r) => [r.customer_id, String(r.name), ""])
+  ).slice(0, 6);
   const capped = metrics.some((m) => m.value === 200);
   const current =
     active && months.includes(active) ? active : months[months.length - 1];
+  const enter = (index: number) => ({
+    initial: animate ? { opacity: 0, transform: "translateY(10px)" } : false,
+    animate: { opacity: 1, transform: "translateY(0px)" },
+    transition: animate
+      ? { duration: 0.5, delay: index * 0.06, ease }
+      : { duration: 0 },
+  });
   return (
     <div className="overview">
-      <section className="overview-banner glass-panel">
-        <div>
-          <span className="eyebrow">YOUR BUSINESS, IN FOCUS</span>
-          <h2>
-            One place for the details
-            <br />
-            that matter.
-          </h2>
-          <p>Build clarity with connected records and traceable evidence.</p>
-          <button
-            className="primary"
-            onClick={() => changeView(canWrite ? "imports" : "customers")}
-          >
-            {canWrite ? "Import business data" : "Browse customers"}
-            <ArrowRight size={16} />
-          </button>
-        </div>
-        <div className="banner-art" aria-hidden="true">
-          <div className="banner-orbit" />
-          <span className="banner-node node-a">
-            <Users size={23} />
-          </span>
-          <span className="banner-node node-b">
-            <FileText size={23} />
-          </span>
-          <div className="banner-emblem">
-            <span className="brand-mark">
-              <span />
-              <span />
-              <span />
-            </span>
+      <div className="inventory-stack">
+        {counted.length > 0 && (
+          <div className="inventory-depth glass" aria-hidden="true">
+            {counted.map(([id, name, total], index) => (
+              <span className="depth-row" key={`${id}-${index}`}>
+                <b>{id}</b>
+                <span>{name}</span>
+                {total && <i>{total}</i>}
+              </span>
+            ))}
           </div>
-          <span className="banner-node node-c">
-            <FileCheck2 size={23} />
-          </span>
-          <span className="banner-caption">CONNECTED BY CUSTOMER</span>
-        </div>
-      </section>
-      <div className="metric-grid grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {metrics.map((m) => (
-          <motion.button
-            className="metric-card"
-            key={m.label}
-            onClick={() => changeView(m.view)}
-            whileHover={animate ? { transform: "translateY(-3px)" } : undefined}
-            whileTap={animate ? { transform: "scale(0.985)" } : undefined}
-            aria-label={`View ${m.label.toLowerCase()}`}
-          >
-            <div className="metric-top">
-              <span>{m.label}</span>
-              <m.icon size={17} strokeWidth={1.5} />
-            </div>
-            <div className="metric-value">
-              {m.value.toLocaleString()}
-              {m.value === 200 && "+"}
-              <ArrowUpRight size={19} />
-            </div>
-            <p>{m.caption}</p>
-          </motion.button>
-        ))}
+        )}
+        <section className="inventory glass" aria-label="Record inventory">
+          {metrics.map((m, index) => (
+            <motion.button
+              className={`metric ${m.value === 0 ? "is-empty" : ""}`}
+              key={m.label}
+              onClick={() => changeView(m.view)}
+              aria-label={`View ${m.name}`}
+              {...enter(index)}
+            >
+              <span className="metric-label">{m.label}</span>
+              <span className="metric-value">
+                {m.value.toLocaleString()}
+                {m.value === 200 && "+"}
+              </span>
+              <span className="metric-origin">{m.origin}</span>
+              <ArrowUpRight className="metric-go" size={17} />
+            </motion.button>
+          ))}
+        </section>
       </div>
       <div className="insight-grid">
-        <section
-          className="panel activity-panel"
+        <motion.section
+          className="panel glass activity-panel"
           aria-labelledby="activity-heading"
+          {...enter(2)}
         >
           <div className="chart-heading">
             <div>
-              <span className="eyebrow">WORKSPACE ACTIVITY</span>
               <h2 id="activity-heading">Records by billing month</h2>
+              <p>Invoices and expenses counted per billing month.</p>
             </div>
             <select
               aria-label="Chart month range"
@@ -172,8 +191,8 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
                 setActive(null);
               }}
             >
-              <option value="6">6 recorded months</option>
-              <option value="12">12 recorded months</option>
+              <option value="6">Up to 6 recorded months</option>
+              <option value="12">Up to 12 recorded months</option>
             </select>
           </div>
           <div className="chart-summary">
@@ -187,13 +206,14 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
             </div>
             <span className="chart-readout" aria-live="polite">
               {current
-                ? `${monthLabel(current)} · ${grouped.get(current)!.invoices} invoices · ${grouped.get(current)!.expenses} expenses`
+                ? `${monthLabel(current)} · ${grouped.get(current)!.invoices} invoices, ${grouped.get(current)!.expenses} expenses`
                 : "No billing records yet"}
             </span>
           </div>
           {months.length ? (
             <div
-              className="bar-chart"
+              className={`bar-chart ${months.length <= 2 ? "compact" : ""}`}
+              role="group"
               aria-label="Invoice and expense record counts"
             >
               <div className="chart-axis" aria-hidden="true">
@@ -211,7 +231,7 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
                   {months.map((month, index) => (
                     <button
                       key={month}
-                      className={`chart-column ${active === month ? "selected" : ""}`}
+                      className={`chart-column ${current === month ? "selected" : ""}`}
                       onClick={() => setActive(month)}
                       aria-pressed={active === month}
                       aria-label={`${monthLabel(month)}: ${grouped.get(month)!.invoices} invoices, ${grouped.get(month)!.expenses} expenses`}
@@ -232,9 +252,13 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
                               }
                               animate={{ transform: "scaleY(1)" }}
                               transition={{
-                                duration: animate ? 0.55 : 0,
-                                delay: animate ? index * 0.045 : 0,
-                                ease: [0.23, 1, 0.32, 1],
+                                duration: animate ? 0.7 : 0,
+                                delay: animate
+                                  ? 0.15 +
+                                    index * 0.05 +
+                                    (kind === "expenses" ? 0.04 : 0)
+                                  : 0,
+                                ease,
                               }}
                             />
                           </span>
@@ -248,7 +272,7 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
             </div>
           ) : (
             <div className="chart-empty">
-              <Database size={28} strokeWidth={1} />
+              <Database size={26} strokeWidth={1.2} />
               <p>Every clear picture starts with a record.</p>
               <button
                 className="text-button"
@@ -265,97 +289,43 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
               ? "One or more lists reached the 200-record preview limit."
               : "Based on the accessible records loaded from this workspace."}
           </p>
-        </section>
-        <section className="panel evidence-panel">
-          <span className="eyebrow">DOCUMENT EVIDENCE</span>
-          <div className="flex items-start justify-between gap-3">
-            <h2>Contract readiness</h2>
-            <FileCheck2 size={20} strokeWidth={1.5} />
+        </motion.section>
+        <motion.section
+          className="panel glass evidence-panel"
+          aria-labelledby="evidence-heading"
+          {...enter(3)}
+        >
+          <h2 id="evidence-heading">Contract readiness</h2>
+          <div className="evidence-count">
+            <strong>
+              {reviewed}/{contracts.length}
+            </strong>
+            <span>documents with reviewed monthly terms</span>
           </div>
-          <div className="evidence-meter">
-            <svg viewBox="0 0 150 150" aria-hidden="true">
-              <circle cx="75" cy="75" r="62" />
-              <motion.circle
-                className="meter-value"
-                cx="75"
-                cy="75"
-                r="62"
-                pathLength="1"
-                strokeDasharray={`${contracts.length ? reviewed / contracts.length : 0} 1`}
-                initial={animate ? { opacity: 0 } : false}
-                animate={{ opacity: 1 }}
-              />
-            </svg>
-            <div>
-              <strong>
-                {reviewed}
-                <small>/{contracts.length}</small>
-              </strong>
-              <span>reviewed</span>
-            </div>
-          </div>
+          {contracts.length > 0 && (
+            <ul className="doc-stack" aria-label="Latest contracts">
+              {contracts.slice(0, 3).map((c) => (
+                <li key={c.id}>
+                  <FileText size={15} />
+                  <span className="mono">{c.filename}</span>
+                  <span className={`tag ${c.state}`}>{c.state}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <p>
             {contracts.length
-              ? `${contracts.length - reviewed} documents awaiting verified monthly terms.`
+              ? `${contracts.length - reviewed} of ${contracts.length} documents still need verified monthly terms.`
               : "Upload a contract to begin reviewing its source text and monthly terms."}
           </p>
           <button className="secondary" onClick={() => changeView("contracts")}>
             Open contract library
             <ArrowUpRight size={15} />
           </button>
-        </section>
+        </motion.section>
       </div>
-      <section className="workflow-section">
-        <div className="section-heading">
-          <h2>A clear path through your data</h2>
-          <span className="muted">YOUR WORKFLOW</span>
-        </div>
-        <div className="workflow-grid">
-          {[
-            {
-              number: "01",
-              heading: "Organize",
-              text: "Give every invoice and expense a consistent customer identity.",
-              view: "customers" as View,
-              icon: Users,
-            },
-            {
-              number: "02",
-              heading: canWrite ? "Validate & import" : "Explore records",
-              text: canWrite
-                ? "Review CSV validation and source rows before saving."
-                : "Inspect the invoices linked to your assigned customers.",
-              view: (canWrite ? "imports" : "invoices") as View,
-              icon: FileSpreadsheet,
-            },
-            {
-              number: "03",
-              heading: "Review evidence",
-              text: "Read private PDFs alongside their reviewed pricing terms.",
-              view: "contracts" as View,
-              icon: FileCheck2,
-            },
-          ].map((item) => (
-            <button
-              className="workflow-card"
-              key={item.number}
-              onClick={() => changeView(item.view)}
-            >
-              <div>
-                <item.icon size={20} strokeWidth={1.5} />
-                <span>{item.number}</span>
-              </div>
-              <h3>
-                {item.heading}
-                <ArrowUpRight size={16} />
-              </h3>
-              <p>{item.text}</p>
-            </button>
-          ))}
-        </div>
-      </section>
       <div className="scope-note">
-        <Check size={16} />
+        <Info size={16} />
         <p>
           <strong>Week 3 · Business data foundation.</strong> Financial
           calculations, anomaly detection and AI explanations are planned for

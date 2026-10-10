@@ -53,3 +53,10 @@ test-results/
 next-env.d.ts
 agent.md
 agents.md
+
+# Private design notes and personal study material
+.claude/
+.impeccable/
+/PRODUCT.md
+/DESIGN.md
+/PROFITLENS_KNOWLEDGE_BASE_VIVA_GUIDE*.pdf

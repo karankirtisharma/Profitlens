@@ -2,68 +2,33 @@
 import { useRef, useState, FormEvent } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
-  Check,
-  Database,
   Eye,
   EyeOff,
-  FileCheck2,
+  FileSpreadsheet,
+  FileText,
   LockKeyhole,
+  LoaderCircle,
   Mail,
   ShieldCheck,
-  LoaderCircle,
 } from "lucide-react";
-import { Logo } from "./ui";
-import { ReplayIntro, useExperience } from "./experience";
+import { Logo, SoundToggle, ThemeToggle } from "./ui";
+import { useExperience } from "./experience";
+import { AnimatedInput } from "./animated-input";
 
 gsap.registerPlugin(useGSAP);
 
-function GlassSculpture() {
-  const scope = useRef<HTMLDivElement>(null);
-  const { ready } = useExperience();
-  const reduce = useReducedMotion();
-  useGSAP(
-    () => {
-      if (!ready || reduce) return;
-      gsap.fromTo(
-        ".glass-tile",
-        { y: 18, opacity: 0.3 },
-        { y: 0, opacity: 1, stagger: 0.09, duration: 0.9, ease: "power3.out" },
-      );
-    },
-    { scope, dependencies: [ready, reduce], revertOnUpdate: true },
-  );
-  return (
-    <div className="glass-sculpture" ref={scope} aria-hidden="true">
-      <div className="sculpture-orbit" />
-      <div className="glass-tile tile-back">
-        <svg viewBox="0 0 100 60">
-          <path d="M8 49L29 28L49 36L71 12L90 18M76 13L90 18L85 31" />
-        </svg>
-      </div>
-      <div className="glass-tile tile-left">
-        <ArrowRight size={36} strokeWidth={1.2} />
-      </div>
-      <div className="glass-tile tile-main">
-        <span className="sculpture-bars">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="tile-caption">CLARITY, CONNECTED.</span>
-      </div>
-      <div className="glass-tile tile-right">
-        <span className="lens-ring">
-          <span />
-          <i />
-        </span>
-      </div>
-      <span className="sculpture-glint" />
-    </div>
-  );
-}
+// Synthetic records shaped like the demo fixtures in data/demo.
+const ROWS: [string, string, string, string, string, string][] = [
+  ["2", "I001", "Northstar Studio", "11,210", ".00", "2026-09"],
+  ["3", "I002", "Harbor Retail", "9,440", ".00", "2026-09"],
+  ["4", "BAD-1", "Northstar Studio", "99", ".00", "2026-09"],
+  ["5", "I004", "Harbor Retail", "9,440", ".00", "2026-10"],
+  ["6", "I005", "Northstar Studio", "11,210", ".00", "2026-10"],
+];
+// How far each pane drifts with the pointer: the farther back, the more it moves.
+const DEPTH = { contract: 22, ledger: 12, signin: -3 };
 
 export function Login({
   login,
@@ -75,160 +40,199 @@ export function Login({
   error: string;
 }) {
   const [visible, setVisible] = useState(false);
-  const { animate } = useExperience();
+  const { ready, animate } = useExperience();
+  const stage = useRef<HTMLDivElement>(null);
+  useGSAP(
+    () => {
+      if (!ready || !animate) return;
+      // Panes arrive from depth, back to front, each overlapping the last.
+      gsap.from(".depth-pane", {
+        scale: 0.94,
+        y: 36,
+        opacity: 0,
+        duration: 1.1,
+        stagger: 0.12,
+        ease: "expo.out",
+        clearProps: "scale",
+      });
+      const panes = (["contract", "ledger", "signin"] as const).map((name) => ({
+        x: gsap.quickTo(`.depth-pane.${name}`, "x", {
+          duration: 0.9,
+          ease: "power3",
+        }),
+        y: gsap.quickTo(`.depth-pane.${name}`, "y", {
+          duration: 0.9,
+          ease: "power3",
+        }),
+        depth: DEPTH[name],
+      }));
+      const move = (e: PointerEvent) => {
+        const nx = e.clientX / window.innerWidth - 0.5;
+        const ny = e.clientY / window.innerHeight - 0.5;
+        for (const pane of panes) {
+          pane.x(nx * pane.depth);
+          pane.y(ny * pane.depth * 0.7);
+        }
+      };
+      if (matchMedia("(hover: hover) and (pointer: fine)").matches)
+        window.addEventListener("pointermove", move, { passive: true });
+      return () => window.removeEventListener("pointermove", move);
+    },
+    { scope: stage, dependencies: [ready, animate], revertOnUpdate: true },
+  );
   return (
-    <main className="login-page">
-      <div className="glass-ribbon ribbon-one" aria-hidden="true" />
-      <div className="glass-ribbon ribbon-two" aria-hidden="true" />
-      <header className="login-header flex items-center justify-between gap-4">
+    <main className="login">
+      <header className="login-top">
         <Logo />
-        <div className="flex items-center gap-5">
-          <ReplayIntro />
-          <span className="release-label">WORKSPACE / 03</span>
+        <div className="login-top-actions">
+          <SoundToggle />
+          <ThemeToggle />
         </div>
       </header>
-      <div className="login-layout">
-        <section className="login-story">
-          <GlassSculpture />
-          <div className="story-copy">
-            <span className="eyebrow">
-              The foundation of a clearer business
-            </span>
-            <h1>
-              Every record.
-              <br />
-              One perspective.
-              <br />
-              <span>More clarity.</span>
-            </h1>
-            <p>
-              Bring your customers, business records and contract evidence into
-              focus.
-            </p>
-          </div>
-          <div className="login-capabilities">
-            <div>
+      <div className="login-copy">
+        <h1>
+          See the source
+          <br />
+          <span>behind every figure.</span>
+        </h1>
+        <p>
+          Customers, invoices, expenses and contracts in one scoped workspace.
+          Every number traces back to its CSV row or PDF page.
+        </p>
+      </div>
+      <div className="pane-stage" ref={stage}>
+        <div className="pane-stack">
+          <div className="depth-pane contract glass" aria-hidden="true">
+            <div className="pane-label">
               <span>
-                <Database size={20} strokeWidth={1.5} />
+                <FileText size={14} />
+                contract_C001.pdf
               </span>
-              <p>
-                Connected
-                <br />
-                records
-              </p>
+              Page 1
             </div>
-            <div>
-              <span>
-                <FileCheck2 size={20} strokeWidth={1.5} />
-              </span>
-              <p>
-                Verified
-                <br />
-                imports
-              </p>
+            <div className="doc-term">
+              Monthly rate
+              <b>
+                INR 10,000<span className="cents">.00</span>
+              </b>
             </div>
-            <div>
-              <span>
-                <ShieldCheck size={20} strokeWidth={1.5} />
-              </span>
-              <p>
-                Scoped
-                <br />
-                access
-              </p>
+            <div className="doc-lines">
+              <i style={{ width: "72%" }} />
+              <i style={{ width: "90%" }} />
+              <i style={{ width: "64%" }} />
+              <i style={{ width: "84%" }} />
             </div>
           </div>
-        </section>
-        <section className="login-form" aria-labelledby="login-title">
-          <div className="login-card glass-panel">
-            <div className="login-card-top flex items-center justify-between">
-              <span className="login-lock">
-                <LockKeyhole size={20} strokeWidth={1.5} />
+          <div className="depth-pane ledger glass" aria-hidden="true">
+            <div className="pane-label">
+              <span>
+                <FileSpreadsheet size={14} />
+                invoices.csv
               </span>
-              <span className="micro-label">
-                <i /> PRIVATE WORKSPACE
-              </span>
+              INR
             </div>
-            <span className="eyebrow">Welcome back</span>
-            <h2 id="login-title">Sign in to your workspace</h2>
-            <p className="muted">Your business records. All in one place.</p>
-            <form onSubmit={login}>
-              <label htmlFor="login-email">Email address</label>
-              <div className="input-icon">
-                <Mail size={19} />
-                <input
-                  id="login-email"
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  placeholder="you@company.com"
-                  required
-                />
+            <div className="ledger-grid">
+              <div className="ledger-row th">
+                <span>Row</span>
+                <span>Invoice</span>
+                <span className="num">Total</span>
+                <span>Customer</span>
+                <span className="hide-sm">Month</span>
               </div>
-              <div className="password-label">
-                <label htmlFor="login-password">Password</label>
-                <span>Provisioned account</span>
-              </div>
-              <div className="input-icon">
-                <LockKeyhole size={18} />
-                <input
-                  id="login-password"
-                  name="password"
-                  type={visible ? "text" : "password"}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  required
-                  minLength={1}
-                />
-                <button
-                  className="password-toggle"
-                  type="button"
-                  onClick={() => setVisible(!visible)}
-                  aria-label={visible ? "Hide password" : "Show password"}
-                  aria-pressed={visible}
+              {ROWS.map(([row, id, customer, whole, cents, month]) => (
+                <div
+                  className={`ledger-row ${id === "BAD-1" ? "flag" : ""}`}
+                  key={id}
                 >
-                  {visible ? <EyeOff size={19} /> : <Eye size={19} />}
-                </button>
+                  <span className="mono src">{row}</span>
+                  <span className="mono">{id}</span>
+                  <span className="num">
+                    {whole}
+                    <span className="cents">{cents}</span>
+                  </span>
+                  <span>{customer}</span>
+                  <span className="mono hide-sm">{month}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <section
+            className="depth-pane signin glass iris"
+            aria-labelledby="login-title"
+          >
+            <h2 id="login-title">Sign in to your workspace</h2>
+            <p>Your business records, all in one place.</p>
+            <form className="login-form" onSubmit={login}>
+              <div className="field">
+                <label htmlFor="login-email">Email address</label>
+                <div className="input-icon">
+                  <Mail size={16} />
+                  <AnimatedInput
+                    id="login-email"
+                    name="email"
+                    type="email"
+                    autoComplete="username"
+                    placeholder="you@company.com"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="field">
+                <div className="field-head">
+                  <label htmlFor="login-password">Password</label>
+                  <span>Provisioned account</span>
+                </div>
+                <div className="input-icon">
+                  <LockKeyhole size={16} />
+                  <AnimatedInput
+                    id="login-password"
+                    name="password"
+                    type={visible ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    required
+                    minLength={1}
+                  />
+                  <button
+                    className="password-toggle"
+                    type="button"
+                    onClick={() => setVisible(!visible)}
+                    aria-label={visible ? "Hide password" : "Show password"}
+                    aria-pressed={visible}
+                  >
+                    {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
               </div>
               {error && (
                 <div role="alert" className="alert error">
                   {error}
                 </div>
               )}
-              <motion.button
-                className="primary login-submit"
-                disabled={busy}
-                whileTap={animate ? { transform: "scale(0.98)" } : undefined}
-              >
+              <button className="primary login-submit" disabled={busy}>
                 <span>{busy ? "Signing in…" : "Sign in"}</span>
-                {busy ? (
-                  <LoaderCircle className="spinner" size={18} />
-                ) : (
-                  <ArrowRight size={19} />
-                )}
-              </motion.button>
+                <span className="cta-nub" aria-hidden="true">
+                  {busy ? (
+                    <LoaderCircle className="spinner" size={15} />
+                  ) : (
+                    <ArrowRight size={15} />
+                  )}
+                </span>
+              </button>
             </form>
-            <div className="login-assurance">
-              <Check size={14} />
-              <span>Access is limited to your organization.</span>
-            </div>
-            <div className="login-help">
-              <span>Need workspace access?</span>
+            <div className="login-note">
+              <ShieldCheck size={16} />
               <p>
-                Contact your project administrator to get a provisioned account.
+                <strong>Access is limited to your organization.</strong>
+                Need an account? Your project administrator provisions access.
               </p>
             </div>
-          </div>
-          <p className="login-edition">
-            <span /> WEEK 3 DEMO <i /> Business data foundation
-          </p>
-        </section>
+          </section>
+        </div>
       </div>
-      <footer className="login-footer">
-        <span>
-          PROFIT LENS <i> / </i> A CLEARER VIEW STARTS HERE
-        </span>
-        <span>Customers · Invoices · Expenses · Contracts</span>
+      <footer className="login-foot">
+        <span>Week 3 · Business data foundation</span>
+        <span>Background panes show synthetic sample records.</span>
       </footer>
     </main>
   );

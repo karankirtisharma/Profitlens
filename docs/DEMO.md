@@ -18,7 +18,7 @@ The helper starts an existing production build. After frontend changes, stop the
 
 | Step | Show | Explain |
 | --- | --- | --- |
-| 1. Enter | Short logo introduction, then the sign-in screen. | The intro plays once per browser session; **Play intro** replays it, **Skip intro** or Escape dismisses it. System reduced-motion settings bypass it. |
+| 1. Enter | Short logo introduction, then the sign-in screen. | The intro plays on each visit and after sign-in; **Skip intro** or Escape dismisses it. System reduced-motion settings bypass it. |
 | 2. Overview | Sign in as `karan@profitlens.local`; inspect record counts and monthly record activity. | Values come from the authorized API. The chart counts invoices and expenses; it does not calculate revenue or profit. The selector shows the latest six or twelve months that contain records. |
 | 3. Records | Open Customers, then Invoices; inspect or edit a synthetic record. | Customer IDs link the data. Amounts, invoice totals and required fields are validated by the backend. Source references remain inspectable. |
 | 4. Validation | Open Imports and preview `data/demo/invalid_invoices.csv`. | Invalid rows cannot be confirmed. The preview explains the validation problem without adding business records. |
@@ -30,7 +30,7 @@ The seed also provisions `finance@profitlens.local` and `other@profitlens.local`
 
 ## Presentation behavior
 
-- The interface uses dark glass surfaces, local fonts, responsive tables and native modal dialogs. Password visibility, keyboard focus, loading, error recovery and empty states are supported.
+- The interface is a liquid-glass design in light and dark themes (system default, manual toggle) with self-hosted Geist fonts, a custom WebGL background that stays still inside the workspace, responsive tables and native modal dialogs. The intro plays on every visit and after sign-in; sound effects are off until the visitor turns them on. Password visibility, keyboard focus, loading, error recovery and empty states are supported.
 - GSAP controls the finite logo and glass-tile entrance. Framer Motion controls short page, dialog, button and chart transitions. Tailwind v4 utilities complement shared CSS tokens.
 - Movement is reduced for keyboard navigation and disabled with the system's reduced-motion preference. Decorative graphics are hidden from assistive technology. No animation is necessary to complete a task.
 - Charts use only the records accessible to the current account. The overview loads at most 200 records per type and 200 contracts; a limit note appears when a list reaches that cap. It is a preview of loaded records, not an unlimited analytics report.
@@ -38,7 +38,7 @@ The seed also provisions `finance@profitlens.local` and `other@profitlens.local`
 
 ## Verified scope and limits
 
-The checked flows cover sign-in/out, customer/invoice/expense management, CSV preview/confirmation/retry, private PDF upload/download, manually reviewed monthly terms, and assigned-customer access. The presentation checks cover intro skip/replay, reduced motion, focus restoration, chart/API consistency, failure recovery, narrow layouts and automated WCAG checks for sign-in, overview and an invoice dialog. Automated accessibility checks supplement manual keyboard and visual inspection; they are not a complete accessibility certification.
+The checked flows cover sign-in/out, customer/invoice/expense management, CSV preview/confirmation/retry, private PDF upload/download, manually reviewed monthly terms, and assigned-customer access. The presentation checks cover intro skip, repeat visits and sign-in, reduced motion, focus restoration, chart/API consistency, failure recovery, narrow layouts and automated WCAG checks for sign-in, overview and an invoice dialog. Automated accessibility checks supplement manual keyboard and visual inspection; they are not a complete accessibility certification.
 
 **Not yet implemented:** profitability aggregation, margin calculations, anomaly detection, semantic search, AI explanations, model quantization, OCR, automatic contract extraction, social login, public registration and password recovery. These remain subsequent milestones. The local demo is not a public deployment.
 

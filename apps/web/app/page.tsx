@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   ChevronLeft,
+  Database,
   ChevronRight,
   FileCheck2,
   FileSpreadsheet,
@@ -34,12 +35,17 @@ import {
   details,
   api,
 } from "../lib/workspace";
-import { Logo, Modal } from "../components/ui";
+import { Logo, Modal, SoundToggle, ThemeToggle } from "../components/ui";
 import { Login } from "../components/login";
 import { Overview, OverviewData } from "../components/overview";
-import { PageTransition, ReplayIntro } from "../components/experience";
+import { PageTransition, useExperience } from "../components/experience";
+import { sfx } from "../lib/sound";
+import { NavItem, SideNav } from "../components/side-nav";
+import { AnimatedInput } from "../components/animated-input";
+import { Stage } from "../components/stage";
 
 export default function Home() {
+  const { play, ready } = useExperience();
   const [account, setAccount] = useState<Account | null>(null),
     [org, setOrg] = useState(""),
     [boot, setBoot] = useState(true),
@@ -72,7 +78,10 @@ export default function Home() {
   const base = `/workspaces/${encodeURIComponent(org)}`;
   const currentRequest = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
-    if (!org) return;
+    if (!org) {
+      setLoading(false);
+      return;
+    }
     currentRequest.current?.abort();
     const controller = new AbortController();
     currentRequest.current = controller;
@@ -127,13 +136,20 @@ export default function Home() {
       .finally(() => setBoot(false));
   }, []);
   useEffect(() => {
-    if (account) {
+    // Wait for the intro to finish; the workspace is inert while it plays.
+    if (account && ready) {
       document
         .getElementById("workspace-title")
         ?.focus({ preventScroll: true });
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-  }, [account]);
+  }, [account, ready]);
+  useEffect(() => {
+    if (notice) sfx.success();
+  }, [notice]);
+  useEffect(() => {
+    if (error) sfx.error();
+  }, [error]);
   useEffect(() => {
     // Refresh synchronizes the view with an external API; loading mirrors that request.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -141,6 +157,9 @@ export default function Home() {
     return () => currentRequest.current?.abort();
   }, [refresh]);
   const changeView = (v: View) => {
+    // Show the loading state in the same render as the new view, so stale
+    // controls never flash before the request effect starts.
+    if (v !== view && org) setLoading(true);
     setView(v);
     setRows([]);
     setOverviewData({ invoices: [], expenses: [], contracts: [] });
@@ -174,6 +193,7 @@ export default function Home() {
       const a = await api<Account>("/auth/me");
       setAccount(a);
       setOrg(a.workspaces[0]?.id || "");
+      play();
     });
   }
   async function logout() {
@@ -208,13 +228,22 @@ export default function Home() {
   );
   if (boot)
     return (
-      <main className="boot">
-        <Logo />
-        <p>Opening your workspace…</p>
-      </main>
+      <>
+        <Stage live />
+        <main className="boot">
+          <Logo />
+          <p>Opening your workspace…</p>
+        </main>
+      </>
     );
-  if (!account) return <Login login={login} busy={busy} error={error} />;
-  const nav: { id: View; label: string; icon: typeof Users }[] = [
+  if (!account)
+    return (
+      <>
+        <Stage live />
+        <Login login={login} busy={busy} error={error} />
+      </>
+    );
+  const nav: NavItem[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "customers", label: "Customers", icon: Users },
     { id: "invoices", label: "Invoices", icon: FileSpreadsheet },
@@ -229,11 +258,14 @@ export default function Home() {
   ];
   return (
     <div className="shell">
+      <Stage live={false} />
       <a href="#main-content" className="skip-link">
         Skip to workspace
       </a>
-      <aside className="sidebar">
-        <Logo />
+      <aside className="sidebar glass">
+        <div className="sidebar-head">
+          <Logo />
+        </div>
         <div className="workspace-picker">
           <label htmlFor="workspace">Workspace</label>
           <select
@@ -255,68 +287,60 @@ export default function Home() {
             ))}
           </select>
         </div>
-        <span className="nav-label">Business workspace</span>
-        <nav>
-          {nav.map((n) => (
-            <button
-              key={n.id}
-              className={view === n.id ? "active" : ""}
-              onClick={() => {
-                if (view !== n.id) changeView(n.id);
-              }}
-              aria-current={view === n.id ? "page" : undefined}
-            >
-              <n.icon size={19} />
-              {n.label}
-              {view === n.id && <span className="active-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-note">
-          <ShieldCheck size={20} />
-          <strong>Access stays scoped</strong>
-          <p>
+        <SideNav
+          items={nav}
+          view={view}
+          onSelect={(next) => {
+            sfx.tap();
+            changeView(next);
+          }}
+        />
+        <div className="sidebar-foot">
+          <p className="scope-line">
+            <ShieldCheck size={15} />
             {canWrite
-              ? "Manage records in your organization."
+              ? "Access is scoped to your organization."
               : "Only your assigned customers are visible."}
           </p>
-        </div>
-        <div className="account">
-          <span className="avatar">{account.name.slice(0, 1)}</span>
-          <div>
-            <strong>{account.name}</strong>
-            <span>{title(workspace?.role || "member")}</span>
+          <div className="account">
+            <span className="avatar" aria-hidden="true">
+              {account.name.slice(0, 1)}
+            </span>
+            <div>
+              <strong>{account.name}</strong>
+              <span>{title(workspace?.role || "member")}</span>
+            </div>
+            <button
+              className="icon-btn"
+              onClick={logout}
+              aria-label="Sign out"
+              disabled={busy}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
-          <button
-            className="icon-btn"
-            onClick={logout}
-            aria-label="Sign out"
-            disabled={busy}
-          >
-            <LogOut size={17} />
-          </button>
         </div>
       </aside>
       <div className="main-wrap">
         <header className="topbar">
-          <span>
-            Workspace <ChevronRight size={14} /> <strong>{title(view)}</strong>
+          <span className="crumb">
+            {workspace?.name || "Workspace"} <ChevronRight size={14} />{" "}
+            <strong>{view === "team" ? "Team access" : title(view)}</strong>
           </span>
           <div className="topbar-actions">
-            <ReplayIntro />
-            <span className="status-dot">
+            <span className="data-badge">
+              <Database size={13} aria-hidden="true" />
               {["demo-org", "other-org"].includes(org)
                 ? "Synthetic demo data"
                 : "Organization data"}
             </span>
+            <SoundToggle />
+            <ThemeToggle />
           </div>
         </header>
         <main className="content" id="main-content">
           <div className="page-heading">
             <div>
-              <span className="eyebrow">
-                {workspace?.name || "Your workspace"}
-              </span>
               <h1 id="workspace-title" tabIndex={-1}>
                 {view === "overview"
                   ? "Business data, connected."
@@ -324,7 +348,7 @@ export default function Home() {
                     ? "Team access"
                     : title(view)}
               </h1>
-              <p className="muted">
+              <p className="lede">
                 {
                   {
                     overview:
@@ -344,15 +368,28 @@ export default function Home() {
                 }
               </p>
             </div>
-            <button
-              className="secondary"
-              onClick={refresh}
-              disabled={loading || busy}
-              aria-label="Refresh data"
-            >
-              <RefreshCw size={16} />
-              Refresh
-            </button>
+            <div className="heading-actions">
+              <button
+                className="secondary"
+                onClick={refresh}
+                disabled={loading || busy}
+                aria-label="Refresh data"
+              >
+                <RefreshCw size={15} className={loading ? "spinner" : ""} />
+                Refresh
+              </button>
+              {view === "overview" && org && (
+                <button
+                  className="primary"
+                  onClick={() => changeView(canWrite ? "imports" : "customers")}
+                >
+                  {canWrite ? "Import business data" : "Browse customers"}
+                  <span className="cta-nub" aria-hidden="true">
+                    <ArrowRight size={14} />
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
           {error && (
             <div className="alert error" role="alert">
@@ -374,7 +411,7 @@ export default function Home() {
           {loading ? (
             <div className="loading" role="status">
               <div className="skeleton" />
-              <div className="skeleton" />
+              <div className="skeleton tall" />
               <p>Loading workspace records…</p>
             </div>
           ) : (
@@ -388,11 +425,11 @@ export default function Home() {
                 />
               )}
               {["customers", "invoices", "expenses"].includes(view) && (
-                <section className="panel">
+                <section className="panel glass">
                   <div className="table-toolbar">
                     <div className="search">
                       <Search size={17} />
-                      <input
+                      <AnimatedInput
                         aria-label="Search loaded records"
                         placeholder={`Search ${view} on this page…`}
                         value={query}
@@ -462,7 +499,13 @@ export default function Home() {
                                 ? "Source"
                                 : "Billing month"}
                             </th>
-                            <th>{view === "customers" ? "Open" : "Amount"}</th>
+                            <th className={view === "customers" ? "" : "num"}>
+                              {view === "customers" ? (
+                                <span className="sr-only">Open</span>
+                              ) : (
+                                "Amount"
+                              )}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -472,7 +515,7 @@ export default function Home() {
                               <tr key={id}>
                                 <td>
                                   <button
-                                    className="record-link"
+                                    className={`record-link ${view === "customers" ? "" : "mono"}`}
                                     onClick={() => {
                                       setSelected(r);
                                       setEditing(true);
@@ -493,7 +536,9 @@ export default function Home() {
                                     ? String(r.industry || "—")
                                     : customerName(r.customer_id)}
                                 </td>
-                                <td>
+                                <td
+                                  className={view === "customers" ? "" : "mono"}
+                                >
                                   {view === "customers" ? (
                                     <span className="tag">
                                       {r.source?.type || "manual"}
@@ -502,7 +547,11 @@ export default function Home() {
                                     String(r.billing_period)
                                   )}
                                 </td>
-                                <td>
+                                <td
+                                  className={
+                                    view === "customers" ? "row-open" : "num"
+                                  }
+                                >
                                   {view === "customers" ? (
                                     <button
                                       className="icon-btn"
@@ -553,7 +602,7 @@ export default function Home() {
               )}
               {view === "imports" && canWrite && (
                 <>
-                  <section className="panel import-panel">
+                  <section className="panel glass import-panel">
                     <div className="section-heading">
                       <div>
                         <h2>New CSV import</h2>
@@ -613,7 +662,7 @@ export default function Home() {
                     </form>
                   </section>
                   {preview && (
-                    <section className="panel import-panel">
+                    <section className="panel glass import-panel">
                       <div className="section-heading">
                         <h2>Preview: {preview.filename}</h2>
                         <span className={`tag ${preview.state}`}>
@@ -693,7 +742,7 @@ export default function Home() {
                       )}
                     </section>
                   )}
-                  <section className="panel">
+                  <section className="panel glass">
                     <div className="panel-title">
                       <h2>Import history</h2>
                       <span className="muted">Latest 100 imports</span>
@@ -746,7 +795,7 @@ export default function Home() {
               {view === "contracts" && (
                 <>
                   {canWrite && (
-                    <section className="panel import-panel">
+                    <section className="panel glass import-panel">
                       <h2>Upload a contract</h2>
                       <p className="muted">
                         Text-based PDF · Maximum 10 MiB / 100 pages · Terms
@@ -808,7 +857,7 @@ export default function Home() {
                       </form>
                     </section>
                   )}
-                  <section className="panel">
+                  <section className="panel glass">
                     <div className="panel-title">
                       <h2>Contract library</h2>
                       <span className="muted">Latest 200 documents</span>
@@ -830,7 +879,7 @@ export default function Home() {
                               <th>Document</th>
                               <th>Customer</th>
                               <th>Review status</th>
-                              <th>Monthly rate</th>
+                              <th className="num">Monthly rate</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -838,7 +887,7 @@ export default function Home() {
                               <tr key={c.id}>
                                 <td>
                                   <button
-                                    className="record-link"
+                                    className="record-link mono"
                                     onClick={() => setContract(c)}
                                   >
                                     {c.filename}
@@ -853,7 +902,11 @@ export default function Home() {
                                     {c.state}
                                   </span>
                                 </td>
-                                <td>
+                                <td
+                                  className={
+                                    c.state === "reviewed" ? "num" : "num muted"
+                                  }
+                                >
                                   {c.state === "reviewed"
                                     ? money(c.monthly_rate)
                                     : "Awaiting review"}
@@ -868,7 +921,7 @@ export default function Home() {
                 </>
               )}
               {view === "team" && isAdmin && (
-                <section className="panel">
+                <section className="panel glass">
                   <div className="panel-title">
                     <h2>Workspace members</h2>
                     <span className="muted">Preset roles</span>
@@ -947,6 +1000,20 @@ export default function Home() {
       {editing && (
         <Modal
           heading={`${selected ? (canWrite ? "Edit" : "View") : "Add"} ${recordKind.slice(0, -1)}`}
+          source={
+            selected?.source
+              ? {
+                  label:
+                    selected.source.type === "csv"
+                      ? `${selected.source.filename} · Row ${selected.source.row}`
+                      : "Manually created record",
+                  detail:
+                    recordKind === "customers"
+                      ? `${selected.customer_id} · ${selected.name}`
+                      : `${selected[fields[recordKind][0]]} · ${customerName(selected.customer_id)} · ${money(selected.total ?? selected.amount)}`,
+                }
+              : undefined
+          }
           close={() => {
             setEditing(false);
             setError("");
@@ -990,7 +1057,7 @@ export default function Home() {
                       ))}
                     </select>
                   ) : (
-                    <input
+                    <AnimatedInput
                       name={f}
                       defaultValue={String(
                         selected?.[f] ??
@@ -1035,20 +1102,12 @@ export default function Home() {
               </p>
             )}
             {selected?.source && (
-              <div className="source-box">
-                <strong>Original source</strong>
-                <p>
-                  {selected.source.type === "csv"
-                    ? `${selected.source.filename} · Row ${selected.source.row}`
-                    : "Manually created record"}
-                </p>
-                {selected.source.batch_id && (
-                  <small>Import {selected.source.batch_id}</small>
-                )}
-                <p className="footnote">
-                  Edits retain the original source and create an audit event.
-                </p>
-              </div>
+              <p className="footnote">
+                {selected.source.batch_id
+                  ? `Imported in batch ${selected.source.batch_id.slice(0, 8)}. `
+                  : ""}
+                Edits retain the original source and create an audit event.
+              </p>
             )}
             {selected && recordKind === "customers" && (
               <div className="button-row">

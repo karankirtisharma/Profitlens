@@ -20,6 +20,12 @@ The project has a twelve-week development period. This page records verified imp
 
 A responsive dark-glass frontend now presents the completed data-management features. GSAP provides a short, skippable logo intro; Framer Motion handles component transitions and record-count charts; Tailwind v4 supports the shared styling. The overview fetches real authorized customers, invoices, expenses and contracts. Seeded organizations are labeled synthetic, chart values are record counts, and future financial/AI capabilities remain explicitly outside this release. See the [presentation guide](DEMO.md).
 
+## Week 3 interface refinement - 10 October 2026
+
+Updated the workspace with light and dark themes, record-source previews, a skippable intro on each visit and after sign-in, and optional interface sounds. Input feedback and view loading were refined while keeping existing business workflows connected to the authorized API. Reduced-motion support and keyboard navigation remain available.
+
+The refreshed browser suite passed all 11 cases, including record editing, CSV validation/confirmation/retry, PDF review/download, analyst restrictions, error recovery, mobile layout and automated accessibility checks. Lint, TypeScript and formatting checks passed. The feature boundary remains Weeks 1-3; financial calculations and AI capabilities are still planned.
+
 ## What remains
 
 The application currently organizes and validates business data. Revenue/cost aggregation and data-quality analysis are next, followed by profitability metrics, rule-based findings, contract retrieval, AI investigations, verification and measured model-efficiency experiments. No profitability result, anomaly score, semantic retrieval benchmark or AI evaluation result is claimed in this release.

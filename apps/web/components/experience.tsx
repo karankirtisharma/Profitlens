@@ -11,78 +11,89 @@ import {
 import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Play, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { sfx } from "../lib/sound";
 
 gsap.registerPlugin(useGSAP);
-const INTRO_KEY = "profitlens.intro.v1";
 const Experience = createContext({
   animate: false,
   ready: false,
-  replay: () => {},
+  /** Plays the intro again, e.g. right after signing in. */
+  play: () => {},
 });
 export const useExperience = () => useContext(Experience);
 export const ease = [0.23, 1, 0.32, 1] as const;
 
-function Introduction({ done, replay }: { done: () => void; replay: boolean }) {
+// The intro plays on every page load and after signing in.
+function Introduction({ done }: { done: () => void }) {
   const scope = useRef<HTMLDialogElement>(null);
   useGSAP(
     () => {
       const dialog = scope.current;
       if (!dialog) return;
-      let seen = false;
-      try {
-        seen = sessionStorage.getItem(INTRO_KEY) === "seen";
-      } catch {
-        /* Storage is optional. */
-      }
-      if (
-        matchMedia("(prefers-reduced-motion: reduce)").matches ||
-        (seen && !replay)
-      ) {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
         const frame = requestAnimationFrame(done);
         return () => cancelAnimationFrame(frame);
       }
       dialog.showModal();
       const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
+      // Three panes arrive out of depth with overlapping follow-through, the
+      // bars rise with a small overshoot, and light sweeps across the glass.
       const timeline = gsap.timeline({ onComplete: done });
+      sfx.intro();
       timeline
         .fromTo(
-          ".intro-bar",
-          { scaleY: 0, opacity: 0 },
+          ".intro-pane",
+          { z: -520, y: 70, rotateX: 22, opacity: 0 },
           {
-            scaleY: 1,
-            opacity: 1,
-            duration: 0.65,
-            stagger: 0.13,
-            ease: "power3.out",
-            transformOrigin: "50% 100%",
-          },
-          0.1,
-        )
-        .fromTo(
-          ".intro-orbit",
-          { strokeDashoffset: 700, opacity: 0 },
-          {
-            strokeDashoffset: 0,
-            opacity: 0.7,
-            duration: 1.1,
-            ease: "power2.out",
+            z: (i: number) => [-90, -45, 0][i],
+            x: (i: number) => [34, 17, 0][i],
+            y: (i: number) => [-26, -13, 0][i],
+            rotateX: 0,
+            opacity: (i: number) => [0.45, 0.7, 1][i],
+            duration: 1,
+            stagger: 0.09,
+            ease: "expo.out",
           },
           0,
         )
         .fromTo(
-          ".intro-wordmark",
-          { y: 12, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" },
-          0.45,
+          ".intro-bar",
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            duration: 0.55,
+            stagger: 0.08,
+            ease: "back.out(1.7)",
+            transformOrigin: "50% 100%",
+          },
+          0.55,
+        )
+        .fromTo(
+          ".intro-sweep",
+          { xPercent: -55 },
+          { xPercent: 55, duration: 0.8, ease: "power2.inOut" },
+          0.85,
+        )
+        .fromTo(
+          ".intro-word",
+          { y: 16, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" },
+          0.7,
+        )
+        .fromTo(
+          ".intro-tagline",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "power1.out" },
+          0.95,
         )
         .to(
           ".intro-composition",
-          { y: -16, opacity: 0, duration: 0.3, ease: "power2.inOut" },
-          1.65,
+          { y: -10, opacity: 0, duration: 0.3, ease: "power2.in" },
+          1.85,
         )
-        .to(dialog, { opacity: 0, duration: 0.25 }, 1.8);
+        .to(dialog, { opacity: 0, duration: 0.22 }, 2.0);
       const fallback = window.setTimeout(done, 3200);
       const preference = matchMedia("(prefers-reduced-motion: reduce)");
       const onPreference = () => {
@@ -96,7 +107,7 @@ function Introduction({ done, replay }: { done: () => void; replay: boolean }) {
         dialog.close();
       };
     },
-    { scope, dependencies: [done, replay] },
+    { scope, dependencies: [done] },
   );
   return (
     <dialog
@@ -105,22 +116,25 @@ function Introduction({ done, replay }: { done: () => void; replay: boolean }) {
       aria-label="ProfitLens introduction"
       onCancel={done}
     >
+      <div className="intro-spot" aria-hidden="true" />
       <div className="intro-composition">
-        <div className="intro-emblem" aria-hidden="true">
-          <svg className="intro-orbit" viewBox="0 0 220 220">
-            <rect x="24" y="24" width="172" height="172" rx="48" />
-          </svg>
-          <div className="intro-bars">
-            <i className="intro-bar" />
-            <i className="intro-bar" />
-            <i className="intro-bar" />
+        <div className="intro-stack" aria-hidden="true">
+          <div className="intro-pane back glass" />
+          <div className="intro-pane mid glass" />
+          <div className="intro-pane front glass iris">
+            <div className="intro-bars">
+              <i className="intro-bar" />
+              <i className="intro-bar" />
+              <i className="intro-bar" />
+            </div>
+            <i className="intro-sweep" />
           </div>
         </div>
         <div className="intro-wordmark">
-          <strong>
-            Profit Lens<span>.</span>
+          <strong className="intro-word">
+            Profit Lens<span className="intro-dot">.</span>
           </strong>
-          <p>A clearer view starts here.</p>
+          <p className="intro-tagline">A clearer view starts here.</p>
         </div>
       </div>
       <button className="intro-skip" onClick={done} autoFocus>
@@ -136,32 +150,50 @@ export function ExperienceProvider({
   children: React.ReactNode;
 }) {
   const [intro, setIntro] = useState(true);
-  const returnFocus = useRef<HTMLElement | null>(null);
-  const [replaying, setReplaying] = useState(false);
   const [keyboard, setKeyboard] = useState(false);
   const reduce = useReducedMotion();
-  const done = useCallback(() => {
-    try {
-      sessionStorage.setItem(INTRO_KEY, "seen");
-    } catch {
-      /* The app also works without storage. */
-    }
-    setIntro(false);
-  }, []);
-  const replay = useCallback(() => {
-    returnFocus.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    setReplaying(true);
-    setIntro(true);
+  const done = useCallback(() => setIntro(false), []);
+  const play = useCallback(() => {
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setIntro(true);
   }, []);
   useEffect(() => {
-    if (!intro && returnFocus.current?.isConnected) {
-      returnFocus.current.focus({ preventScroll: true });
-      returnFocus.current = null;
-    }
-  }, [intro]);
+    // The specular rim follows the pointer across whichever pane it is over,
+    // then glides back to the top corner when the pointer leaves.
+    if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    let current: HTMLElement | null = null;
+    let frame = 0;
+    let event: PointerEvent | null = null;
+    const apply = () => {
+      frame = 0;
+      if (!event) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const pane = target?.closest<HTMLElement>(".glass") ?? null;
+      if (current && current !== pane) {
+        current.style.removeProperty("--mx");
+        current.style.removeProperty("--my");
+      }
+      current = pane;
+      if (!pane) return;
+      const rect = pane.getBoundingClientRect();
+      pane.style.setProperty(
+        "--mx",
+        `${(((event.clientX - rect.left) / rect.width) * 100).toFixed(1)}%`,
+      );
+      pane.style.setProperty(
+        "--my",
+        `${(((event.clientY - rect.top) / rect.height) * 100).toFixed(1)}%`,
+      );
+    };
+    const move = (e: PointerEvent) => {
+      event = e;
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", move);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (["Tab", "Enter", " ", "Escape"].includes(event.key)) {
@@ -182,32 +214,15 @@ export function ExperienceProvider({
   }, []);
   return (
     <Experience.Provider
-      value={{ animate: !reduce && !keyboard && !intro, ready: !intro, replay }}
+      value={{ animate: !reduce && !keyboard && !intro, ready: !intro, play }}
     >
       <MotionConfig reducedMotion="user" transition={{ duration: 0.22, ease }}>
         <div data-intro-ready={!intro} inert={intro}>
           {children}
         </div>
-        {intro && <Introduction done={done} replay={replaying} />}
+        {intro && <Introduction done={done} />}
       </MotionConfig>
     </Experience.Provider>
-  );
-}
-
-export function ReplayIntro() {
-  const { replay } = useExperience();
-  const reduced = useReducedMotion();
-  if (reduced) return null;
-  return (
-    <button
-      className="replay-button"
-      onClick={replay}
-      aria-label="Replay logo intro"
-      title="Replay logo intro"
-    >
-      <Play size={13} />
-      <span>Play intro</span>
-    </button>
   );
 }
 
@@ -222,6 +237,7 @@ export function PageTransition({
   return (
     <motion.div
       key={identity}
+      className="view-stack"
       initial={animate ? { opacity: 0, transform: "translateY(8px)" } : false}
       animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{ duration: animate ? 0.22 : 0, ease }}

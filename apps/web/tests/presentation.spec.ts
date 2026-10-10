@@ -20,7 +20,7 @@ async function login(page: Page) {
   ).toBeVisible();
 }
 
-test("intro can be skipped and replayed, appears only once per session, and restores focus", async ({
+test("intro plays on every visit and after sign-in, and can be skipped", async ({
   page,
 }) => {
   await page.goto("/");
@@ -28,10 +28,6 @@ test("intro can be skipped and replayed, appears only once per session, and rest
   await expect(intro).toBeVisible();
   await intro.getByRole("button", { name: "Skip intro" }).click();
   await ready(page);
-  await page.screenshot({
-    path: "test-results/login-desktop.png",
-    fullPage: true,
-  });
   await page.getByLabel("Password", { exact: true }).fill("preview-password");
   await page.getByRole("button", { name: "Show password" }).click();
   await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
@@ -44,14 +40,21 @@ test("intro can be skipped and replayed, appears only once per session, and rest
     "password",
   );
   await page.reload();
-  await ready(page);
-  await expect(intro).toHaveCount(0);
-  const replay = page.getByRole("button", { name: "Replay logo intro" });
-  await replay.click();
   await expect(intro).toBeVisible();
   await page.keyboard.press("Escape");
   await ready(page);
-  await expect(replay).toBeFocused();
+  const sound = page.getByRole("button", { name: "Sound effects" });
+  await expect(sound).toHaveAttribute("aria-pressed", "false");
+  await sound.click();
+  await expect(sound).toHaveAttribute("aria-pressed", "true");
+  await credentials(page);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(intro).toBeVisible();
+  await intro.getByRole("button", { name: "Skip intro" }).click();
+  await ready(page);
+  await expect(
+    page.getByRole("heading", { name: "Records by billing month" }),
+  ).toBeVisible();
 });
 
 test("reduced-motion and keyboard users can sign in, navigate and close a focused dialog", async ({
@@ -64,8 +67,8 @@ test("reduced-motion and keyboard users can sign in, navigate and close a focuse
     page.getByRole("dialog", { name: "ProfitLens introduction" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Replay logo intro" }),
-  ).toHaveCount(0);
+    page.getByRole("button", { name: "Sound effects" }),
+  ).toBeVisible();
   await credentials(page);
   await page.getByLabel("Password", { exact: true }).press("Enter");
   await expect(
