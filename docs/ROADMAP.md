@@ -26,6 +26,10 @@ Updated the workspace with light and dark themes, record-source previews, a skip
 
 The refreshed browser suite passed all 11 cases, including record editing, CSV validation/confirmation/retry, PDF review/download, analyst restrictions, error recovery, mobile layout and automated accessibility checks. Lint, TypeScript and formatting checks passed. The feature boundary remains Weeks 1-3; financial calculations and AI capabilities are still planned.
 
+## Preloaded faculty demo - 10 October 2026
+
+The explicit demo setup now includes twelve months of varying invoice/expense record counts, private PDFs with reviewed and unreviewed examples, and import history. The separate `demo-files/` pack remains available for new imports. Repeat setup preserves existing business edits and revoked customer grants. The current Python suite passes 30 checks, including the new presentation-seed regression case. All 11 browser acceptance tests also pass with the populated seed, including chart/API consistency and the six-/twelve-month selector. No new financial or AI capabilities were added.
+
 ## What remains
 
 The application currently organizes and validates business data. Revenue/cost aggregation and data-quality analysis are next, followed by profitability metrics, rule-based findings, contract retrieval, AI investigations, verification and measured model-efficiency experiments. No profitability result, anomaly score, semantic retrieval benchmark or AI evaluation result is claimed in this release.

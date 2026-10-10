@@ -102,6 +102,9 @@ def seed_demo(password):
                     organization_id="demo-org", user_id=analyst, customer_id="C001"
                 )
             )
+    from .demo import seed_presentation
+
+    seed_presentation()
     print(
         "Synthetic workspaces provisioned. Existing accounts/passwords and business edits are not overwritten."
     )
@@ -111,12 +114,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("seed-demo")
+    sub.add_parser(
+        "seed-presentation", help="Add presentation data to an existing demo workspace"
+    )
     add = sub.add_parser("add-user")
     add.add_argument("--organization", required=True)
     add.add_argument("--email", required=True)
     add.add_argument("--name", required=True)
     add.add_argument("--role", choices=["admin", "finance", "analyst"], required=True)
     args = parser.parse_args()
+    if args.command == "seed-presentation":
+        from .demo import seed_presentation
+
+        seed_presentation()
+        return
     password = get_password()
     if args.command == "seed-demo":
         seed_demo(password)

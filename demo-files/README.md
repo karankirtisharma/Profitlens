@@ -14,7 +14,7 @@ Sign in as **admin or finance** in an **INR workspace**, such as the existing sy
 | 2 | `02-invoices.csv` | Invoices | 30 invoices across April-September 2026 |
 | 3 | `03-expenses.csv` | Expenses | 60 attributed expenses, two per customer/month |
 
-IDs begin with `DEMO3-` so they do not collide with the original C001/C002 seed. These counts are additions, not total dashboard counts; existing records remain. Later imports are skipped/deduplicated where unchanged. Edited existing IDs can cause conflicts. Import customers first or invoice/expense references will fail.
+The default dashboard dataset is preloaded separately with original C001/C002 and `READY-` IDs. This upload pack is never imported by the seed command. IDs begin with `DEMO3-` so they do not collide with the original C001/C002 seed. These counts are additions, not total dashboard counts; existing records remain. Later imports are skipped/deduplicated where unchanged. Edited existing IDs can cause conflicts. Import customers first or invoice/expense references will fail.
 
 The amounts vary reproducibly. Included examples cover discounts, a pre-tax refund, cents and one valid zero-value invoice (Orchid, September). Invoice tax values are synthetic inputs for validation, not tax guidance. The current overview counts records; it does not calculate revenue, contribution or margin.
 

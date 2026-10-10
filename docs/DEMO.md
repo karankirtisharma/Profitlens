@@ -14,6 +14,12 @@ Open **http://localhost:3000**. Use the provisioned account and its password sav
 
 The helper starts an existing production build. After frontend changes, stop the project's frontend process, run `npm --prefix apps/web run build`, then restart it with the helper. Avoid running development and production servers on the same port. The local startup helper does not install dependencies or provision accounts.
 
+## Already populated when you sign in
+
+The explicit demo setup now includes twelve months of synthetic records, confirmed/invalid import history, one prepared reviewed PDF and one PDF awaiting review. On a fresh setup the inventory is 6 customers, 54 invoices, 80 expenses and 2 contracts; existing records can increase these totals. Refresh the app after running `python -m profitlens.manage seed-presentation` in the prepared environment.
+
+Begin with **Overview**: switch between six and twelve recorded months, select a month, open the invoice/expense counters and inspect source rows. Then open **Contracts**, inspect the reviewed C001 terms and review C002 live (INR 20000, discount 0, 2026-09-01 through 2027-02-28, source page 1). The analyst's original C001 assignment includes twelve months of records. Prepared terms are synthetic fixture values checked against their PDFs, not an automated interpretation of a real contract.
+
 ## Ready-to-upload teacher pack
 
 Open **`demo-files`** in the repository, then follow its [upload guide](../demo-files/README.md). In an INR workspace, import `01-valid-data` in this order: **customers, invoices, expenses**. A first import adds 5 customers, 30 invoices and 60 expenses across April–September 2026. These IDs are separate from the original seed records.
@@ -40,7 +46,7 @@ The seed also provisions `finance@profitlens.local` and `other@profitlens.local`
 - GSAP controls the finite logo and glass-tile entrance. Framer Motion controls short page, dialog, button and chart transitions. Tailwind v4 utilities complement shared CSS tokens.
 - Movement is reduced for keyboard navigation and disabled with the system's reduced-motion preference. Decorative graphics are hidden from assistive technology. No animation is necessary to complete a task.
 - Charts use only the records accessible to the current account. The overview loads at most 200 records per type and 200 contracts; a limit note appears when a list reaches that cap. It is a preview of loaded records, not an unlimited analytics report.
-- The small seed has a limited set of records and may show one billing month and an empty contract library. Importing or reviewing data updates the overview after navigation or **Refresh**. No extra trends or financial results are fabricated for the presentation.
+- The presentation seed provides twelve recorded months and reviewed/unreviewed contract examples. Importing or reviewing data updates the overview after navigation or **Refresh**. Graphs show actual stored record counts; financial profitability and AI features remain later milestones.
 
 ## Verified scope and limits
 

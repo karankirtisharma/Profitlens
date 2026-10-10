@@ -30,7 +30,7 @@ npm ci
 npm run build
 ```
 
-The seed command prompts for a password of at least 12 characters. It creates synthetic workspaces and four accounts: `karan@profitlens.local` (admin), `finance@profitlens.local` (finance), `analyst@profitlens.local` (analyst assigned to C001), and `other@profitlens.local` (admin of the isolated second organization). They use the supplied demo password. Re-running seed does not reset existing passwords or restore revoked grants. Use synthetic data only for this setup.
+The seed command prompts for a password of at least 12 characters. It creates synthetic workspaces and four accounts: `karan@profitlens.local` (admin), `finance@profitlens.local` (finance), `analyst@profitlens.local` (analyst assigned to C001), and `other@profitlens.local` (admin of the isolated second organization). They use the supplied demo password. Re-running seed does not reset existing passwords or restore revoked grants. Use synthetic data only for this setup. The command also preloads the presentation dataset described below.
 
 ## Start the application
 
@@ -68,6 +68,20 @@ To provision another member in an existing organization:
 ```
 
 Provide the password when prompted. An admin can then assign customers in **Team access**. Email invitations, password recovery, custom roles and organization creation screens are outside this release.
+
+## Preloaded presentation workspace
+
+Fresh `seed-demo` setup creates six customers, twelve recorded months (October 2025–September 2026), 54 invoices, 80 expenses, two private PDFs and confirmed/invalid import history. Counts include the original small seed. Monthly record counts vary so both chart ranges are useful. One PDF has prepared, source-checked synthetic terms and the other is available for a live review. These are synthetic demonstration records, not financial analysis results.
+
+For a previously provisioned local workspace, add this dataset without entering or changing account passwords:
+
+```powershell
+.\.venv\Scripts\python.exe -m profitlens.manage seed-presentation
+```
+
+Then click **Refresh** in the workspace. Existing user data adds to the totals. The command targets only the prepared `demo-org` INR workspace; it does not seed arbitrary workspaces. It preserves edits, previously reviewed contracts and revoked grants on repeat runs. Conflicting new IDs cause a database rollback. A process failure after writing a PDF can leave an unreferenced private file, as with the normal upload workflow.
+
+`READY-` IDs identify the additional baseline records; original C001/C002 remain so the existing analyst assignment has twelve months of examples. `demo-files/` uses separate `DEMO3-` IDs and is **not imported by setup**. Keep it for live CSV/PDF uploads. If already uploaded manually, matching files deduplicate as usual. No database dump, password or private PDF storage is published to GitHub; the seed code recreates the synthetic workspace on another machine after setup.
 
 ## Try the Week 3 workflow
 

@@ -28,7 +28,7 @@ The intended investigation path is:
 | Private contracts | Upload/download text-based PDFs, inspect page evidence and manually review fixed monthly pricing and effective dates. |
 | Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
 | Presentation | Responsive liquid-glass interface ("Panes in Depth") in light and dark themes: record summaries with source previews, a WebGL background, an intro on every visit, optional interface sounds, animated typing, reduced-motion support and keyboard navigation. |
-| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 29 Python checks and 11 browser acceptance tests. |
+| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 30 Python checks and 11 browser acceptance tests. |
 
 ## Run the web application
 
@@ -42,6 +42,8 @@ Browser → Next.js workspace → FastAPI authorization → PostgreSQL
 ```
 
 For a live demonstration, follow the [Week 3 presentation guide](docs/DEMO.md). It explains the verified workflow, synthetic data, intro controls and current limits.
+
+`seed-demo` now prepares twelve months of synthetic record activity, private contract documents and import history. For an existing prepared workspace, run `.\.venv\Scripts\python.exe -m profitlens.manage seed-presentation`, then Refresh in the app. The setup preserves existing edits and access grants; it runs only when explicitly requested, not on every server start.
 
 Ready-to-upload files are in **[demo-files](demo-files/README.md)**: five fictional customers, six months of invoices and expenses, three contract PDFs, and intentional validation/retry examples. The included guide explains the import order and expected results.
 

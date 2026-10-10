@@ -551,3 +551,74 @@ def test_api_preserves_decimal_strings_and_analyst_record_scope():
     a = client("analyst")
     assert [r["invoice_id"] for r in a.get(BASE + "/records/invoices").json()] == ["I1"]
     assert a.get(BASE + "/records/invoices/PRIVATE").status_code == 404
+
+
+def test_presentation_seed_is_populated_separate_and_preserves_edits():
+    from profitlens.demo import seed_presentation
+    from profitlens.manage import seed_demo
+
+    seed_demo(PASSWORD)
+    with db.engine.begin() as conn:
+        invoices = list(
+            conn.execute(
+                select(db.invoices).where(db.invoices.c.organization_id == "demo-org")
+            ).mappings()
+        )
+        assert len({r["billing_period"] for r in invoices}) == 12
+        assert sum(r["invoice_id"].startswith("READY-") for r in invoices) == 52
+        assert not any(r["customer_id"].startswith("DEMO3-") for r in invoices)
+        docs = list(
+            conn.execute(
+                select(db.contracts).where(db.contracts.c.organization_id == "demo-org")
+            ).mappings()
+        )
+        assert {r["state"] for r in docs} == {"reviewed", "unreviewed"}
+        assert all(
+            (settings.storage_dir / "demo-org" / r["file_key"]).is_file() for r in docs
+        )
+        assert all(r["pages"][0]["text"] for r in docs)
+        uid = conn.execute(
+            select(db.users.c.id).where(db.users.c.email == "analyst@profitlens.local")
+        ).scalar_one()
+        conn.execute(delete(db.grants).where(db.grants.c.user_id == uid))
+        conn.execute(
+            db.invoices.update()
+            .where(
+                db.invoices.c.organization_id == "demo-org",
+                db.invoices.c.invoice_id == "READY-I-01-2025-10",
+            )
+            .values(subtotal="12345", total="14145")
+        )
+        counts = {
+            t.name: len(list(conn.execute(select(t))))
+            for t in (db.customers, db.invoices, db.expenses, db.contracts)
+        }
+    seed_presentation()
+    with db.engine.connect() as conn:
+        assert counts == {
+            t.name: len(list(conn.execute(select(t))))
+            for t in (db.customers, db.invoices, db.expenses, db.contracts)
+        }
+        assert not conn.execute(
+            select(db.grants).where(db.grants.c.user_id == uid)
+        ).first()
+        assert (
+            conn.execute(
+                select(db.invoices.c.subtotal).where(
+                    db.invoices.c.organization_id == "demo-org",
+                    db.invoices.c.invoice_id == "READY-I-01-2025-10",
+                )
+            ).scalar_one()
+            == 12345
+        )
+    c = TestClient(app, headers={"Origin": settings.web_origin})
+    assert (
+        c.post(
+            "/api/auth/login",
+            json={"email": "karan@profitlens.local", "password": PASSWORD},
+        ).status_code
+        == 200
+    )
+    for doc in docs:
+        response = c.get(f"/api/workspaces/demo-org/contracts/{doc['id']}/file")
+        assert response.status_code == 200 and response.content.startswith(b"%PDF")
