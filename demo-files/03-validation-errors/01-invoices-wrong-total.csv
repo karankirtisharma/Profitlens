@@ -1,0 +1,2 @@
+invoice_id,customer_id,billing_period,currency,subtotal,discount,tax,refund,total
+DEMO3-BAD-TOTAL,DEMO3-C001,2026-04,INR,1000.00,0.00,0.00,0.00,999.00

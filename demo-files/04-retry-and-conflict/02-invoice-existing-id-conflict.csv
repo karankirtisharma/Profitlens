@@ -1,0 +1,2 @@
+invoice_id,customer_id,billing_period,currency,subtotal,discount,tax,refund,total
+DEMO3-I-001-202604,DEMO3-C001,2026-04,INR,15100.00,500.00,2610.00,0.00,17210.00

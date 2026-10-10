@@ -14,6 +14,12 @@ Open **http://localhost:3000**. Use the provisioned account and its password sav
 
 The helper starts an existing production build. After frontend changes, stop the project's frontend process, run `npm --prefix apps/web run build`, then restart it with the helper. Avoid running development and production servers on the same port. The local startup helper does not install dependencies or provision accounts.
 
+## Ready-to-upload teacher pack
+
+Open **`demo-files`** in the repository, then follow its [upload guide](../demo-files/README.md). In an INR workspace, import `01-valid-data` in this order: **customers, invoices, expenses**. A first import adds 5 customers, 30 invoices and 60 expenses across April–September 2026. These IDs are separate from the original seed records.
+
+Upload the three PDFs from `02-contracts` against their matching customer IDs and review the terms using the guide. Use `03-validation-errors` to show rejected inputs, then `04-retry-and-conflict` to demonstrate safe retries and conflicting record IDs. All files contain fictional data. The file picker supports browsing; dropping a file onto its native input depends on the browser. There is no whole-page drop zone.
+
 ## Suggested faculty walkthrough — 5 to 7 minutes
 
 | Step | Show | Explain |

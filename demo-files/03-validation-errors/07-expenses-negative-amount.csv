@@ -1,0 +1,2 @@
+expense_id,customer_id,billing_period,category,amount,currency
+DEMO3-BAD-EXPENSE,DEMO3-C001,2026-04,Service delivery,-100.00,INR

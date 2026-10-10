@@ -43,6 +43,8 @@ Browser → Next.js workspace → FastAPI authorization → PostgreSQL
 
 For a live demonstration, follow the [Week 3 presentation guide](docs/DEMO.md). It explains the verified workflow, synthetic data, intro controls and current limits.
 
+Ready-to-upload files are in **[demo-files](demo-files/README.md)**: five fictional customers, six months of invoices and expenses, three contract PDFs, and intentional validation/retry examples. The included guide explains the import order and expected results.
+
 See [workspace access and import guarantees](docs/SECURITY_AND_IMPORTS.md) for role behavior, transaction boundaries, retries and record provenance.
 
 ## Planned architecture
@@ -88,7 +90,8 @@ The academic evaluation will use a reproducible synthetic dataset. Planned measu
 | `apps/web/` | Next.js/TypeScript workspace and Playwright browser tests. |
 | `migrations/` | Versioned PostgreSQL schema. |
 | [Development guide](docs/DEVELOPMENT.md) | Local setup, demo accounts, test commands and operational limits. |
-| `data/demo/` | Synthetic input examples. |
+| `data/demo/` | Original synthetic input examples. |
+| [Teacher demo files](demo-files/README.md) | Ready-to-upload CSVs and PDFs, validation examples and a short walkthrough. |
 | `tests/` | Focused behavior tests; also run by GitHub Actions. |
 | [Project brief](docs/PROJECT_BRIEF.md) | Problem, academic contribution, scope, and acceptance evidence. |
 | [Architecture](docs/ARCHITECTURE.md) | Planned components, provenance, security, and financial boundaries. |
