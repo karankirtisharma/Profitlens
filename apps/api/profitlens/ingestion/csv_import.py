@@ -49,9 +49,29 @@ SCHEMAS: dict[str, tuple[type[BaseModel], tuple[str, ...]]] = {
     "customers": (Customer, ("customer_id", "name", "industry")),
     "invoices": (
         Invoice,
-        ("invoice_id", "customer_id", "billing_period", "currency", "subtotal", "discount", "tax", "refund", "total"),
+        (
+            "invoice_id",
+            "customer_id",
+            "billing_period",
+            "currency",
+            "subtotal",
+            "discount",
+            "tax",
+            "refund",
+            "total",
+        ),
     ),
-    "expenses": (Expense, ("expense_id", "customer_id", "billing_period", "category", "amount", "currency")),
+    "expenses": (
+        Expense,
+        (
+            "expense_id",
+            "customer_id",
+            "billing_period",
+            "category",
+            "amount",
+            "currency",
+        ),
+    ),
 }
 
 
@@ -66,39 +86,79 @@ def load_csv(path: str | Path, kind: str, organization_id: str) -> ImportResult:
     model, columns = SCHEMAS[kind]
     try:
         if source.stat().st_size > MAX_CSV_BYTES:
-            result.issues.append(ImportIssue("file_too_large", "CSV exceeds 5 MiB preview limit", source.name))
+            result.issues.append(
+                ImportIssue(
+                    "file_too_large", "CSV exceeds 5 MiB preview limit", source.name
+                )
+            )
             return result
         with source.open("r", encoding="utf-8-sig", newline="") as stream:
             reader = csv.DictReader(stream, restkey="__extra__")
             headers = reader.fieldnames
             if not headers:
-                result.issues.append(ImportIssue("missing_header", "CSV has no header row", source.name, 1))
+                result.issues.append(
+                    ImportIssue(
+                        "missing_header", "CSV has no header row", source.name, 1
+                    )
+                )
                 return result
             if len(headers) != len(set(headers)):
-                result.issues.append(ImportIssue("duplicate_header", "CSV has duplicate column names", source.name, 1))
+                result.issues.append(
+                    ImportIssue(
+                        "duplicate_header",
+                        "CSV has duplicate column names",
+                        source.name,
+                        1,
+                    )
+                )
                 return result
             missing = set(columns) - set(headers)
             unexpected = set(headers) - set(columns)
             if missing or unexpected:
                 detail = f"missing={sorted(missing)}, unexpected={sorted(unexpected)}"
-                result.issues.append(ImportIssue("invalid_header", detail, source.name, 1))
+                result.issues.append(
+                    ImportIssue("invalid_header", detail, source.name, 1)
+                )
                 return result
             for row_number, raw in enumerate(reader, start=2):
                 if row_number - 1 > MAX_ROWS:
-                    result.issues.append(ImportIssue("too_many_rows", "CSV exceeds 10,000-row preview limit", source.name, row_number))
+                    result.issues.append(
+                        ImportIssue(
+                            "too_many_rows",
+                            "CSV exceeds 10,000-row preview limit",
+                            source.name,
+                            row_number,
+                        )
+                    )
                     break
                 if not any(value for value in raw.values()):
                     continue
                 if "__extra__" in raw or any(value is None for value in raw.values()):
-                    result.issues.append(ImportIssue("column_count", "Row has missing or extra columns", source.name, row_number))
+                    result.issues.append(
+                        ImportIssue(
+                            "column_count",
+                            "Row has missing or extra columns",
+                            source.name,
+                            row_number,
+                        )
+                    )
                     continue
                 try:
-                    record = model.model_validate({**raw, "organization_id": organization_id})
+                    record = model.model_validate(
+                        {**raw, "organization_id": organization_id}
+                    )
                 except ValidationError as exc:
                     for error in exc.errors():
-                        field_name = ".".join(str(part) for part in error["loc"]) or "row"
+                        field_name = (
+                            ".".join(str(part) for part in error["loc"]) or "row"
+                        )
                         result.issues.append(
-                            ImportIssue("invalid_value", f"{field_name}: {error['msg']}", source.name, row_number)
+                            ImportIssue(
+                                "invalid_value",
+                                f"{field_name}: {error['msg']}",
+                                source.name,
+                                row_number,
+                            )
                         )
                     continue
                 result.rows.append(ImportedRow(record, source.name, row_number))
@@ -145,7 +205,14 @@ def preview_bundle(
     for row in customers.rows:
         key = row.record.customer_id
         if key in known_customers:
-            issues.append(ImportIssue("duplicate_id", f"Duplicate customer_id: {key}", row.source_file, row.source_row))
+            issues.append(
+                ImportIssue(
+                    "duplicate_id",
+                    f"Duplicate customer_id: {key}",
+                    row.source_file,
+                    row.source_row,
+                )
+            )
         known_customers.add(key)
 
     for result, id_field in ((invoices, "invoice_id"), (expenses, "expense_id")):
@@ -154,16 +221,32 @@ def preview_bundle(
             record = row.record
             key = getattr(record, id_field)
             if key in seen:
-                issues.append(ImportIssue("duplicate_id", f"Duplicate {id_field}: {key}", row.source_file, row.source_row))
+                issues.append(
+                    ImportIssue(
+                        "duplicate_id",
+                        f"Duplicate {id_field}: {key}",
+                        row.source_file,
+                        row.source_row,
+                    )
+                )
             seen.add(key)
             if record.customer_id not in known_customers:
                 issues.append(
-                    ImportIssue("unknown_customer", f"Unknown customer_id: {record.customer_id}", row.source_file, row.source_row)
+                    ImportIssue(
+                        "unknown_customer",
+                        f"Unknown customer_id: {record.customer_id}",
+                        row.source_file,
+                        row.source_row,
+                    )
                 )
 
     currencies = {row.record.currency for row in [*invoices.rows, *expenses.rows]}
     if len(currencies) > 1:
-        issues.append(ImportIssue("mixed_currency", f"Mixed currencies: {sorted(currencies)}", "bundle"))
+        issues.append(
+            ImportIssue(
+                "mixed_currency", f"Mixed currencies: {sorted(currencies)}", "bundle"
+            )
+        )
 
     links_by_key: dict[tuple[str, str], PeriodLink] = {}
     for row in invoices.rows:
@@ -198,6 +281,11 @@ def preview_bundle(
 
     links = [links_by_key[key] for key in sorted(links_by_key)]
     return BundlePreview(
-        customers, invoices, expenses, issues, warnings,
-        next(iter(currencies)) if len(currencies) == 1 else None, links,
+        customers,
+        invoices,
+        expenses,
+        issues,
+        warnings,
+        next(iter(currencies)) if len(currencies) == 1 else None,
+        links,
     )

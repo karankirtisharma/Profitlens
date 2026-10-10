@@ -1,63 +1,62 @@
 # ProfitLens architecture
 
-**Status:** Target design. Only the local Week 1 CSV/PDF ingestion preview exists in code today. The diagram and later sections describe the intended web application.
+**Implemented through Week 3:** authenticated workspaces, organization/customer authorization, business records, transactional imports and private contract review. Financial calculations, findings, retrieval and AI investigation remain later stages.
 
-## Planned components
+## Implemented data foundation
 
 ```mermaid
-flowchart TB
-  UI[Next.js dashboard] --> API[FastAPI application]
-  API --> AUTH[Organization and role authorization]
-  API --> INGEST[Import service: CSV and PDF]
-  INGEST --> DB[(PostgreSQL: business records)]
-  INGEST --> STORE[Private document storage]
-  STORE --> CHUNKS[Page-linked contract passages]
-  CHUNKS --> VEC[(pgvector index)]
-  DB --> CALC[Deterministic profitability engine]
-  CALC --> RULES[Anomaly rules]
-  API --> RETRIEVE[Permission-aware context retrieval]
-  AUTH --> RETRIEVE
-  DB --> RETRIEVE
-  VEC --> RETRIEVE
-  RULES --> RETRIEVE
-  RETRIEVE --> LLM[Provider-adapted pretrained model]
-  LLM --> VERIFY[Check response schema, citations and numbers]
-  VERIFY --> EVIDENCE[Explanation, source links and limitations]
-  EVIDENCE --> UI
+flowchart LR
+  Browser[Next.js / TypeScript workspace] --> Proxy[Same-origin API proxy]
+  Proxy --> API[FastAPI]
+  API --> Auth[Session, membership and customer scope]
+  Auth --> Records[Validated records and import confirmation]
+  Records --> DB[(PostgreSQL)]
+  Auth --> PDF[PDF upload / authorized download]
+  PDF --> Storage[Private local files]
+  PDF --> Review[Page evidence and manual term review]
+  Review --> DB
 ```
 
-The application will use a Next.js/TypeScript interface, a FastAPI service, PostgreSQL for business records, pgvector for contract passage search, and private storage for uploaded PDFs. Keep financial calculations and permission checks in the API. The AI provider receives only authorized context and cannot create authoritative financial values or approve access.
+FastAPI is the trust boundary. The Next.js proxy keeps browser requests on one origin; it has no database credentials. API dependencies resolve session/membership scope before querying records. Composite organization/customer foreign keys protect relationships. Business writes use PostgreSQL transactions, with successful commit before a success response is sent.
 
-## Working software and planned components
+SQLAlchemy Core defines the relational schema; Alembic carries a frozen initial migration. Organization-scoped tables hold customers, invoices, expenses, import batches, customer grants, contracts and audit events. Authentication tables hold users, memberships, hashed opaque sessions and login attempt limits. `NUMERIC(14,2)` and Python Decimal preserve amounts; API values are decimal strings.
 
-| Component | Current state |
-| --- | --- |
-| CSV and PDF preview | Working locally: schema validation, customer/period links, row errors, completeness warnings, and page-referenced selectable PDF text. |
-| Persistent business records and web/API workflows | Planned. |
-| Profitability calculations and anomaly findings | Planned. |
-| Contract search, evidence retrieval, and AI verification | Planned. |
+CSV preview validates one file type at a time and stores a reviewable batch. Confirmation locks the workspace, checks current data and commits all rows together. Fingerprints and scoped primary keys prevent duplicate writes. Original row provenance survives subsequent edits, which append audit events. The original command-line bundle preview remains available and does not persist records.
 
-The import preview returns `persisted: false`. The backend, database and web paths shown below will be created as working features in later milestones.
+PDF files live outside the web root and have generated storage names. Authorized API requests return files; no static directory serves uploads. Extracted page text is unverified evidence. Reviewed monthly terms include effective dates, rate/discount, currency, source page and reviewer. [Read the access and import guarantees](SECURITY_AND_IMPORTS.md).
 
-## Data and trust boundaries
+## Target investigation pipeline
 
-An import will receive its organization ID from an authenticated API session, never from a CSV cell. It will validate row shape, identifiers, decimal amounts, dates, and customer references before persistence. A confirmed import will keep the source file and row for each record and avoid duplicate writes on retry. Contract PDFs will be stored privately; extracted text and candidate terms remain unverified until a user checks them.
+```mermaid
+flowchart LR
+  DB[(Business records)] --> Calc[Deterministic profitability]
+  Calc --> Rules[Reviewable anomaly findings]
+  PDF[Reviewed contracts and passages] --> Vector[(pgvector)]
+  Rules --> Context[Authorized customer/period context]
+  DB --> Context
+  Vector --> Context
+  Context --> Model[Pretrained generative model]
+  Model --> Verify[Schema, citation and numeric verification]
+  Verify --> UI[Evidence-linked investigation]
+```
 
-The API will enforce organization, role, and customer scope before querying relational records or vector passages. It will filter retrieved evidence again before constructing a bounded context pack. The same checks apply to document downloads, citation links, and saved investigations, including when permissions change. Contract text is treated as evidence, not as instructions to the application.
+These investigation components are planned. The AI provider will receive only authorized context and cannot create authoritative financial values or approve access. Contract content is evidence, never an instruction to the application. Citation validity does not prove semantic support; the later evaluation will check both. Unsupported or missing evidence must produce a visible limitation.
 
-An AI response must match a structured schema. Citation IDs must belong to the authorized context pack, and displayed financial values must match deterministic metrics for the same customer and period. Missing or unsupported evidence produces a visible limitation rather than a confident finding. Citation validity alone does not prove that a passage supports a claim; the evaluation will check that separately.
+## Financial boundary for the next stage
 
-## Financial boundary
+Invoice `subtotal` is before discount and excludes tax. Supported `refund` is a pre-tax reduction in the same period. Net billed revenue will be `subtotal - discount - refund`; tax is excluded. Attributed costs join by customer and billing period. Contribution will be revenue minus attributed cost; margin is contribution divided by revenue only when revenue is positive. Missing expenses do not establish zero cost. Unsupported credits, duplicates and unmatched periods require explicit handling. See [data contracts](DATA_CONTRACTS.md).
 
-For the supported project dataset, invoice `subtotal` is before discount and excludes tax. The supported `refund` is a pre-tax reduction in the same period. Net billed revenue is `subtotal - discount - refund`; tax is excluded. Attributed costs are linked to the same customer and billing period. Contribution is revenue minus attributed costs; margin is contribution divided by revenue only when revenue is positive. Duplicates, missing costs, unsupported credit notes, and unmatched periods must be handled explicitly. See the [input and amount contracts](DATA_CONTRACTS.md).
-
-## Initial repository layout
+## Repository layout
 
 ```text
-apps/api/profitlens/ingestion/  Week 1 import preview
-data/demo/                    Synthetic sample CSVs
-docs/                         Public scope, design, verified progress, contracts
-tests/                        Import behavior tests
+apps/api/profitlens/           FastAPI, schema, access, records and imports
+apps/api/profitlens/ingestion/ Original CSV/PDF validation and preview CLI
+apps/web/                     Next.js UI, shared components and browser tests
+migrations/                   Alembic schema revisions
+scripts/                      Synthetic fixtures and local/test startup
+data/demo/                    Synthetic CSVs and text-based PDFs
+docs/                         Scope, architecture, setup and verified progress
+tests/                        Ingestion and PostgreSQL/API behavior tests
 ```
 
-`apps/web/`, database migrations, API routes, and deployment configuration will be added as working features. The team's detailed planning and local session memory are Git-ignored and are not required to run the public Week 1 preview.
+[Development](DEVELOPMENT.md) records runtime choices and commands. [Progress](ROADMAP.md) records actual milestone verification. Local file storage and account provisioning suit the current prototype; deployment, recovery, backups and hosting integration need the later deployment milestone.

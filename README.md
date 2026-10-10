@@ -4,7 +4,7 @@
 
 ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It brings customer records, invoices, attributed expenses, and PDF contracts into one workflow. The planned system will calculate contribution and margin in code, flag reviewable pricing and cost issues, and help authorized users investigate them through evidence-linked AI explanations.
 
-> **Project status — Week 1 complete (27 September 2026).** The repository currently contains a working *local ingestion preview*: CSV validation and customer/period linking, page-referenced PDF text extraction, synthetic examples, and automated tests. The web app, database, financial engine, and AI investigation features are planned. [See verified progress](docs/ROADMAP.md).
+> **Project status — Weeks 1–3 complete (10 October 2026).** The application now includes an authenticated Next.js workspace, PostgreSQL persistence, customer/invoice/expense management, transactional CSV imports, private contract PDFs and manually reviewed monthly terms. Financial analysis and AI investigations are the next stages. [See verified progress](docs/ROADMAP.md).
 
 ## The problem it addresses
 
@@ -20,12 +20,25 @@ The intended investigation path is:
 
 ## What works today
 
-| Week 1 capability | Current behavior |
+| Capability | Current behavior |
 | --- | --- |
-| CSV import preview | Validates customers, invoices, and expenses; reports row errors, duplicate IDs, unknown customers, invalid periods, invoice-total mismatches, and mixed currencies. |
-| Customer-period links | Groups invoice and expense IDs by customer and billing month; warns when one side is missing rather than assuming a zero cost. |
-| PDF contract text | Extracts selectable text with page references; reports unsupported or unreadable PDFs. Contract terms are not automatically verified. |
-| Reproducibility | Synthetic CSV examples and nine focused unit tests. The preview writes no business records to a database. |
+| Secure workspace | Local accounts, expiring server-side sessions, admin/finance/analyst roles, organization isolation and assigned-customer access. |
+| Business records | Create, inspect and update customers, invoices and expenses with exact decimal validation and retained provenance. |
+| CSV imports | Preview row errors; confirm valid records atomically; reject conflicts; safely retry without duplicates. |
+| Private contracts | Upload/download text-based PDFs, inspect page evidence and manually review fixed monthly pricing and effective dates. |
+| Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
+| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 29 Python checks and five browser acceptance tests. |
+
+## Run the web application
+
+Use the [development guide](docs/DEVELOPMENT.md) for database setup, migrations, account provisioning and startup. The frontend runs at `http://localhost:3000`; FastAPI runs on port 8000. No AI API key is required for the completed data-management features.
+
+```text
+Browser → Next.js workspace → FastAPI authorization → PostgreSQL
+                                      └────────────→ Private contract files
+```
+
+See [workspace access and import guarantees](docs/SECURITY_AND_IMPORTS.md) for role behavior, transaction boundaries, retries and record provenance.
 
 ## Planned architecture
 
@@ -41,11 +54,11 @@ flowchart LR
     G --> H[Next.js investigation view]
 ```
 
-This diagram shows the **target product**. The Week 1 implementation covers local validation and PDF text extraction. Future components will use FastAPI, PostgreSQL, pgvector, and a Next.js/TypeScript interface. [Read the architecture and trust boundaries](docs/ARCHITECTURE.md).
+This diagram shows the **target product**. Next.js, FastAPI, PostgreSQL, business-data validation, private files and authorized access are implemented. Financial analysis, pgvector retrieval and AI explanations are subsequent stages. [Read the architecture and trust boundaries](docs/ARCHITECTURE.md).
 
 ## Try the Week 1 preview
 
-Install Python 3.11 or later. From a PowerShell terminal in the repository root:
+Install Python 3.12 or later. From a PowerShell terminal in the repository root:
 
 ```powershell
 python -m venv .venv
@@ -66,7 +79,10 @@ The academic evaluation will use a reproducible synthetic dataset. Planned measu
 
 | Path | Purpose |
 | --- | --- |
-| `apps/api/profitlens/ingestion/` | Current CSV/PDF preview and validation models. |
+| `apps/api/profitlens/` | FastAPI, access rules, persistent imports, data models and the original ingestion CLI. |
+| `apps/web/` | Next.js/TypeScript workspace and Playwright browser tests. |
+| `migrations/` | Versioned PostgreSQL schema. |
+| [Development guide](docs/DEVELOPMENT.md) | Local setup, demo accounts, test commands and operational limits. |
 | `data/demo/` | Synthetic input examples. |
 | `tests/` | Focused behavior tests; also run by GitHub Actions. |
 | [Project brief](docs/PROJECT_BRIEF.md) | Problem, academic contribution, scope, and acceptance evidence. |

@@ -27,7 +27,7 @@ coverage/
 *.tsbuildinfo
 
 # Local project notes and working instructions
-/AGENTS.md
+AGENTS.md
 /brain.md
 /masterplan.md
 
@@ -44,3 +44,12 @@ data/exports/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Private local runtime and design context
+.local/
+.21st/
+playwright-report/
+test-results/
+next-env.d.ts
+agent.md
+agents.md

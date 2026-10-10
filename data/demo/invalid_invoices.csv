@@ -1,0 +1,3 @@
+invoice_id,customer_id,billing_period,currency,subtotal,discount,tax,refund,total
+BAD-1,C001,2026-09,INR,100,0,0,0,99
+BAD-2,MISSING,2026-09,INR,100,0,0,0,100

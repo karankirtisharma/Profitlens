@@ -50,7 +50,9 @@ class Invoice(PeriodRecord):
             raise ValueError("discount plus refund cannot exceed subtotal")
         expected = self.subtotal - self.discount + self.tax - self.refund
         if self.total != expected:
-            raise ValueError(f"total must equal subtotal - discount + tax - refund ({expected})")
+            raise ValueError(
+                f"total must equal subtotal - discount + tax - refund ({expected})"
+            )
         return self
 
 

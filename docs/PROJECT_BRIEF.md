@@ -8,7 +8,7 @@
 
 **Team:** Group project; membership is managed through the college process
 
-**Current implementation:** Week 1 ingestion preview complete. The application and experiments described below are planned.
+**Current implementation:** Weeks 1–3 complete: authenticated workspace, persistent business records, validated imports, protected PDFs and manually reviewed contract terms. Financial analytics, retrieval and AI experiments described below remain planned.
 
 ## Problem and proposed solution
 
@@ -22,7 +22,7 @@ The project combines validated CSV/PDF ingestion, robust deterministic financial
 
 | Dimension | How the project addresses it |
 | --- | --- |
-| Viability | A bounded 12-week prototype, synthetic data, staged delivery, and a working Week 1 import preview. |
+| Viability | A bounded 12-week prototype, synthetic data, staged delivery, and a tested application foundation with persistent business workflows. |
 | Engineering depth | Exact financial rules, import provenance, database constraints, organization/customer permissions, retrieval, and verifiable AI output. |
 | Trend alignment | Document search, context-aware retrieval, grounded generative AI, and an embedding-efficiency experiment. |
 | Social/industrial impact | Helps smaller businesses investigate pricing and cost issues while keeping decisions and evidence review with people. |

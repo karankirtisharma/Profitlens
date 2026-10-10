@@ -1,0 +1,99 @@
+# Run ProfitLens locally
+
+## Runtime decisions
+
+The current application uses Python 3.12, FastAPI, SQLAlchemy Core, Alembic, PostgreSQL 17, and Next.js 16 / React 19 / TypeScript on Node.js 24. Python dependencies are pinned in `requirements.lock`; frontend dependencies are pinned in `apps/web/package-lock.json`.
+
+Accounts are provisioned locally. Passwords are hashed with Argon2; opaque session tokens are stored only as SHA-256 hashes in PostgreSQL. The browser receives an HttpOnly, SameSite=Strict cookie. Sessions expire after eight hours and are revoked on logout. A same-origin Next.js proxy connects the browser to FastAPI; no database credentials enter the frontend bundle. No external authentication subscription is required.
+
+## First-time setup
+
+Run commands from the repository root unless a command changes directory. Prerequisites: Python 3.12+, Node.js 24, and PostgreSQL 17 (or Docker Desktop/Engine for the supplied database service).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.lock
+.\.venv\Scripts\python.exe -m pip install -e . --no-deps
+Copy-Item .env.example .env
+```
+
+Edit `.env`: choose a local database password, set the matching `DATABASE_URL`, and keep `WEB_ORIGIN=http://localhost:3000`. URL-encode reserved characters if your database password contains them. Do not commit `.env`.
+
+For Docker, the `POSTGRES_PASSWORD` and `DATABASE_URL` values must agree:
+
+```powershell
+docker compose up -d db
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m profitlens.manage seed-demo
+cd apps/web
+npm ci
+npm run build
+```
+
+The seed command prompts for a password of at least 12 characters. It creates synthetic workspaces and four accounts: `karan@profitlens.local` (admin), `finance@profitlens.local` (finance), `analyst@profitlens.local` (analyst assigned to C001), and `other@profitlens.local` (admin of the isolated second organization). They use the supplied demo password. Re-running seed does not reset existing passwords or restore revoked grants. Use synthetic data only for this setup.
+
+## Start the application
+
+From the root, start the API:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn profitlens.main:app --host 127.0.0.1 --port 8000
+```
+
+In a second terminal:
+
+```powershell
+cd apps/web
+npm run dev
+```
+
+Open **http://localhost:3000** (use this exact origin, rather than 127.0.0.1, for browser requests). API documentation is at **http://127.0.0.1:8000/docs**; read endpoints can be explored there, but writes require the configured origin and a session. Health is at `/api/health`. For production-build verification, use `npm run build` and `npm start` instead of `npm run dev`.
+
+On the prepared Windows development machine, `scripts/start-local.ps1` starts the existing private portable database when available and launches both servers in the background. It does not install PostgreSQL or create credentials. The portable data directory, runtime logs and local demo access file are excluded from Git. Other machines should use Docker or an installed PostgreSQL server. On macOS/Linux use `.venv/bin/python` in place of the Windows Python path.
+
+To provision another member in an existing organization:
+
+```powershell
+.\.venv\Scripts\python.exe -m profitlens.manage add-user --organization demo-org --email teammate@example.test --name "Project teammate" --role analyst
+```
+
+Provide the password when prompted. An admin can then assign customers in **Team access**. Email invitations, password recovery, custom roles and organization creation screens are outside this release.
+
+## Try the Week 3 workflow
+
+1. Sign in as admin. Inspect the seeded customer directory, invoice and expense records.
+2. Open **Imports**. Upload customer CSVs before their invoices or expenses; preview, resolve errors and confirm.
+3. Upload `data/demo/invalid_invoices.csv` to see row errors. Confirmation is unavailable; no business records are created.
+4. Re-upload a previously confirmed file to see the same result without duplicate records. Matching records in different files are skipped; conflicting IDs require an explicit edit.
+5. Open **Contracts**, associate `data/demo/contract_C001.pdf` with C001, and inspect its source page. Confirm the effective dates, fixed monthly rate, discount, currency and source page from the document. Download uses the authorized API.
+6. Sign in as the analyst. Only C001 and its related records/documents are visible. Use the admin account to revoke that assignment; subsequent API requests are denied.
+
+Contract PDFs are synthetic. `python scripts/generate_demo.py` recreates the small fixture set; this requires the test dependencies. The broader evaluation dataset belongs to subsequent milestones.
+
+## Verification
+
+The PostgreSQL integration suite requires a **separate database whose name ends in `_test`**. Create `profitlens_test` and `profitlens_e2e_test`, owned by your test database role, and set their full connection strings locally. Do not point tests at the development database. API tests clear their dedicated database tables between cases. Browser tests add synthetic records to their separate database.
+
+```powershell
+# Set TEST_DATABASE_URL and E2E_DATABASE_URL to your dedicated test databases first.
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check apps/api tests scripts migrations
+.\.venv\Scripts\python.exe -m ruff format --check apps/api tests scripts migrations
+.\.venv\Scripts\python.exe -m alembic check
+cd apps/web
+npm run lint
+npm run typecheck
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Without `TEST_DATABASE_URL`, only the nine local ingestion tests run and the database tests are explicitly skipped. The browser harness starts its own API on port 8001 and Next.js on port 3001; it requires `E2E_DATABASE_URL`. In CI, both suites use fresh PostgreSQL databases. Test credentials are synthetic and must never be reused elsewhere.
+
+## Current operational boundaries
+
+- Development prototype; Internet deployment and the deployment review belong to Week 12. Before deployment, use HTTPS, secure cookies, a private API/database network, backups and an appropriate account recovery flow.
+- PDF storage is a private local directory, not object storage. Back up it and PostgreSQL together. Unexpected process/commit failure can leave an unreferenced file; never expose the directory as a static web folder.
+- One workspace currency, fixed monthly contract terms, text-based PDFs, and customer-attributed expenses. No OCR, automated term verification or currency conversion.
+- Lists are bounded: 200 records per page; customer pickers cover the first 200 customers; latest 100 imports and 200 contracts. This supports the planned 20-customer evaluation, not an unlimited enterprise deployment.
+- Financial profitability metrics, anomaly detection, semantic search and AI explanations are not implemented in Weeks 2–3.

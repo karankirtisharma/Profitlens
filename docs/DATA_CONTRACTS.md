@@ -1,4 +1,4 @@
-# Week 1 data contracts
+# ProfitLens data contracts
 
 These are the **initial demo CSV schemas**, not a promise that arbitrary accounting exports already work. Files must be UTF-8 with headers. All row identifiers are case-sensitive and unique within one import. The organization ID is supplied by the caller, never by a CSV column.
 
@@ -14,7 +14,7 @@ These are the **initial demo CSV schemas**, not a promise that arbitrary account
 
 - `subtotal`, `discount`, `tax`, `refund`, and `total` are nonnegative. For this initial input format, `refund` is a pre-tax reduction linked to the invoice in the same billing period. Prior-period credit notes and refunds that include tax need separate explicit handling later. Discount and refund are not subtracted twice.
 - The expected payable invoice total is `subtotal - discount + tax - refund`. Week 1 validates this identity and reports mismatches. Tax is excluded from future revenue calculations.
-- Planned net billed revenue for this supported format is `subtotal - discount - refund`; this calculation is not yet implemented in Week 1.
+- Planned net billed revenue for this supported format is `subtotal - discount - refund`; aggregate revenue calculations belong to the next financial-engine milestone.
 - Negative net revenue, impossible discounts/refunds, invalid months, duplicate IDs, unknown customer references, and mixed currencies are import errors.
 - A present expense row is an attributed cost. An absent expense row is **not evidence of zero cost**; completeness must be established separately before showing a final margin.
 - The Week 1 preview groups invoice and expense IDs by `(customer_id, billing_period)` and warns when only one side is present. It does not calculate a margin from incomplete groups.
@@ -24,3 +24,10 @@ These are the **initial demo CSV schemas**, not a promise that arbitrary account
 ## PDF limitations
 
 Week 1 accepts text-based PDFs. Scans requiring OCR, password-protected files, and automatic interpretation of contract clauses are outside the current parser. Extraction output must be reviewed before any pricing comparison is considered reliable.
+
+
+## Persistent API additions (Weeks 2–3)
+
+CSV column names and amount semantics above remain unchanged. The web API imports one file type at a time and looks up customer IDs in the authenticated workspace; import customers first. APIs reject client-supplied organization fields, unsupported currencies, unsafe record IDs and values outside `NUMERIC(14,2)`. IDs are 1–80 letters/digits/dots/underscores/hyphens, beginning with a letter or digit; names, industries and categories are at most 200 characters. API money responses are decimal strings.
+
+The original CLI remains non-persistent. The authenticated preview persists an import batch, while confirmation transactionally saves business records. See [Security and imports](SECURITY_AND_IMPORTS.md) for conflict/retry rules and contract review fields.

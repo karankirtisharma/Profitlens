@@ -9,7 +9,6 @@ from pathlib import Path
 from profitlens.ingestion.csv_import import preview_bundle
 from profitlens.ingestion.pdf_contract import extract_contract_text
 
-
 CUSTOMERS = "customer_id,name,industry\nC001,Northstar Studio,Design\nC002,Harbor Retail,Retail\n"
 INVOICES = (
     "invoice_id,customer_id,billing_period,currency,subtotal,discount,tax,refund,total\n"
@@ -26,7 +25,11 @@ def write_text_pdf(path: Path) -> None:
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        b"<< /Length " + str(len(contents)).encode() + b" >>\nstream\n" + contents + b"\nendstream",
+        b"<< /Length "
+        + str(len(contents)).encode()
+        + b" >>\nstream\n"
+        + contents
+        + b"\nendstream",
     ]
     data = bytearray(b"%PDF-1.4\n")
     offsets = [0]
@@ -37,7 +40,9 @@ def write_text_pdf(path: Path) -> None:
     data.extend(f"xref\n0 {len(offsets)}\n0000000000 65535 f \n".encode())
     for offset in offsets[1:]:
         data.extend(f"{offset:010} 00000 n \n".encode())
-    data.extend(f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{xref_start}\n%%EOF\n".encode())
+    data.extend(
+        f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{xref_start}\n%%EOF\n".encode()
+    )
     path.write_bytes(data)
 
 
@@ -68,7 +73,9 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual(result.warnings, [])
 
     def test_unmatched_periods_warn_without_claiming_zero_cost(self) -> None:
-        self.expenses.write_text(EXPENSES.replace("2026-09", "2026-10"), encoding="utf-8")
+        self.expenses.write_text(
+            EXPENSES.replace("2026-09", "2026-10"), encoding="utf-8"
+        )
         result = self.preview()
         self.assertTrue(result.valid)
         self.assertEqual(
@@ -81,16 +88,27 @@ class IngestionTests(unittest.TestCase):
         result = self.preview()
         self.assertFalse(result.valid)
         self.assertEqual(result.invoices.rows, [])
-        self.assertTrue(any("total must equal" in issue.message for issue in result.issues))
+        self.assertTrue(
+            any("total must equal" in issue.message for issue in result.issues)
+        )
 
     def test_duplicate_and_unknown_customer_are_reported(self) -> None:
-        self.customers.write_text(CUSTOMERS + "C001,Repeated,Design\n", encoding="utf-8")
-        self.expenses.write_text(EXPENSES.replace("E001,C001", "E001,C999"), encoding="utf-8")
+        self.customers.write_text(
+            CUSTOMERS + "C001,Repeated,Design\n", encoding="utf-8"
+        )
+        self.expenses.write_text(
+            EXPENSES.replace("E001,C001", "E001,C999"), encoding="utf-8"
+        )
         result = self.preview()
-        self.assertEqual({issue.code for issue in result.issues}, {"duplicate_id", "unknown_customer"})
+        self.assertEqual(
+            {issue.code for issue in result.issues},
+            {"duplicate_id", "unknown_customer"},
+        )
 
     def test_bad_period_is_rejected(self) -> None:
-        self.invoices.write_text(INVOICES.replace("2026-09", "2026-13"), encoding="utf-8")
+        self.invoices.write_text(
+            INVOICES.replace("2026-09", "2026-13"), encoding="utf-8"
+        )
         result = self.preview()
         self.assertTrue(any(issue.code == "invalid_value" for issue in result.issues))
         self.assertFalse(result.valid)
@@ -102,7 +120,12 @@ class IngestionTests(unittest.TestCase):
         self.assertFalse(result.valid)
 
     def test_csv_cannot_supply_organization_scope(self) -> None:
-        self.customers.write_text(CUSTOMERS.replace("customer_id,name,industry", "organization_id,customer_id,name,industry"), encoding="utf-8")
+        self.customers.write_text(
+            CUSTOMERS.replace(
+                "customer_id,name,industry", "organization_id,customer_id,name,industry"
+            ),
+            encoding="utf-8",
+        )
         result = self.preview()
         self.assertTrue(any(issue.code == "invalid_header" for issue in result.issues))
 

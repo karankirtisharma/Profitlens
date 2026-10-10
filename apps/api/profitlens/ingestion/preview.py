@@ -11,7 +11,9 @@ from .pdf_contract import extract_contract_text
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate ProfitLens demo inputs without persisting data")
+    parser = argparse.ArgumentParser(
+        description="Validate ProfitLens demo inputs without persisting data"
+    )
     parser.add_argument("--organization-id", required=True)
     parser.add_argument("--customers", required=True, type=Path)
     parser.add_argument("--invoices", required=True, type=Path)
@@ -20,16 +22,28 @@ def main() -> int:
     parser.add_argument("--contract-customer-id")
     args = parser.parse_args()
 
-    bundle = preview_bundle(args.customers, args.invoices, args.expenses, args.organization_id)
+    bundle = preview_bundle(
+        args.customers, args.invoices, args.expenses, args.organization_id
+    )
     issues: list[ImportIssue] = list(bundle.issues)
     pages = 0
     if args.contract_pdf:
         if not args.contract_customer_id:
             parser.error("--contract-customer-id is required with --contract-pdf")
-        if args.contract_customer_id not in {row.record.customer_id for row in bundle.customers.rows}:
-            issues.append(ImportIssue("unknown_customer", "Contract customer is not in customer CSV", args.contract_pdf.name))
+        if args.contract_customer_id not in {
+            row.record.customer_id for row in bundle.customers.rows
+        }:
+            issues.append(
+                ImportIssue(
+                    "unknown_customer",
+                    "Contract customer is not in customer CSV",
+                    args.contract_pdf.name,
+                )
+            )
         else:
-            contract = extract_contract_text(args.contract_pdf, args.organization_id, args.contract_customer_id)
+            contract = extract_contract_text(
+                args.contract_pdf, args.organization_id, args.contract_customer_id
+            )
             issues.extend(contract.issues)
             pages = len(contract.pages)
     elif args.contract_customer_id:
@@ -46,7 +60,10 @@ def main() -> int:
         },
         "currency": bundle.currency,
         "billing_periods": sorted(
-            {row.record.billing_period for row in [*bundle.invoices.rows, *bundle.expenses.rows]}
+            {
+                row.record.billing_period
+                for row in [*bundle.invoices.rows, *bundle.expenses.rows]
+            }
         ),
         "period_links": [
             {
