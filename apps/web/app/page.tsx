@@ -3,11 +3,9 @@ import { useCallback, useEffect, useRef, useState, FormEvent } from "react";
 import {
   ArrowDownToLine,
   ArrowRight,
-  Building2,
   Check,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   FileCheck2,
   FileSpreadsheet,
   FileText,
@@ -37,6 +35,9 @@ import {
   api,
 } from "../lib/workspace";
 import { Logo, Modal } from "../components/ui";
+import { Login } from "../components/login";
+import { Overview, OverviewData } from "../components/overview";
+import { PageTransition, ReplayIntro } from "../components/experience";
 
 export default function Home() {
   const [account, setAccount] = useState<Account | null>(null),
@@ -63,6 +64,11 @@ export default function Home() {
   const workspace = account?.workspaces.find((w) => w.id === org),
     canWrite = ["admin", "finance"].includes(workspace?.role || ""),
     isAdmin = workspace?.role === "admin";
+  const [overviewData, setOverviewData] = useState<OverviewData>({
+    invoices: [],
+    expenses: [],
+    contracts: [],
+  });
   const base = `/workspaces/${encodeURIComponent(org)}`;
   const currentRequest = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
@@ -79,6 +85,14 @@ export default function Home() {
         options,
       );
       setCustomers(list);
+      if (view === "overview") {
+        const [invoices, expenses, contractList] = await Promise.all([
+          api<RecordData[]>(`${base}/records/invoices?limit=200`, options),
+          api<RecordData[]>(`${base}/records/expenses?limit=200`, options),
+          api<Contract[]>(`${base}/contracts`, options),
+        ]);
+        setOverviewData({ invoices, expenses, contracts: contractList });
+      }
       if (["customers", "invoices", "expenses"].includes(view))
         setRows(
           await api<RecordData[]>(
@@ -113,6 +127,14 @@ export default function Home() {
       .finally(() => setBoot(false));
   }, []);
   useEffect(() => {
+    if (account) {
+      document
+        .getElementById("workspace-title")
+        ?.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [account]);
+  useEffect(() => {
     // Refresh synchronizes the view with an external API; loading mirrors that request.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
@@ -121,6 +143,7 @@ export default function Home() {
   const changeView = (v: View) => {
     setView(v);
     setRows([]);
+    setOverviewData({ invoices: [], expenses: [], contracts: [] });
     setQuery("");
     setCustomerFilter("");
     setOffset(0);
@@ -190,75 +213,7 @@ export default function Home() {
         <p>Opening your workspace…</p>
       </main>
     );
-  if (!account)
-    return (
-      <main className="login-page">
-        <section className="login-story">
-          <Logo />
-          <div>
-            <span className="eyebrow">A clearer view of your business</span>
-            <h1>
-              Every record.
-              <br />
-              One connected
-              <br />
-              <span>workspace.</span>
-            </h1>
-            <p>
-              Bring customers, invoices, expenses and contracts together. Build
-              a reliable foundation for understanding profitability.
-            </p>
-          </div>
-          <span className="story-footer">
-            <ShieldCheck size={17} /> Organization access · Traceable records
-          </span>
-        </section>
-        <section className="login-form">
-          <div>
-            <span className="eyebrow">Welcome to ProfitLens</span>
-            <h2>Sign in to your workspace</h2>
-            <p className="muted">
-              Use the account provisioned by your project administrator.
-            </p>
-            <form onSubmit={login}>
-              <label>
-                Email address
-                <input
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  placeholder="you@example.com"
-                  required
-                />
-              </label>
-              <label>
-                Password
-                <input
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  minLength={1}
-                />
-              </label>
-              {error && (
-                <div role="alert" className="alert error">
-                  {error}
-                </div>
-              )}
-              <button className="primary" disabled={busy}>
-                {busy ? "Signing in…" : "Sign in"}
-                <ArrowRight size={17} />
-              </button>
-            </form>
-            <p className="footnote">
-              This prototype uses provisioned accounts. Contact your
-              administrator if you need access.
-            </p>
-          </div>
-        </section>
-      </main>
-    );
+  if (!account) return <Login login={login} busy={busy} error={error} />;
   const nav: { id: View; label: string; icon: typeof Users }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "customers", label: "Customers", icon: Users },
@@ -274,6 +229,9 @@ export default function Home() {
   ];
   return (
     <div className="shell">
+      <a href="#main-content" className="skip-link">
+        Skip to workspace
+      </a>
       <aside className="sidebar">
         <Logo />
         <div className="workspace-picker">
@@ -303,7 +261,9 @@ export default function Home() {
             <button
               key={n.id}
               className={view === n.id ? "active" : ""}
-              onClick={() => changeView(n.id)}
+              onClick={() => {
+                if (view !== n.id) changeView(n.id);
+              }}
               aria-current={view === n.id ? "page" : undefined}
             >
               <n.icon size={19} />
@@ -342,15 +302,22 @@ export default function Home() {
           <span>
             Workspace <ChevronRight size={14} /> <strong>{title(view)}</strong>
           </span>
-          <span className="status-dot">Development prototype</span>
+          <div className="topbar-actions">
+            <ReplayIntro />
+            <span className="status-dot">
+              {["demo-org", "other-org"].includes(org)
+                ? "Synthetic demo data"
+                : "Organization data"}
+            </span>
+          </div>
         </header>
-        <main className="content">
+        <main className="content" id="main-content">
           <div className="page-heading">
             <div>
               <span className="eyebrow">
                 {workspace?.name || "Your workspace"}
               </span>
-              <h1>
+              <h1 id="workspace-title" tabIndex={-1}>
                 {view === "overview"
                   ? "Business data, connected."
                   : view === "team"
@@ -411,105 +378,14 @@ export default function Home() {
               <p>Loading workspace records…</p>
             </div>
           ) : (
-            <>
-              {view === "overview" && (
-                <>
-                  <div className="overview-grid">
-                    <section className="welcome-card">
-                      <span className="pill">Your data foundation</span>
-                      <h2>
-                        Good decisions start
-                        <br />
-                        with reliable records.
-                      </h2>
-                      <p>
-                        Add your customers, import business records and review
-                        contract terms. Each source stays connected to its
-                        customer.
-                      </p>
-                      <button
-                        className="primary"
-                        onClick={() =>
-                          changeView(canWrite ? "imports" : "customers")
-                        }
-                      >
-                        {canWrite ? "Import business data" : "Browse customers"}
-                        <ArrowRight size={17} />
-                      </button>
-                    </section>
-                    <section className="panel overview-side">
-                      <Users size={25} />
-                      <span className="big-number">
-                        {customers.length}
-                        {customers.length === 200 ? "+" : ""}
-                      </span>
-                      <h3>Accessible customers</h3>
-                      <p className="muted">
-                        {workspace?.role === "analyst"
-                          ? "Assigned to your account"
-                          : "In this organization"}
-                      </p>
-                      <button
-                        className="text-button"
-                        onClick={() => changeView("customers")}
-                      >
-                        View customer directory <ArrowRight size={16} />
-                      </button>
-                    </section>
-                  </div>
-                  <div className="section-heading">
-                    <h2>Your workflow</h2>
-                    <span className="muted">Records before insights</span>
-                  </div>
-                  <div className="workflow-grid">
-                    {[
-                      {
-                        n: "01",
-                        title: "Organize customers",
-                        text: "Create consistent customer IDs for invoices, expenses and contracts.",
-                        v: "customers" as View,
-                        icon: Building2,
-                      },
-                      {
-                        n: "02",
-                        title: "Validate business data",
-                        text: "Check CSV rows and resolve errors before records are saved.",
-                        v: (canWrite ? "imports" : "invoices") as View,
-                        icon: FileSpreadsheet,
-                      },
-                      {
-                        n: "03",
-                        title: "Review contract evidence",
-                        text: "Link each PDF to a customer and confirm monthly pricing terms.",
-                        v: "contracts" as View,
-                        icon: FileCheck2,
-                      },
-                    ].map((c) => (
-                      <button
-                        className="workflow-card"
-                        key={c.n}
-                        onClick={() => changeView(c.v)}
-                      >
-                        <div>
-                          <c.icon size={22} />
-                          <span>{c.n}</span>
-                        </div>
-                        <h3>{c.title}</h3>
-                        <p>{c.text}</p>
-                        <ArrowRight size={18} />
-                      </button>
-                    ))}
-                  </div>
-                  <div className="info-strip">
-                    <CircleHelp size={20} />
-                    <p>
-                      <strong>What comes next?</strong> Profitability
-                      calculations and evidence-backed investigations will
-                      follow this data foundation. No financial insights are
-                      calculated in this release.
-                    </p>
-                  </div>
-                </>
+            <PageTransition identity={`${org}:${view}`}>
+              {view === "overview" && org && !error && (
+                <Overview
+                  customers={customers}
+                  data={overviewData}
+                  canWrite={canWrite}
+                  changeView={changeView}
+                />
               )}
               {["customers", "invoices", "expenses"].includes(view) && (
                 <section className="panel">
@@ -1058,12 +934,12 @@ export default function Home() {
                   ))}
                 </section>
               )}
-            </>
+            </PageTransition>
           )}
           <footer className="page-footer">
             <Logo />
             <span>
-              Business data workspace · {workspace?.currency || "INR"}
+              Week 3 · Business data foundation · {workspace?.currency || "INR"}
             </span>
           </footer>
         </main>

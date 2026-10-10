@@ -12,9 +12,13 @@ The project has a twelve-week development period. This page records verified imp
 
 - Migrated fresh PostgreSQL 17 databases using Alembic; checked schema against SQLAlchemy metadata.
 - **29 Python tests**: nine original ingestion checks plus twenty PostgreSQL/API cases, including cross-tenant and assigned-customer access, session expiry/logout, CSRF checks, login throttling, invalid imports, simultaneous retry, failed transaction/commit, decimal precision, private downloads and reviewed contract periods.
-- **Five Chromium browser tests**: real sign-in and record editing; CSV errors/confirmation/retry; private PDF evidence and term review; analyst restrictions; mobile layout.
+- **11 Chromium browser tests**: real sign-in and record editing; CSV errors/confirmation/retry; private PDF evidence and term review; analyst restrictions; mobile layout; intro skip/replay; reduced motion and focus restoration; chart/API consistency; error recovery; and automated accessibility checks.
 - Production Next.js build, TypeScript, frontend/Python lint and code formatting checks.
 - Small synthetic CSV/PDF fixtures, separate test databases and reproducible setup instructions. [Run the application and checks](DEVELOPMENT.md).
+
+## Week 3 presentation polish — 10 October 2026
+
+A responsive dark-glass frontend now presents the completed data-management features. GSAP provides a short, skippable logo intro; Framer Motion handles component transitions and record-count charts; Tailwind v4 supports the shared styling. The overview fetches real authorized customers, invoices, expenses and contracts. Seeded organizations are labeled synthetic, chart values are record counts, and future financial/AI capabilities remain explicitly outside this release. See the [presentation guide](DEMO.md).
 
 ## What remains
 

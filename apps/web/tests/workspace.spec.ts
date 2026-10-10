@@ -3,6 +3,7 @@ import path from "node:path";
 const stamp = Date.now().toString();
 async function login(page: Page, account = "karan") {
   await page.goto("/");
+  await expect(page.locator('[data-intro-ready="true"]')).toBeVisible();
   await page.getByLabel("Email address").fill(`${account}@profitlens.local`);
   await page
     .getByLabel("Password", { exact: true })
@@ -17,6 +18,10 @@ test("authenticated workspace and manual business-record editing", async ({
   page,
 }) => {
   await login(page);
+  await expect(page.locator(".chart-bar").first()).toHaveCSS(
+    "transform",
+    "matrix(1, 0, 0, 1, 0, 0)",
+  );
   await page.screenshot({
     path: "test-results/workspace-desktop.png",
     fullPage: true,
@@ -199,6 +204,11 @@ test("mobile workspace has no horizontal overflow", async ({ page }) => {
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+  await expect(page.locator(".chart-bar").first()).toHaveCSS(
+    "transform",
+    "matrix(1, 0, 0, 1, 0, 0)",
+  );
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await page.screenshot({
     path: "test-results/workspace-mobile.png",
     fullPage: true,

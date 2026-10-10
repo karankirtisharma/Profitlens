@@ -61,6 +61,8 @@ Provide the password when prompted. An admin can then assign customers in **Team
 
 ## Try the Week 3 workflow
 
+For a timed faculty walkthrough, intro controls and visual-demo limits, see [the presentation guide](DEMO.md).
+
 1. Sign in as admin. Inspect the seeded customer directory, invoice and expense records.
 2. Open **Imports**. Upload customer CSVs before their invoices or expenses; preview, resolve errors and confirm.
 3. Upload `data/demo/invalid_invoices.csv` to see row errors. Confirmation is unavailable; no business records are created.
@@ -97,3 +99,5 @@ Without `TEST_DATABASE_URL`, only the nine local ingestion tests run and the dat
 - One workspace currency, fixed monthly contract terms, text-based PDFs, and customer-attributed expenses. No OCR, automated term verification or currency conversion.
 - Lists are bounded: 200 records per page; customer pickers cover the first 200 customers; latest 100 imports and 200 contracts. This supports the planned 20-customer evaluation, not an unlimited enterprise deployment.
 - Financial profitability metrics, anomaly detection, semantic search and AI explanations are not implemented in Weeks 2–3.
+
+Browser-test ports default to 3001 (web) and 8001 (API). Optional `E2E_WEB_PORT` and `E2E_API_PORT` environment variables let the isolated harness use free ports while other projects are running. The harness derives the API origin and allowed browser origin from those values.

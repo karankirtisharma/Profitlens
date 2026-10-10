@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ExperienceProvider } from "../components/experience";
 export const metadata: Metadata = {
   title: "ProfitLens | Business workspace",
   description:
@@ -10,7 +11,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ExperienceProvider>{children}</ExperienceProvider>
+      </body>
     </html>
   );
 }

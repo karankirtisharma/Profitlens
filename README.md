@@ -27,7 +27,8 @@ The intended investigation path is:
 | CSV imports | Preview row errors; confirm valid records atomically; reject conflicts; safely retry without duplicates. |
 | Private contracts | Upload/download text-based PDFs, inspect page evidence and manually review fixed monthly pricing and effective dates. |
 | Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
-| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 29 Python checks and five browser acceptance tests. |
+| Presentation | Responsive dark-glass interface, skippable logo intro, API-backed record activity, reduced motion and keyboard navigation. |
+| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 29 Python checks and 11 browser acceptance tests. |
 
 ## Run the web application
 
@@ -37,6 +38,8 @@ Use the [development guide](docs/DEVELOPMENT.md) for database setup, migrations,
 Browser → Next.js workspace → FastAPI authorization → PostgreSQL
                                       └────────────→ Private contract files
 ```
+
+For a live demonstration, follow the [Week 3 presentation guide](docs/DEMO.md). It explains the verified workflow, synthetic data, intro controls and current limits.
 
 See [workspace access and import guarantees](docs/SECURITY_AND_IMPORTS.md) for role behavior, transaction boundaries, retries and record provenance.
 
