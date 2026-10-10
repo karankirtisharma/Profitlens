@@ -32,6 +32,8 @@ The intended investigation path is:
 
 ## Run the web application
 
+On Windows, after the one-time setup, double-click **`dev.cmd`**. Choose **1** to start the frontend and API with automatic reload, **2** to stop them, or **0** to close the launcher. Open **http://localhost:3000** after startup.
+
 Use the [development guide](docs/DEVELOPMENT.md) for database setup, migrations, account provisioning and startup. The frontend runs at `http://localhost:3000`; FastAPI runs on port 8000. No AI API key is required for the completed data-management features.
 
 ```text

@@ -34,6 +34,16 @@ The seed command prompts for a password of at least 12 characters. It creates sy
 
 ## Start the application
 
+### Windows launcher
+
+After first-time setup, double-click `dev.cmd` in the repository root. Choose **1 - Start** to apply migrations and start FastAPI and Next.js in development mode with automatic reload. Choose **2 - Stop** to stop both servers, including their reload workers. Choose **0 - Exit** to close only the launcher; servers keep running until you choose Stop. PostgreSQL stays running.
+
+The launcher records process IDs and start times in ignored `.local/dev-processes.json`, so it only stops its own processes. An occupied port produces an error instead of stopping another application. If the older production helper or a manually started server is running, stop it before using this launcher. Logs are in `.local/dev-web.out`, `.local/dev-web.err`, `.local/dev-api.out` and `.local/dev-api.err`. Dependencies, accounts and `.env` must already exist; the launcher does not install or reset them.
+
+For alternate local ports, use `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1 -Action Start -WebPort 3300 -ApiPort 8300`. The matching local origin and API proxy are set for the child processes. Only one launcher session per checkout is supported.
+
+### Manual startup
+
 From the root, start the API:
 
 ```powershell
