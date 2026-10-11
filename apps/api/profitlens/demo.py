@@ -116,6 +116,17 @@ def seed_presentation():
                 raise SystemExit(
                     f"Presentation seed conflicts with {kind}; database changes rolled back"
                 )
+        for kind in ("customers", "invoices", "expenses"):
+            source = Path("data/week4") / f"{kind}.csv"
+            batch = imports.preview(
+                conn, scope, kind, f"synthetic-week4-{kind}.csv", source.read_bytes()
+            )
+            if batch["state"] == "ready":
+                imports.confirm(conn, scope, batch["id"])
+            elif batch["state"] != "confirmed":
+                raise SystemExit(
+                    f"Week 4 seed conflicts with {kind}; database changes rolled back"
+                )
         folder = Path("data/demo")
         for customer in ("C001", "C002"):
             source = folder / f"contract_{customer}.pdf"

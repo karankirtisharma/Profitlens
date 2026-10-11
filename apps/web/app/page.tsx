@@ -9,6 +9,7 @@ import {
   ChevronRight,
   FileCheck2,
   FileSpreadsheet,
+  Calculator,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -42,6 +43,7 @@ import { PageTransition, useExperience } from "../components/experience";
 import { sfx } from "../lib/sound";
 import { NavItem, SideNav } from "../components/side-nav";
 import { AnimatedInput } from "../components/animated-input";
+import { FinancePanel, FinancialReport } from "../components/finance-panel";
 import { Stage } from "../components/stage";
 import { ChatbotLauncher } from "../components/chatbot-launcher";
 
@@ -76,6 +78,9 @@ export default function Home() {
     expenses: [],
     contracts: [],
   });
+  const [financePeriod, setFinancePeriod] = useState("");
+  const [financialReport, setFinancialReport] =
+    useState<FinancialReport | null>(null);
   const base = `/workspaces/${encodeURIComponent(org)}`;
   const currentRequest = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
@@ -110,6 +115,13 @@ export default function Home() {
             options,
           ),
         );
+      if (view === "finance")
+        setFinancialReport(
+          await api<FinancialReport>(
+            `${base}/finance?limit=25&offset=${offset}${financePeriod ? `&billing_period=${encodeURIComponent(financePeriod)}` : ""}${customerFilter ? `&customer_id=${encodeURIComponent(customerFilter)}` : ""}`,
+            options,
+          ),
+        );
       if (view === "contracts")
         setContracts(
           await api<Contract[]>(
@@ -126,7 +138,16 @@ export default function Home() {
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, [org, base, view, offset, customerFilter, canWrite, isAdmin]);
+  }, [
+    org,
+    base,
+    view,
+    offset,
+    customerFilter,
+    canWrite,
+    isAdmin,
+    financePeriod,
+  ]);
   useEffect(() => {
     api<Account>("/auth/me")
       .then((a) => {
@@ -162,6 +183,7 @@ export default function Home() {
     // controls never flash before the request effect starts.
     if (v !== view && org) setLoading(true);
     setView(v);
+    setFinancialReport(null);
     setRows([]);
     setOverviewData({ invoices: [], expenses: [], contracts: [] });
     setQuery("");
@@ -246,6 +268,7 @@ export default function Home() {
     );
   const nav: NavItem[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "finance", label: "Revenue & costs", icon: Calculator },
     { id: "customers", label: "Customers", icon: Users },
     { id: "invoices", label: "Invoices", icon: FileSpreadsheet },
     { id: "expenses", label: "Expenses", icon: FileText },
@@ -326,7 +349,13 @@ export default function Home() {
         <header className="topbar">
           <span className="crumb">
             {workspace?.name || "Workspace"} <ChevronRight size={14} />{" "}
-            <strong>{view === "team" ? "Team access" : title(view)}</strong>
+            <strong>
+              {view === "team"
+                ? "Team access"
+                : view === "finance"
+                  ? "Revenue & costs"
+                  : title(view)}
+            </strong>
           </span>
           <div className="topbar-actions">
             <span className="data-badge">
@@ -345,15 +374,19 @@ export default function Home() {
               <h1 id="workspace-title" tabIndex={-1}>
                 {view === "overview"
                   ? "Business data, connected."
-                  : view === "team"
-                    ? "Team access"
-                    : title(view)}
+                  : view === "finance"
+                    ? "Revenue & costs"
+                    : view === "team"
+                      ? "Team access"
+                      : title(view)}
               </h1>
               <p className="lede">
                 {
                   {
                     overview:
                       "A trusted starting point for your customer profitability investigations.",
+                    finance:
+                      "Exact recorded amounts, with sources and clear data-quality limits.",
                     customers:
                       "Keep customer identities consistent across every source.",
                     invoices:
@@ -417,6 +450,46 @@ export default function Home() {
             </div>
           ) : (
             <PageTransition identity={`${org}:${view}`}>
+              {view === "finance" && org && (
+                <FinancePanel
+                  report={error ? null : financialReport}
+                  customers={customers}
+                  period={financePeriod}
+                  customer={customerFilter}
+                  offset={offset}
+                  base={base}
+                  onPeriod={(value) => {
+                    if (value === financePeriod && offset === 0) {
+                      void refresh();
+                      return;
+                    }
+                    setFinancePeriod(value);
+                    setOffset(0);
+                    setLoading(true);
+                  }}
+                  onCustomer={(value) => {
+                    setCustomerFilter(value);
+                    setOffset(0);
+                    setLoading(true);
+                  }}
+                  onPage={(value) => {
+                    setOffset(value);
+                    setLoading(true);
+                  }}
+                  openRecord={(kind, customer, id) => {
+                    changeView(kind);
+                    setCustomerFilter(customer);
+                    setQuery(id);
+                    void action(async () => {
+                      const record = await api<RecordData>(
+                        `${base}/records/${kind}/${encodeURIComponent(id)}`,
+                      );
+                      setSelected(record);
+                      setEditing(true);
+                    });
+                  }}
+                />
+              )}
               {view === "overview" && org && !error && (
                 <Overview
                   customers={customers}
@@ -993,7 +1066,8 @@ export default function Home() {
           <footer className="page-footer">
             <Logo />
             <span>
-              Week 3 · Business data foundation · {workspace?.currency || "INR"}
+              Week 4 · Revenue, costs & data quality ·{" "}
+              {workspace?.currency || "INR"}
             </span>
           </footer>
         </main>

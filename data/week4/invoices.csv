@@ -1,0 +1,4 @@
+invoice_id,customer_id,billing_period,currency,subtotal,discount,tax,refund,total
+W4-I-EXACT,W4-EXACT,2026-09,INR,1000.50,100.25,90.00,50.25,940.00
+W4-I-ZERO,W4-ZERO,2026-09,INR,100.00,0.00,0.00,100.00,0.00
+W4-I-MISSING,W4-MISSING,2026-09,INR,500.00,0.00,90.00,0.00,590.00

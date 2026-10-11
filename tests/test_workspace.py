@@ -622,3 +622,93 @@ def test_presentation_seed_is_populated_separate_and_preserves_edits():
     for doc in docs:
         response = c.get(f"/api/workspaces/demo-org/contracts/{doc['id']}/file")
         assert response.status_code == 200 and response.content.startswith(b"%PDF")
+
+
+def test_financial_api_exact_values_import_retry_and_scope():
+    c = client()
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.invoices.insert().values(
+                organization_id="b",
+                **invoice(id="OTHER", customer="B1", billing_period="2099-12"),
+            )
+        )
+    batch = preview(c, "invoices", [invoice()])
+    assert c.post(BASE + f"/imports/{batch['id']}/confirm").status_code == 200
+    assert (
+        c.post(
+            BASE + "/records/expenses",
+            json=dict(
+                expense_id="E1",
+                customer_id="C1",
+                billing_period="2026-09",
+                currency="INR",
+                category="Delivery",
+                amount="35.25",
+            ),
+        ).status_code
+        == 201
+    )
+    first = c.get(BASE + "/finance?billing_period=2026-09&customer_id=C1").json()
+    assert first["items"][0]["net_billed_revenue"] == "90.00"
+    assert first["items"][0]["attributed_cost"] == "35.25"
+    assert first["items"][0]["invoice_lines"][0]["source"]["row"] == 2
+    c.post(BASE + f"/imports/{batch['id']}/confirm")
+    assert (
+        c.get(BASE + "/finance?billing_period=2026-09&customer_id=C1").json() == first
+    )
+    analyst = client("analyst")
+    assert [
+        r["customer_id"] for r in analyst.get(BASE + "/finance").json()["items"]
+    ] == ["C1"]
+    assert analyst.get(BASE + "/finance?customer_id=C2").status_code == 404
+    assert client("outsider").get(BASE + "/finance").status_code == 404
+    assert TestClient(app).get(BASE + "/finance").status_code == 401
+    assert (
+        c.put(
+            BASE + "/members/analyst/customers", json={"customer_ids": []}
+        ).status_code
+        == 200
+    )
+    assert analyst.get(BASE + "/finance?customer_id=C1").status_code == 404
+    assert analyst.get(BASE + "/finance").json()["items"] == []
+
+
+def test_financial_report_includes_more_than_ui_record_cap_and_paginates_customers():
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.invoices.insert(),
+            [
+                dict(organization_id="a", **invoice(id=f"BULK-{i:03}"))
+                for i in range(205)
+            ],
+        )
+    c = client()
+    r = c.get(BASE + "/finance?limit=1").json()
+    assert r["total_customers"] == 2 and len(r["items"]) == 1
+    assert r["items"][0]["net_billed_revenue"] == "18450.00"
+    assert len(r["items"][0]["invoice_lines"]) == 205
+    second = c.get(BASE + "/finance?limit=1&offset=1").json()
+    assert second["items"][0]["customer_id"] == "C2"
+    assert second["items"][0]["net_billed_revenue"] is None
+    for query in (
+        "billing_period=2026-13",
+        "billing_period=0000-01",
+        "limit=0",
+        "limit=101",
+        "offset=-1",
+    ):
+        assert c.get(BASE + "/finance?" + query).status_code == 422
+
+
+def test_financial_guard_never_returns_a_partial_total(monkeypatch):
+    from profitlens import finance
+
+    monkeypatch.setattr(finance, "MAX_INPUTS", 1)
+    c = client()
+    for key in ("I1", "I2"):
+        assert (
+            c.post(BASE + "/records/invoices", json=invoice(id=key)).status_code == 201
+        )
+    r = c.get(BASE + "/finance")
+    assert r.status_code == 422 and "No partial total" in r.json()["detail"]

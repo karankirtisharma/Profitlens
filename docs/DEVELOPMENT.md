@@ -71,7 +71,7 @@ Provide the password when prompted. An admin can then assign customers in **Team
 
 ## Preloaded presentation workspace
 
-Fresh `seed-demo` setup creates six customers, twelve recorded months (October 2025–September 2026), 54 invoices, 80 expenses, two private PDFs and confirmed/invalid import history. Counts include the original small seed. Monthly record counts vary so both chart ranges are useful. One PDF has prepared, source-checked synthetic terms and the other is available for a live review. These are synthetic demonstration records, not financial analysis results.
+Fresh `seed-demo` setup creates ten customers, twelve recorded months (October 2025–September 2026), 57 invoices, 84 expenses, two private PDFs and confirmed/invalid import history. Counts include the original small seed. Monthly record counts vary so both chart ranges are useful. One PDF has prepared, source-checked synthetic terms and the other is available for a live review. These are synthetic demonstration records, not financial analysis results.
 
 For a previously provisioned local workspace, add this dataset without entering or changing account passwords:
 
@@ -82,6 +82,10 @@ For a previously provisioned local workspace, add this dataset without entering 
 Then click **Refresh** in the workspace. Existing user data adds to the totals. The command targets only the prepared `demo-org` INR workspace; it does not seed arbitrary workspaces. It preserves edits, previously reviewed contracts and revoked grants on repeat runs. Conflicting new IDs cause a database rollback. A process failure after writing a PDF can leave an unreferenced private file, as with the normal upload workflow.
 
 `READY-` IDs identify the additional baseline records; original C001/C002 remain so the existing analyst assignment has twelve months of examples. `demo-files/` uses separate `DEMO3-` IDs and is **not imported by setup**. Keep it for live CSV/PDF uploads. If already uploaded manually, matching files deduplicate as usual. No database dump, password or private PDF storage is published to GitHub; the seed code recreates the synthetic workspace on another machine after setup.
+
+## Week 4 financial report
+
+Open **Revenue & costs**, choose a customer and billing month, then expand **Calculation and sources**. [Rules, API and limits](FINANCIAL_RULES.md) and [golden demo cases](../data/week4/README.md) describe the expected amounts. Existing installations can add these cases with `python -m profitlens.manage seed-presentation`; no migration or new dependencies are required.
 
 ## Try the Week 3 workflow
 
@@ -114,7 +118,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Without `TEST_DATABASE_URL`, only the nine local ingestion tests run and the database tests are explicitly skipped. The browser harness starts its own API on port 8001 and Next.js on port 3001; it requires `E2E_DATABASE_URL`. In CI, both suites use fresh PostgreSQL databases. Test credentials are synthetic and must never be reused elsewhere.
+Without `TEST_DATABASE_URL`, the 29 local ingestion and financial calculation tests run and the database tests are explicitly skipped. The browser harness starts its own API on port 8001 and Next.js on port 3001; it requires `E2E_DATABASE_URL`. In CI, both suites use fresh PostgreSQL databases. Test credentials are synthetic and must never be reused elsewhere.
 
 ## Current operational boundaries
 
@@ -122,6 +126,6 @@ Without `TEST_DATABASE_URL`, only the nine local ingestion tests run and the dat
 - PDF storage is a private local directory, not object storage. Back up it and PostgreSQL together. Unexpected process/commit failure can leave an unreferenced file; never expose the directory as a static web folder.
 - One workspace currency, fixed monthly contract terms, text-based PDFs, and customer-attributed expenses. No OCR, automated term verification or currency conversion.
 - Lists are bounded: 200 records per page; customer pickers cover the first 200 customers; latest 100 imports and 200 contracts. This supports the planned 20-customer evaluation, not an unlimited enterprise deployment.
-- Financial profitability metrics, anomaly detection, semantic search and AI explanations are not implemented in Weeks 2–3.
+- Week 4 provides recorded revenue/costs and data-quality warnings. Contribution, margin, anomaly detection, semantic search and AI explanations remain planned.
 
 Browser-test ports default to 3001 (web) and 8001 (API). Optional `E2E_WEB_PORT` and `E2E_API_PORT` environment variables let the isolated harness use free ports while other projects are running. The harness derives the API origin and allowed browser origin from those values.

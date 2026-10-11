@@ -8,7 +8,7 @@
 
 **Team:** Group project; membership is managed through the college process
 
-**Current implementation:** Weeks 1–3 complete: authenticated workspace, persistent business records, validated imports, protected PDFs and manually reviewed contract terms. Financial analytics, retrieval and AI experiments described below remain planned.
+**Current implementation:** Weeks 1–4 complete: authenticated workspace, persistent business records, validated imports, protected PDFs, manually reviewed contract terms and deterministic revenue/cost reports with quality warnings. Contribution/margin, anomaly rules, retrieval and AI experiments remain planned.
 
 ## Problem and proposed solution
 

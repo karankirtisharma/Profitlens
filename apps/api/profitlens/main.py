@@ -12,6 +12,7 @@ from fastapi import (
     File,
     Form,
     HTTPException,
+    Query,
     Request,
     Response,
     UploadFile,
@@ -21,7 +22,7 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError
 
 from . import database as db
-from . import imports, records, schemas
+from . import finance, imports, records, schemas
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
 from .security import (
@@ -524,3 +525,15 @@ def review_terms(
     )
     records.log_event(conn, s, "contracts", contract_id, "terms_reviewed", values)
     return contract_view(contract_row(conn, s, contract_id))
+
+
+@app.get(PREFIX + "/finance")
+def financial_report(
+    billing_period: str | None = None,
+    customer_id: str | None = None,
+    limit: int = Query(default=25, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    s=Depends(scope),
+    conn=Depends(connection, scope="function"),
+):
+    return finance.report(conn, s, billing_period, customer_id, limit, offset)

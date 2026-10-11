@@ -4,7 +4,7 @@
 
 ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It brings customer records, invoices, attributed expenses, and PDF contracts into one workflow. The planned system will calculate contribution and margin in code, flag reviewable pricing and cost issues, and help authorized users investigate them through evidence-linked AI explanations.
 
-> **Project status — Weeks 1–3 complete (10 October 2026).** The application now includes an authenticated Next.js workspace, PostgreSQL persistence, customer/invoice/expense management, transactional CSV imports, private contract PDFs and manually reviewed monthly terms. Financial analysis and AI investigations are the next stages. [See verified progress](docs/ROADMAP.md).
+> **Project status — Weeks 1–4 complete (11 October 2026).** The application now includes an authenticated Next.js workspace, PostgreSQL persistence, customer/invoice/expense management, transactional CSV imports, private contract PDFs and manually reviewed monthly terms. Exact net billed revenue, recorded attributed costs and data-quality warnings are now available. Contribution, margin, anomaly detection and AI investigations remain later stages. [See verified progress](docs/ROADMAP.md).
 
 ## The problem it addresses
 
@@ -26,9 +26,10 @@ The intended investigation path is:
 | Business records | Create, inspect and update customers, invoices and expenses with exact decimal validation and retained provenance. |
 | CSV imports | Preview row errors; confirm valid records atomically; reject conflicts; safely retry without duplicates. |
 | Private contracts | Upload/download text-based PDFs, inspect page evidence and manually review fixed monthly pricing and effective dates. |
+| Revenue & costs | Customer/month report with Decimal arithmetic, tax exclusion, source lines, missing-data and contract-period warnings. [Rules and limits](docs/FINANCIAL_RULES.md). |
 | Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
 | Presentation | Responsive liquid-glass interface ("Panes in Depth") in light and dark themes: record summaries with source previews, a WebGL background, an intro on every visit, optional interface sounds, animated typing, reduced-motion support and keyboard navigation. |
-| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 30 Python checks and 11 browser acceptance tests. |
+| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 53 Python checks and 13 browser acceptance tests. |
 
 ## Run the web application
 
@@ -41,7 +42,7 @@ Browser → Next.js workspace → FastAPI authorization → PostgreSQL
                                       └────────────→ Private contract files
 ```
 
-For a live demonstration, follow the [Week 3 presentation guide](docs/DEMO.md). It explains the verified workflow, synthetic data, intro controls and current limits.
+For a live demonstration, follow the [Presentation guide](docs/DEMO.md). It explains the verified workflow, synthetic data, intro controls and current limits.
 
 `seed-demo` now prepares twelve months of synthetic record activity, private contract documents and import history. For an existing prepared workspace, run `.\.venv\Scripts\python.exe -m profitlens.manage seed-presentation`, then Refresh in the app. The setup preserves existing edits and access grants; it runs only when explicitly requested, not on every server start.
 
@@ -63,7 +64,7 @@ flowchart LR
     G --> H[Next.js investigation view]
 ```
 
-This diagram shows the **target product**. Next.js, FastAPI, PostgreSQL, business-data validation, private files and authorized access are implemented. Financial analysis, pgvector retrieval and AI explanations are subsequent stages. [Read the architecture and trust boundaries](docs/ARCHITECTURE.md).
+This diagram shows the **target product**. Next.js, FastAPI, PostgreSQL, business-data validation, private files and authorized access are implemented. Revenue/cost calculations and quality warnings are also implemented; contribution/margin, anomaly rules, pgvector retrieval and AI explanations are subsequent stages. [Read the architecture and trust boundaries](docs/ARCHITECTURE.md).
 
 ## Try the Week 1 preview
 

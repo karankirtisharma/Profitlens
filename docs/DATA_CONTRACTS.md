@@ -13,10 +13,10 @@ These are the **initial demo CSV schemas**, not a promise that arbitrary account
 ## Financial and quality rules
 
 - `subtotal`, `discount`, `tax`, `refund`, and `total` are nonnegative. For this initial input format, `refund` is a pre-tax reduction linked to the invoice in the same billing period. Prior-period credit notes and refunds that include tax need separate explicit handling later. Discount and refund are not subtracted twice.
-- The expected payable invoice total is `subtotal - discount + tax - refund`. Week 1 validates this identity and reports mismatches. Tax is excluded from future revenue calculations.
-- Planned net billed revenue for this supported format is `subtotal - discount - refund`; aggregate revenue calculations belong to the next financial-engine milestone.
+- The expected payable invoice total is `subtotal - discount + tax - refund`. Week 1 validates this identity and reports mismatches. Tax is excluded from the implemented Week 4 revenue calculations.
+- Implemented net billed revenue is `subtotal - discount - refund`, summed per customer/month by the Week 4 engine. See [financial rules](FINANCIAL_RULES.md).
 - Negative net revenue, impossible discounts/refunds, invalid months, duplicate IDs, unknown customer references, and mixed currencies are import errors.
-- A present expense row is an attributed cost. An absent expense row is **not evidence of zero cost**; completeness must be established separately before showing a final margin.
+- A present expense row supplies an attributed cost on a tax-excluded basis; no automatic tax deduction is applied. An absent expense row is **not evidence of zero cost**; completeness must be established separately before showing a final margin.
 - The Week 1 preview groups invoice and expense IDs by `(customer_id, billing_period)` and warns when only one side is present. It does not calculate a margin from incomplete groups.
 - A zero-revenue period has no margin percentage. Missing or conflicting source data blocks a confident finding.
 - Invoice and expense rows retain their CSV filename and row number; PDF passages retain page numbers.

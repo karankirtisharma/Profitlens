@@ -1,4 +1,4 @@
-# Week 3 presentation guide
+# ProfitLens presentation guide — through Week 4
 
 The current release demonstrates an authenticated business-data workspace. All business actions use FastAPI and PostgreSQL; the sample organizations contain synthetic data.
 
@@ -16,7 +16,7 @@ The helper starts an existing production build. After frontend changes, stop the
 
 ## Already populated when you sign in
 
-The explicit demo setup now includes twelve months of synthetic records, confirmed/invalid import history, one prepared reviewed PDF and one PDF awaiting review. On a fresh setup the inventory is 6 customers, 54 invoices, 80 expenses and 2 contracts; existing records can increase these totals. Refresh the app after running `python -m profitlens.manage seed-presentation` in the prepared environment.
+The explicit demo setup now includes twelve months of synthetic records, confirmed/invalid import history, one prepared reviewed PDF and one PDF awaiting review. On a fresh setup the inventory is 10 customers, 57 invoices, 84 expenses and 2 contracts; existing records can increase these totals. Refresh the app after running `python -m profitlens.manage seed-presentation` in the prepared environment.
 
 Begin with **Overview**: switch between six and twelve recorded months, select a month, open the invoice/expense counters and inspect source rows. Then open **Contracts**, inspect the reviewed C001 terms and review C002 live (INR 20000, discount 0, 2026-09-01 through 2027-02-28, source page 1). The analyst's original C001 assignment includes twelve months of records. Prepared terms are synthetic fixture values checked against their PDFs, not an automated interpretation of a real contract.
 
@@ -40,6 +40,19 @@ Upload the three PDFs from `02-contracts` against their matching customer IDs an
 
 The seed also provisions `finance@profitlens.local` and `other@profitlens.local`; the latter belongs to an isolated second organization. Account creation is a local administration command, not a public registration flow.
 
+## Week 4 faculty walkthrough
+
+1. Open **Revenue & costs** and select September 2026.
+2. Select **W4-EXACT**: revenue INR 850.00, recorded costs INR 200.30. Expand calculations and explain why the INR 90.00 tax is excluded.
+3. Click the invoice ID to inspect its source row and original fields.
+4. Return and choose **W4-MISSING**: revenue INR 500.00, costs unavailable. Missing costs are not zero.
+5. Choose **W4-ZERO**: both recorded amounts are INR 0.00, with a zero-revenue warning. No margin percentage is invented.
+6. Choose **W4-COSTONLY**: revenue unavailable, recorded costs INR 40.00.
+7. Select C001/C002 to explain full-month reviewed contract matching versus unreviewed/partial evidence. Contract mismatches here mean coverage issues, not a proven pricing anomaly.
+8. Sign in as the assigned analyst to show the same calculation restricted to permitted customers.
+
+All amounts are synthetic. Costs remain completeness-unverified. See [financial rules](FINANCIAL_RULES.md) for exact semantics and [expected fixture results](../data/week4/README.md).
+
 ## Presentation behavior
 
 - The interface is a liquid-glass design in light and dark themes (system default, manual toggle) with self-hosted Geist fonts, a custom WebGL background that stays still inside the workspace, responsive tables and native modal dialogs. The intro plays on every visit and after sign-in; sound effects are off until the visitor turns them on. Password visibility, keyboard focus, loading, error recovery and empty states are supported.
@@ -54,6 +67,6 @@ The bottom-right mascot is a chatbot placeholder. Clicking it toggles a small **
 
 The checked flows cover sign-in/out, customer/invoice/expense management, CSV preview/confirmation/retry, private PDF upload/download, manually reviewed monthly terms, and assigned-customer access. The presentation checks cover intro skip, repeat visits and sign-in, reduced motion, focus restoration, chart/API consistency, failure recovery, narrow layouts and automated WCAG checks for sign-in, overview and an invoice dialog. Automated accessibility checks supplement manual keyboard and visual inspection; they are not a complete accessibility certification.
 
-**Not yet implemented:** profitability aggregation, margin calculations, anomaly detection, semantic search, AI explanations, model quantization, OCR, automatic contract extraction, social login, public registration and password recovery. These remain subsequent milestones. The local demo is not a public deployment.
+**Not yet implemented:** contribution and margin calculations, anomaly detection, semantic search, AI explanations, model quantization, OCR, automatic contract extraction, social login, public registration and password recovery. These remain subsequent milestones. The local demo is not a public deployment.
 
 For verification commands and database isolation rules, see [Development](DEVELOPMENT.md). Browser tests use ports 3001/8001 by default. If another application owns those ports, set `E2E_WEB_PORT` and `E2E_API_PORT` to free ports before running `npm run test:e2e`; do not stop unrelated applications.

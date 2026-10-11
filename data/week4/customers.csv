@@ -1,0 +1,5 @@
+customer_id,name,industry
+W4-EXACT,Exact amounts (synthetic),Week 4 validation
+W4-ZERO,Zero revenue (synthetic),Week 4 validation
+W4-MISSING,Missing costs (synthetic),Week 4 validation
+W4-COSTONLY,Costs without invoices (synthetic),Week 4 validation

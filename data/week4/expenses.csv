@@ -1,0 +1,5 @@
+expense_id,customer_id,billing_period,category,amount,currency
+W4-E-1,W4-EXACT,2026-09,Delivery,200.10,INR
+W4-E-2,W4-EXACT,2026-09,Tools,0.20,INR
+W4-E-ZERO,W4-ZERO,2026-09,Explicit recorded zero,0.00,INR
+W4-E-COSTONLY,W4-COSTONLY,2026-09,Delivery,40.00,INR

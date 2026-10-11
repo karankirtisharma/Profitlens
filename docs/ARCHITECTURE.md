@@ -1,6 +1,6 @@
 # ProfitLens architecture
 
-**Implemented through Week 3:** authenticated workspaces, organization/customer authorization, business records, transactional imports and private contract review. Financial calculations, findings, retrieval and AI investigation remain later stages.
+**Implemented through Week 4:** authenticated workspaces, scoped business records/imports, private contract review and exact revenue/cost reports with data-quality warnings. Contribution, margin, findings, retrieval and AI investigation remain later stages.
 
 ## Implemented data foundation
 
@@ -15,6 +15,9 @@ flowchart LR
   PDF --> Storage[Private local files]
   PDF --> Review[Page evidence and manual term review]
   Review --> DB
+  Auth --> Finance[Decimal revenue/costs and quality checks]
+  DB --> Finance
+  Finance --> Browser
 ```
 
 FastAPI is the trust boundary. The Next.js proxy keeps browser requests on one origin; it has no database credentials. API dependencies resolve session/membership scope before querying records. Composite organization/customer foreign keys protect relationships. Business writes use PostgreSQL transactions, with successful commit before a success response is sent.
@@ -42,9 +45,9 @@ flowchart LR
 
 These investigation components are planned. The AI provider will receive only authorized context and cannot create authoritative financial values or approve access. Contract content is evidence, never an instruction to the application. Citation validity does not prove semantic support; the later evaluation will check both. Unsupported or missing evidence must produce a visible limitation.
 
-## Financial boundary for the next stage
+## Financial boundary
 
-Invoice `subtotal` is before discount and excludes tax. Supported `refund` is a pre-tax reduction in the same period. Net billed revenue will be `subtotal - discount - refund`; tax is excluded. Attributed costs join by customer and billing period. Contribution will be revenue minus attributed cost; margin is contribution divided by revenue only when revenue is positive. Missing expenses do not establish zero cost. Unsupported credits, duplicates and unmatched periods require explicit handling. See [data contracts](DATA_CONTRACTS.md).
+Invoice `subtotal` is before discount and excludes tax. Supported `refund` is a pre-tax reduction in the same period. Net billed revenue is `subtotal - discount - refund`; tax is excluded. Attributed costs join by customer and billing period. Missing inputs are unavailable and cost completeness stays unverified; [financial rules](FINANCIAL_RULES.md) describe warning and API behavior. Contribution will be revenue minus attributed cost; margin is contribution divided by revenue only when revenue is positive. Missing expenses do not establish zero cost. Unsupported credits, duplicates and unmatched periods require explicit handling. See [data contracts](DATA_CONTRACTS.md).
 
 ## Repository layout
 
