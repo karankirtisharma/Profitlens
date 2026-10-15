@@ -1,6 +1,6 @@
 # ProfitLens: free college-demo deployment
 
-Decision recorded 15 October 2026, before deployment changes. This is a non-commercial faculty demo, not a paid SaaS launch. Cloud deployment has not been performed.
+Decision recorded 15 October 2026. This is a non-commercial faculty demo, not a paid SaaS launch. The frontend and API are now deployed on Vercel Hobby with Neon Free and private Blob storage. See the live verification record below for the checks actually completed.
 
 ## Architecture decision
 
@@ -72,7 +72,7 @@ Never put secrets in Git, chat, screenshots, browser code or `NEXT_PUBLIC_*`. Ve
 | API, only if enabled | `AI_MODEL`, `OPENROUTER_API_KEY` or `NVIDIA_API_KEY` | Explicit model and matching server-only key; set provider spending limits separately |
 | Local only | `STORAGE_DIR`, `POSTGRES_PASSWORD`, `DEMO_PASSWORD`, `NEXT_DIST_DIR` | Development/provisioning settings; do not copy these blindly into Vercel |
 
-`DATABASE_URL` contains credentials. When adapting a provider URL, change only its SQLAlchemy driver prefix and preserve encoded credentials/query parameters. Passwords with reserved characters must remain URL-encoded. Do not paste a live URL into a terminal command that will be logged.
+`DATABASE_URL` contains credentials. The application accepts Neon-managed `postgresql://` and `postgres://` URLs and selects `postgresql+psycopg` internally, preserving encoded credentials and query parameters. TLS remains mandatory in production. An explicit `postgresql+psycopg://` URL also works. Do not paste a live URL into a terminal command that will be logged.
 
 ## Setup: database and storage
 
@@ -164,10 +164,48 @@ Primary source links above were checked on this date. Python integration follows
 - [x] Inspect Git/manual changes, current source, migrations, environment examples, active minor-project SRS/architecture and historical deployment notes.
 - [x] Preserve the working application and local data; add opt-in cloud storage and small deployment safeguards.
 - [x] Verify local backend, browser, build, static and dependency checks; document their limits.
-- [ ] Review/commit/push the readiness files; no cloud deployment was created by this task.
-- [ ] Confirm Vercel Hobby/non-commercial eligibility and Neon Free plan; do not opt into paid resources for this demo.
-- [ ] Create the empty cloud database and **private** Blob store; configure secrets only in backend Production.
-- [ ] Run direct-connection Alembic upgrade/check once; optionally provision synthetic demo data explicitly.
-- [ ] Deploy API first, then frontend; verify stable domains, exact Origin and production protection settings.
-- [ ] Pass login/logout, tenant isolation, import, PDF persistence across redeploy, finance and provider-disabled smoke checks.
+- [x] Review/commit/push the readiness files; publish the managed-URL compatibility fix.
+- [x] Confirm Vercel Hobby and Neon Free in the dashboards; no paid resource or trial selected. Intended use is a non-commercial college demo.
+- [x] Create the empty cloud database and **private** Blob store; configure secrets only in backend Production.
+- [x] Run direct-connection Alembic upgrade/check once; explicitly provision fresh synthetic demo data.
+- [x] Deploy API and frontend; verify stable domains, exact Origin and unauthenticated health access without changing platform protection settings.
+- [x] Pass login/logout, tenant isolation, import, PDF persistence across redeploy, finance and provider-disabled smoke checks.
 - [ ] Record deployment IDs, inspect usage, verify private backups and rehearse the local fallback before the review.
+
+## Live deployment record — 15 October 2026
+
+This section supersedes the earlier pre-deployment verification status above. No existing local business data or local real-data workspaces were copied. Only repository synthetic fixtures and an explicitly labelled synthetic cloud QA case were provisioned.
+
+| Component | Actual configuration |
+|---|---|
+| Frontend | [profitlens-six-psi.vercel.app](https://profitlens-six-psi.vercel.app), Vercel project `profitlens`, root `apps/web`, Next.js, Hobby |
+| API | `https://api-pink-nu-35.vercel.app`, project `api`, root `apps/api`, FastAPI, Hobby |
+| PostgreSQL | Neon `profitlens-demo-db`, Free plan, Washington DC region; Auth and Realtime disabled |
+| PDFs | `profitlens-private-pdfs`, **Private**, IAD1; API Production connection only |
+| Authentication | Same-origin frontend rewrite verified; Secure, HttpOnly, SameSite=Strict, host-only session cookie |
+| AI | `AI_PROVIDER=disabled`; no cloud model key configured and no inference calls made |
+| Schema | Empty database verified before migration; head `20261015_roadmap`; `alembic check` reported no new upgrade operations |
+| Demo inventory | Northstar Services: 11 customers, 58 invoices, 85 expenses, 3 PDFs; separate Seabrook fixture supports isolation checks |
+
+The native Neon integration supplies `postgresql://` URLs. Commit `32d3d0cc380d43392b646ebc4ffd77f723e21ef7` adds driver-prefix normalization without modifying credentials, encoded characters or TLS parameters. The integration-managed value remains intact. Focused deployment tests: **18 passed**, Ruff lint/format passed. [GitHub Application checks passed](https://github.com/karankirtisharma/Profitlens/actions/runs/38780119105).
+
+Verified code-release deployment IDs (later documentation-only pushes can produce newer IDs): frontend `8GGEfDMk4JxyiQRmzoQTbYvCKHwP`; API initial configured release `3jKFAiBBQR92X2S2YEJ2JVEPNhW5`; deliberate API redeploy for persistence verification `BgJxGc96GVMFr3JVDvPB6mQwXdXF`. Both projects reported Ready. The user's first API deployment predated environment configuration and failed requests; the configured release supersedes it. Historical dashboard error percentages include those earlier failures.
+
+### Actual hosted verification
+
+- **53 live smoke assertions passed** using HTTPS through the frontend: public health/config, unauthenticated denial, login/logout, cookie flags, hostile Origin rejection, cross-organization denial, seeded records, private PDF hashes, CSV preview/confirm and repeated confirmation, deterministic finance, missing-cost handling, lexical retrieval endpoint, disabled-provider status, analyst grants and denied analyst writes.
+- A separately generated PDF was uploaded through the hosted API, remained unreviewed, deduplicated on repeat upload and downloaded with matching SHA-256. After redeploying the API, the same PDF still downloaded with the same hash. Logout/anonymous access was denied before and after redeployment.
+- Browser checks verified login, populated dashboard/charts, contract page evidence/review dialog and the financial analysis view. `CLOUD-QA`, October 2026, has revenue INR 9,500.00, reviewed cost INR 7,000.00, contribution INR 2,500.00 and margin 26.32%. These are synthetic ground-truth values, not measured customer outcomes.
+- `/api/live`, `/api/health` and `/api/config` returned 200 on both the direct API domain and frontend proxy. Hosted file limits were 4,000,000 bytes.
+
+This is a bounded deployment smoke test, not a complete hosted load/security audit. Full local regression evidence remains in the earlier table. Extended idle/cold-start behaviour, quota exhaustion, disaster recovery, direct anonymous Blob-delivery access and live AI quality were not tested in this cloud setup. Storage is configured Private and API anonymous/cross-organization access was tested. A dedicated least-privilege database runtime role and verified backups remain recommended before sensitive use. Do not run destructive pytest fixtures against this demo database.
+
+### Using and maintaining this deployment
+
+1. Open the frontend URL above. Authorized local administrator login details are stored in the Git-ignored `.local/cloud-demo-login.txt`; passwords are not published in the repository. There is no public signup.
+2. Choose Northstar Services. Overview shows synthetic activity; use `CLOUD-QA` and month `2026-10` in Profitability & evidence for the verified arithmetic example. Inspect `contract_C001.pdf` for reviewed source evidence. New CSV/PDF uploads still require the application's normal preview/review flow.
+3. Future code updates: run relevant checks, commit and push `main`, then check **both** Vercel project deployments. Never assume one Ready badge proves the other project or all user flows work.
+4. Production environment changes need a redeploy. `API_INTERNAL_URL` also requires a frontend rebuild. Do not attach production resources to Preview. The Blob creation wizard initially selected Preview too; it was explicitly removed before any configured deployment.
+5. The private `.env.cloud-admin` holds the direct TLS database URL and private store settings for one-off local administration. It is separate from the ordinary local `.env`. Do not commit, display or paste its contents into support logs. Synthetic provisioning and migrations are explicit, never build hooks.
+6. Keep the Free/Hobby plans and monitor their shared quotas. Vercel's account dashboard already showed approximately 8.87/10 GB deployment storage across existing projects during setup; this is an account-wide observation, not ProfitLens usage. No unrelated projects were deleted and no paid upgrade was selected.
+7. Before the faculty review, rehearse after an idle period, keep a working local fallback, and test a private database-plus-PDF backup/restore. The earlier rollback section applies; use a Blob-compatible API revision.

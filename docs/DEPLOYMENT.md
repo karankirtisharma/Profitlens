@@ -1,6 +1,6 @@
 # Deployment preparation and recovery
 
-**Free college demo:** use the current [Vercel Hobby + Neon + private Blob guide](VERCEL_FREE_DEPLOYMENT.md), including setup, environment names, migration commands, test evidence and rollback. The instructions below describe the separate container option. Cloud deployment has not been verified.
+**Free college demo:** use the current [Vercel Hobby + Neon + private Blob guide](VERCEL_FREE_DEPLOYMENT.md), including setup, environment names, migration commands, live test evidence and rollback. The hosted synthetic demo is verified for the checks listed there. The instructions below describe the separate, still-unverified container option.
 
 The repository contains `Dockerfile.api`, `apps/web/Dockerfile` and `compose.deploy.yaml`. The standalone Next.js build is locally verified. Docker is unavailable in the current environment, so image builds, Compose startup, target-host networking and public deployment **remain unverified**. These files are preparation, not evidence of a deployed service.
 

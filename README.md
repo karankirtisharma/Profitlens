@@ -93,7 +93,7 @@ Open **Profitability & evidence** to load a customer/month, inspect sources, att
 
 ## Repository guide
 
-For a non-commercial faculty demo, [Vercel Hobby deployment preparation](docs/VERCEL_FREE_DEPLOYMENT.md) uses separate Next.js/FastAPI projects, Neon Free PostgreSQL and opt-in private Vercel Blob storage. Hosted uploads are capped at 4 MB; local storage and limits remain the default. Cloud accounts, quotas, credentials and live smoke checks are still required. AI provider usage is separate from free hosting.
+The [hosted faculty demo](https://profitlens-six-psi.vercel.app) runs on Vercel Hobby with separate Next.js/FastAPI projects, Neon Free PostgreSQL and private Vercel Blob storage. It requires a provisioned account and contains synthetic fixtures only. Hosted uploads are capped at 4 MB; local storage and limits remain the default. Live authentication, import, finance, permission and PDF-persistence checks passed on 15 October 2026. AI is disabled on the free hosted demo; provider inference is separate from hosting. See the [deployment guide, verification record and rollback steps](docs/VERCEL_FREE_DEPLOYMENT.md).
 
 | Path | Purpose |
 | --- | --- |
