@@ -44,8 +44,12 @@ import { sfx } from "../lib/sound";
 import { NavItem, SideNav } from "../components/side-nav";
 import { AnimatedInput } from "../components/animated-input";
 import { FinancePanel, FinancialReport } from "../components/finance-panel";
+import { AnalysisPanel } from "../components/analysis-panel";
 import { Stage } from "../components/stage";
-import { ChatbotLauncher } from "../components/chatbot-launcher";
+import {
+  ChatbotLauncher,
+  type ChatAction,
+} from "../components/chatbot-launcher";
 
 export default function Home() {
   const { play, ready } = useExperience();
@@ -178,6 +182,9 @@ export default function Home() {
     void refresh();
     return () => currentRequest.current?.abort();
   }, [refresh]);
+  const [chatDestination, setChatDestination] = useState<ChatAction | null>(
+    null,
+  );
   const changeView = (v: View) => {
     // Show the loading state in the same render as the new view, so stale
     // controls never flash before the request effect starts.
@@ -269,6 +276,7 @@ export default function Home() {
   const nav: NavItem[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "finance", label: "Revenue & costs", icon: Calculator },
+    { id: "analysis", label: "Profitability & evidence", icon: FileCheck2 },
     { id: "customers", label: "Customers", icon: Users },
     { id: "invoices", label: "Invoices", icon: FileSpreadsheet },
     { id: "expenses", label: "Expenses", icon: FileText },
@@ -296,6 +304,8 @@ export default function Home() {
             id="workspace"
             value={org}
             onChange={(e) => {
+              if (e.target.value === org) return;
+              setChatDestination(null);
               setOrg(e.target.value);
               setCustomers([]);
               setContracts([]);
@@ -360,9 +370,16 @@ export default function Home() {
           <div className="topbar-actions">
             <span className="data-badge">
               <Database size={13} aria-hidden="true" />
-              {["demo-org", "other-org"].includes(org)
-                ? "Synthetic demo data"
-                : "Organization data"}
+              {org === "demo-fhdc-real"
+                ? "Public data · unallocated debits only"
+                : [
+                      "demo-org",
+                      "other-org",
+                      "evaluation-demo",
+                      "demo-fhdc-synthetic",
+                    ].includes(org)
+                  ? "Synthetic demo data"
+                  : "Organization data"}
             </span>
             <SoundToggle />
             <ThemeToggle />
@@ -387,6 +404,8 @@ export default function Home() {
                       "A trusted starting point for your customer profitability investigations.",
                     finance:
                       "Exact recorded amounts, with sources and clear data-quality limits.",
+                    analysis:
+                      "Review contribution, financial discrepancies and source-grounded investigations.",
                     customers:
                       "Keep customer identities consistent across every source.",
                     invoices:
@@ -450,6 +469,16 @@ export default function Home() {
             </div>
           ) : (
             <PageTransition identity={`${org}:${view}`}>
+              {view === "analysis" && org && (
+                <AnalysisPanel
+                  key={`${org}:${chatDestination?.customer_id}:${chatDestination?.billing_period}`}
+                  initialCustomer={chatDestination?.customer_id || ""}
+                  initialPeriod={chatDestination?.billing_period || ""}
+                  base={base}
+                  customers={customers}
+                  canWrite={canWrite}
+                />
+              )}
               {view === "finance" && org && (
                 <FinancePanel
                   report={error ? null : financialReport}
@@ -1066,13 +1095,51 @@ export default function Home() {
           <footer className="page-footer">
             <Logo />
             <span>
-              Week 4 · Revenue, costs & data quality ·{" "}
+              Financial analysis & verified evidence ·{" "}
               {workspace?.currency || "INR"}
             </span>
           </footer>
         </main>
       </div>
-      <ChatbotLauncher />
+      <ChatbotLauncher
+        key={org}
+        base={base}
+        customers={customers}
+        onNavigate={(destination) => {
+          if (
+            ![
+              "finance",
+              "analysis",
+              "invoices",
+              "expenses",
+              "contracts",
+              "imports",
+            ].includes(destination.view)
+          )
+            return;
+          if (destination.view === "imports" && !canWrite) return;
+          setChatDestination(destination);
+          changeView(destination.view);
+          setCustomerFilter(destination.customer_id || "");
+          setFinancePeriod(destination.billing_period || "");
+          if (
+            destination.record_id &&
+            ["invoices", "expenses"].includes(destination.view)
+          ) {
+            setQuery(destination.record_id);
+            void action(async () => {
+              const record = await api<RecordData>(
+                `${base}/records/${destination.view}/${encodeURIComponent(destination.record_id!)}`,
+              );
+              setSelected(record);
+              setEditing(true);
+            });
+          }
+          requestAnimationFrame(() =>
+            document.getElementById("workspace-title")?.focus(),
+          );
+        }}
+      />
       {editing && (
         <Modal
           heading={`${selected ? (canWrite ? "Edit" : "View") : "Add"} ${recordKind.slice(0, -1)}`}

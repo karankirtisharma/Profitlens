@@ -55,6 +55,7 @@ jobs:
           .venv/bin/python -m ruff check apps/api tests scripts migrations
           .venv/bin/python -m ruff format --check apps/api tests scripts migrations
           .venv/bin/python -m pytest -q
+          .venv/bin/python -m profitlens.evaluation --output data/exports/evaluation.json
       - name: Frontend checks
         working-directory: apps/web
         run: |

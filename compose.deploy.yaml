@@ -1,0 +1,54 @@
+# Deployment preparation. Validate/build in the target Docker environment before release.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: profitlens
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong database password}
+      POSTGRES_DB: profitlens
+    volumes:
+      - production_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U profitlens -d profitlens"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: ${DEPLOY_DATABASE_URL:?Set a PostgreSQL URL using host db and port 5432}
+      WEB_ORIGIN: ${DEPLOY_WEB_ORIGIN:?Set the exact public HTTPS origin}
+      COOKIE_SECURE: "true"
+      STORAGE_DIR: /app/data/uploads
+      AI_PROVIDER: ${AI_PROVIDER:-disabled}
+      AI_MODEL: ${AI_MODEL:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+    volumes:
+      - production_files:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+  web:
+    build:
+      context: apps/web
+      args:
+        API_INTERNAL_URL: http://api:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  production_db:
+  production_files:

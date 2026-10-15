@@ -16,12 +16,16 @@ def main():
     api_port = int(os.environ.get("E2E_API_PORT", "8001"))
     os.environ["WEB_ORIGIN"] = f"http://localhost:{web_port}"
     os.environ["STORAGE_DIR"] = "data/private/e2e-uploads"
+    os.environ["AI_PROVIDER"] = "disabled"
     from alembic import command
     from alembic.config import Config
     from profitlens.manage import seed_demo
 
     command.upgrade(Config("alembic.ini"), "head")
     seed_demo("browser-test-only-password")
+    from profitlens.evaluation_demo import seed
+
+    seed()
     import uvicorn
 
     uvicorn.run("profitlens.main:app", host="127.0.0.1", port=api_port)

@@ -212,3 +212,59 @@ audit = Table(
     Column("snapshot", JSONB, nullable=False),
     timestamp(),
 )
+
+# Additive roadmap tables; existing financial/import records remain unchanged.
+cost_reviews = Table(
+    "cost_reviews",
+    metadata,
+    orgcol(),
+    Column("customer_id", String(80), primary_key=True),
+    Column("billing_period", String(7), primary_key=True),
+    Column("input_hash", String(64), nullable=False),
+    Column("reviewed_by", String(36), ForeignKey("users.id"), nullable=False),
+    Column("note", String(500), nullable=False),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+)
+passages = Table(
+    "document_passages",
+    metadata,
+    orgcol(),
+    Column("id", String(64), primary_key=True),
+    Column("contract_id", String(36), nullable=False),
+    Column("customer_id", String(80), nullable=False),
+    Column("page", Integer, nullable=False),
+    Column("content", String(2400), nullable=False),
+    Column("content_hash", String(64), nullable=False),
+    Column("index_version", String(160), nullable=False),
+    Column("embedding", JSONB),
+    ForeignKeyConstraint(
+        ["organization_id", "contract_id"],
+        ["contracts.organization_id", "contracts.id"],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+    CheckConstraint("page > 0", name="passage_page"),
+)
+investigations = Table(
+    "investigations",
+    metadata,
+    orgcol(),
+    Column("id", String(36), primary_key=True, default=uid),
+    Column("customer_id", String(80), nullable=False),
+    Column("billing_period", String(7), nullable=False),
+    Column("created_by", String(36), ForeignKey("users.id"), nullable=False),
+    Column("question", String(1000), nullable=False),
+    Column("status", String(32), nullable=False),
+    Column("snapshot", JSONB, nullable=False),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+)

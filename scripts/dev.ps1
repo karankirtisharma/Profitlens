@@ -71,11 +71,14 @@ try {
     # Other machines must start their configured PostgreSQL service or Docker first.
     $pgCtl = Join-Path $runtime 'pgsql\bin\pg_ctl.exe'
     $pgData = Join-Path $runtime 'pgdata'
-    if ((Test-Path -LiteralPath $pgCtl) -and (Test-Path -LiteralPath $pgData)) {
+    $dbEndpoint = & $python -c 'import json; from profitlens.config import settings; from sqlalchemy.engine import make_url; u=make_url(settings.database_url); print(json.dumps({"host":u.host,"port":u.port or 5432}))' | ConvertFrom-Json
+    if ($dbEndpoint.host -in @('localhost', '127.0.0.1') -and (Test-Path -LiteralPath $pgCtl) -and (Test-Path -LiteralPath $pgData)) {
         & $pgCtl -D $pgData status *> $null
         if ($LASTEXITCODE -ne 0) {
             $pgLog = Join-Path $runtime 'postgres.log'
-            $pgProcess = Start-Process -FilePath $pgCtl -ArgumentList "-D `"$pgData`" -l `"$pgLog`" -o `"-p 55432 -h 127.0.0.1`" -w start" -WindowStyle Hidden -PassThru -Wait
+            $pgProcess = Start-Process -FilePath $pgCtl -ArgumentList "-D `"$pgData`" -l `"$pgLog`" -o `"-p $($dbEndpoint.port) -h 127.0.0.1`" -w start" -WindowStyle Hidden -PassThru
+            # Wait only for pg_ctl; Start-Process -Wait also waits for its server descendants.
+            if (-not $pgProcess.WaitForExit(30000)) { throw 'PostgreSQL startup timed out. Inspect .local/postgres.log.' }
             if ($pgProcess.ExitCode -ne 0) { throw 'PostgreSQL startup failed. Inspect .local/postgres.log.' }
         }
     }

@@ -1,0 +1,17 @@
+*
+!Dockerfile.api
+!requirements.lock
+!pyproject.toml
+!alembic.ini
+!apps/
+!apps/api/
+!apps/api/**
+!migrations/
+!migrations/**
+!data/
+!data/demo/
+!data/demo/**
+!data/week4/
+!data/week4/**
+**/__pycache__
+**/*.pyc

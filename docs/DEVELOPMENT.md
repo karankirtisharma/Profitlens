@@ -126,6 +126,6 @@ Without `TEST_DATABASE_URL`, the 29 local ingestion and financial calculation te
 - PDF storage is a private local directory, not object storage. Back up it and PostgreSQL together. Unexpected process/commit failure can leave an unreferenced file; never expose the directory as a static web folder.
 - One workspace currency, fixed monthly contract terms, text-based PDFs, and customer-attributed expenses. No OCR, automated term verification or currency conversion.
 - Lists are bounded: 200 records per page; customer pickers cover the first 200 customers; latest 100 imports and 200 contracts. This supports the planned 20-customer evaluation, not an unlimited enterprise deployment.
-- Week 4 provides recorded revenue/costs and data-quality warnings. Contribution, margin, anomaly detection, semantic search and AI explanations remain planned.
+- The new analysis module adds contribution/margin, reviewable discrepancies, BM25 evidence retrieval and verified extractive provider integration. Semantic search is not implemented; live AI requires configuration. See [Analysis setup](ANALYSIS_GUIDE.md) and [verification report](ROADMAP_IMPLEMENTATION_REPORT.md).
 
 Browser-test ports default to 3001 (web) and 8001 (API). Optional `E2E_WEB_PORT` and `E2E_API_PORT` environment variables let the isolated harness use free ports while other projects are running. The harness derives the API origin and allowed browser origin from those values.

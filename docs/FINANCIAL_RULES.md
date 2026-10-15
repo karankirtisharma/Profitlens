@@ -1,5 +1,7 @@
 # Week 4: revenue, recorded costs and evidence quality
 
+This document describes the unchanged `/finance` endpoint. The newer `/profitability` endpoint adds contribution, margin, cost attestations and discrepancy rules; see [Analysis guide](ANALYSIS_GUIDE.md). Week 4 statements below are historical scope, not the current feature limit.
+
 ## What is implemented
 
 Open **Revenue & costs** in any authorized workspace. The server computes exact recorded amounts for each customer and selected billing month; each total expands to invoice/expense IDs, original CSV rows or manual provenance, and private contract evidence. Admin/finance see their organization's customers; analysts see only assigned customers. The browser does not calculate financial totals.

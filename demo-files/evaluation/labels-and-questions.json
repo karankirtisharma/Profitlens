@@ -1,0 +1,492 @@
+{
+  "version": "synthetic-evaluation-v1",
+  "questions": [
+    {
+      "id": "Q01",
+      "customer_id": "EVAL-01",
+      "billing_period": "2026-09",
+      "question": "What does the payroll monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-01"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q02",
+      "customer_id": "EVAL-02",
+      "billing_period": "2026-09",
+      "question": "What does the inventory monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-02"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q03",
+      "customer_id": "EVAL-03",
+      "billing_period": "2026-09",
+      "question": "What does the delivery monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-03"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q04",
+      "customer_id": "EVAL-04",
+      "billing_period": "2026-09",
+      "question": "What does the maintenance monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-04"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q05",
+      "customer_id": "EVAL-05",
+      "billing_period": "2026-09",
+      "question": "What does the hosting monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-05"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q06",
+      "customer_id": "EVAL-06",
+      "billing_period": "2026-09",
+      "question": "What does the bookkeeping monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-06"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q07",
+      "customer_id": "EVAL-07",
+      "billing_period": "2026-09",
+      "question": "What does the design monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-07"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q08",
+      "customer_id": "EVAL-08",
+      "billing_period": "2026-09",
+      "question": "What does the support monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-08"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q09",
+      "customer_id": "EVAL-09",
+      "billing_period": "2026-09",
+      "question": "What does the training monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-09"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q10",
+      "customer_id": "EVAL-10",
+      "billing_period": "2026-09",
+      "question": "What does the monitoring monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-10"
+      ],
+      "split": "development",
+      "category": "lexical"
+    },
+    {
+      "id": "Q11",
+      "customer_id": "EVAL-11",
+      "billing_period": "2026-09",
+      "question": "What does the payroll monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-11"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q12",
+      "customer_id": "EVAL-12",
+      "billing_period": "2026-09",
+      "question": "What does the inventory monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-12"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q13",
+      "customer_id": "EVAL-13",
+      "billing_period": "2026-09",
+      "question": "What does the delivery monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-13"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q14",
+      "customer_id": "EVAL-14",
+      "billing_period": "2026-09",
+      "question": "What does the maintenance monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-14"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q15",
+      "customer_id": "EVAL-15",
+      "billing_period": "2026-09",
+      "question": "What does the hosting monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-15"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q16",
+      "customer_id": "EVAL-16",
+      "billing_period": "2026-09",
+      "question": "What does the bookkeeping monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-16"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q17",
+      "customer_id": "EVAL-17",
+      "billing_period": "2026-09",
+      "question": "What does the design monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-17"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q18",
+      "customer_id": "EVAL-18",
+      "billing_period": "2026-09",
+      "question": "What does the support monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-18"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q19",
+      "customer_id": "EVAL-19",
+      "billing_period": "2026-09",
+      "question": "What does the training monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-19"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q20",
+      "customer_id": "EVAL-20",
+      "billing_period": "2026-09",
+      "question": "What does the monitoring monthly delivery agreement cover?",
+      "relevant_contracts": [
+        "DOC-20"
+      ],
+      "split": "held_out",
+      "category": "lexical"
+    },
+    {
+      "id": "Q21",
+      "customer_id": "EVAL-11",
+      "billing_period": "2026-09",
+      "question": "Which recurring obligations govern this engagement?",
+      "relevant_contracts": [
+        "DOC-11"
+      ],
+      "split": "held_out",
+      "category": "paraphrase"
+    },
+    {
+      "id": "Q22",
+      "customer_id": "EVAL-12",
+      "billing_period": "2026-09",
+      "question": "Which recurring obligations govern this engagement?",
+      "relevant_contracts": [
+        "DOC-12"
+      ],
+      "split": "held_out",
+      "category": "paraphrase"
+    },
+    {
+      "id": "Q23",
+      "customer_id": "EVAL-13",
+      "billing_period": "2026-09",
+      "question": "Which recurring obligations govern this engagement?",
+      "relevant_contracts": [
+        "DOC-13"
+      ],
+      "split": "held_out",
+      "category": "paraphrase"
+    },
+    {
+      "id": "Q24",
+      "customer_id": "EVAL-14",
+      "billing_period": "2026-09",
+      "question": "Which recurring obligations govern this engagement?",
+      "relevant_contracts": [
+        "DOC-14"
+      ],
+      "split": "held_out",
+      "category": "paraphrase"
+    },
+    {
+      "id": "Q25",
+      "customer_id": "EVAL-15",
+      "billing_period": "2026-09",
+      "question": "Which recurring obligations govern this engagement?",
+      "relevant_contracts": [
+        "DOC-15"
+      ],
+      "split": "held_out",
+      "category": "paraphrase"
+    },
+    {
+      "id": "Q26",
+      "customer_id": "EVAL-11",
+      "billing_period": "2026-09",
+      "question": "Explain cryptocurrency indemnification arbitration.",
+      "relevant_contracts": [],
+      "split": "held_out",
+      "category": "unanswerable"
+    },
+    {
+      "id": "Q27",
+      "customer_id": "EVAL-12",
+      "billing_period": "2026-09",
+      "question": "Explain cryptocurrency indemnification arbitration.",
+      "relevant_contracts": [],
+      "split": "held_out",
+      "category": "unanswerable"
+    },
+    {
+      "id": "Q28",
+      "customer_id": "EVAL-13",
+      "billing_period": "2026-09",
+      "question": "Explain cryptocurrency indemnification arbitration.",
+      "relevant_contracts": [],
+      "split": "held_out",
+      "category": "unanswerable"
+    },
+    {
+      "id": "Q29",
+      "customer_id": "EVAL-14",
+      "billing_period": "2026-09",
+      "question": "Explain cryptocurrency indemnification arbitration.",
+      "relevant_contracts": [],
+      "split": "held_out",
+      "category": "unanswerable"
+    },
+    {
+      "id": "Q30",
+      "customer_id": "EVAL-15",
+      "billing_period": "2026-09",
+      "question": "Explain cryptocurrency indemnification arbitration.",
+      "relevant_contracts": [],
+      "split": "held_out",
+      "category": "unanswerable"
+    }
+  ],
+  "labels": [
+    {
+      "customer_id": "EVAL-01",
+      "period": "2026-09",
+      "expected_findings": [
+        "pricing_mismatch"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "800.00"
+    },
+    {
+      "customer_id": "EVAL-02",
+      "period": "2026-09",
+      "expected_findings": [
+        "pricing_mismatch"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "800.00"
+    },
+    {
+      "customer_id": "EVAL-03",
+      "period": "2026-09",
+      "expected_findings": [
+        "pricing_mismatch"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "800.00"
+    },
+    {
+      "customer_id": "EVAL-04",
+      "period": "2026-09",
+      "expected_findings": [
+        "pricing_mismatch"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "800.00"
+    },
+    {
+      "customer_id": "EVAL-05",
+      "period": "2026-09",
+      "expected_findings": [
+        "pricing_mismatch"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "800.00"
+    },
+    {
+      "customer_id": "EVAL-06",
+      "period": "2026-09",
+      "expected_findings": [
+        "cost_increase",
+        "margin_decline"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "200.00"
+    },
+    {
+      "customer_id": "EVAL-07",
+      "period": "2026-09",
+      "expected_findings": [
+        "cost_increase",
+        "margin_decline"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "200.00"
+    },
+    {
+      "customer_id": "EVAL-08",
+      "period": "2026-09",
+      "expected_findings": [
+        "cost_increase",
+        "margin_decline"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "200.00"
+    },
+    {
+      "customer_id": "EVAL-09",
+      "period": "2026-09",
+      "expected_findings": [
+        "cost_increase",
+        "margin_decline"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "200.00"
+    },
+    {
+      "customer_id": "EVAL-10",
+      "period": "2026-09",
+      "expected_findings": [
+        "cost_increase",
+        "margin_decline"
+      ],
+      "expected_missing_cost": false,
+      "expected_contribution": "200.00"
+    },
+    {
+      "customer_id": "EVAL-11",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": true,
+      "expected_contribution": null
+    },
+    {
+      "customer_id": "EVAL-12",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": true,
+      "expected_contribution": null
+    },
+    {
+      "customer_id": "EVAL-13",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": true,
+      "expected_contribution": null
+    },
+    {
+      "customer_id": "EVAL-14",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": true,
+      "expected_contribution": null
+    },
+    {
+      "customer_id": "EVAL-15",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": true,
+      "expected_contribution": null
+    },
+    {
+      "customer_id": "EVAL-16",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": false,
+      "expected_contribution": "600.00"
+    },
+    {
+      "customer_id": "EVAL-17",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": false,
+      "expected_contribution": "600.00"
+    },
+    {
+      "customer_id": "EVAL-18",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": false,
+      "expected_contribution": "600.00"
+    },
+    {
+      "customer_id": "EVAL-19",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": false,
+      "expected_contribution": "600.00"
+    },
+    {
+      "customer_id": "EVAL-20",
+      "period": "2026-09",
+      "expected_findings": [],
+      "expected_missing_cost": false,
+      "expected_contribution": "600.00"
+    }
+  ]
+}

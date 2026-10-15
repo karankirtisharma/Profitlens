@@ -49,7 +49,7 @@ export type Member = {
 };
 export type Kind = "customers" | "invoices" | "expenses";
 export type View =
-  "overview" | "finance" | Kind | "imports" | "contracts" | "team";
+  "overview" | "finance" | "analysis" | Kind | "imports" | "contracts" | "team";
 export const fields: Record<Kind, string[]> = {
   customers: ["customer_id", "name", "industry"],
   invoices: [

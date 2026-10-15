@@ -2,9 +2,9 @@
 
 **Investigate changes in customer profitability and trace findings back to business records.**
 
-ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It brings customer records, invoices, attributed expenses, and PDF contracts into one workflow. The planned system will calculate contribution and margin in code, flag reviewable pricing and cost issues, and help authorized users investigate them through evidence-linked AI explanations.
+ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It connects customer records, invoices, attributed expenses and PDF contracts with deterministic contribution/margin calculations, reviewable discrepancies and permission-scoped evidence investigations.
 
-> **Project status — Weeks 1–4 complete (11 October 2026).** The application now includes an authenticated Next.js workspace, PostgreSQL persistence, customer/invoice/expense management, transactional CSV imports, private contract PDFs and manually reviewed monthly terms. Exact net billed revenue, recorded attributed costs and data-quality warnings are now available. Contribution, margin, anomaly detection and AI investigations remain later stages. [See verified progress](docs/ROADMAP.md).
+> **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; systematic model-quality evaluation and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/ROADMAP_IMPLEMENTATION_REPORT.md).
 
 ## The problem it addresses
 
@@ -29,7 +29,9 @@ The intended investigation path is:
 | Revenue & costs | Customer/month report with Decimal arithmetic, tax exclusion, source lines, missing-data and contract-period warnings. [Rules and limits](docs/FINANCIAL_RULES.md). |
 | Team access | Administrators assign customers to read-only analysts; changes apply to subsequent API requests. |
 | Presentation | Responsive liquid-glass interface ("Panes in Depth") in light and dark themes: record summaries with source previews, a WebGL background, an intro on every visit, optional interface sounds, animated typing, reduced-motion support and keyboard navigation. |
-| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, 53 Python checks and 13 browser acceptance tests. |
+| Profitability | Decimal contribution/margin, input-bound cost attestations and configurable pricing/cost/margin rules with sources. |
+| Evidence investigations | Customer/period-filtered BM25 retrieval, strict OpenRouter/NVIDIA provider adapter, numeric/quote checks, insufficient-evidence states and scoped history. Hosted model requires separate configuration. |
+| Reproducibility | Synthetic CSV/PDF fixtures, migrations, pinned dependencies, regression tests and a frozen 30-question retrieval comparison. See the current verification report for actual results. |
 
 ## Run the web application
 
@@ -48,23 +50,25 @@ For a live demonstration, follow the [Presentation guide](docs/DEMO.md). It expl
 
 Ready-to-upload files are in **[demo-files](demo-files/README.md)**: five fictional customers, six months of invoices and expenses, three contract PDFs, and intentional validation/retry examples. The included guide explains the import order and expected results.
 
+The optional [real-data demo guide](docs/REAL_DATA_DEMO.md) documents two separately provisioned local workspaces: licensed public council expenses in GBP and fictional financial investigations in INR. It includes source attribution, honest data gaps and a new-import pack for a teacher demonstration. Downloaded records and local credentials are Git-ignored.
+
 See [workspace access and import guarantees](docs/SECURITY_AND_IMPORTS.md) for role behavior, transaction boundaries, retries and record provenance.
 
-## Planned architecture
+## Investigation architecture
 
 ```mermaid
 flowchart LR
     A[CSV records and PDF contracts] --> B[Validate and preserve sources]
     B --> C[(PostgreSQL and private files)]
     C --> D[Deterministic profitability and anomaly rules]
-    C --> E[Authorized structured and semantic retrieval]
+    C --> E[Authorized structured records and BM25 passages]
     D --> E
-    E --> F[AI explanation]
+    E --> F[Optional configured AI evidence selection]
     F --> G[Verify citations and numeric claims]
     G --> H[Next.js investigation view]
 ```
 
-This diagram shows the **target product**. Next.js, FastAPI, PostgreSQL, business-data validation, private files and authorized access are implemented. Revenue/cost calculations and quality warnings are also implemented; contribution/margin, anomaly rules, pgvector retrieval and AI explanations are subsequent stages. [Read the architecture and trust boundaries](docs/ARCHITECTURE.md).
+Financial arithmetic and discrepancy rules run in Python, independently of AI. Investigations render checked extractive explanations. The popup chat supports automatic, permission-scoped workspace questions, optional manual filters, formatted financial cards and links into records: the backend supplies figures and source excerpts and checks references, while the AI's interpretation remains subject to human review. Customer/month permissions apply before retrieval and are checked again after generation. PostgreSQL stores records, passages and investigation snapshots; there is no vector index in this release. [Chat behavior and limits](docs/ANALYSIS_GUIDE.md). [Architecture and trust boundaries](docs/ARCHITECTURE.md).
 
 ## Try the Week 1 preview
 
@@ -81,9 +85,11 @@ The CLI prints a JSON report with `valid`, record counts, customer-period links,
 
 ## Delivery approach
 
-The project is planned over twelve weeks. Storage, authentication, and the first web screens come early; financial rules and a dashboard follow; then contract retrieval, evidence-backed investigations, output verification, quantization experiments, and a final demonstration. The [progress record](docs/ROADMAP.md) lists verified work.
+The twelve-week roadmap builds storage and authentication first, then financial rules, retrieval, verified explanations and evaluation. The [progress record](docs/ROADMAP.md) separates implemented modules from unverified external integrations. Multi-industry expansion is outside this delivery.
 
-The academic evaluation will use a reproducible synthetic dataset. Planned measures include calculation accuracy, anomaly precision and recall, access-control checks, retrieval relevance, citation support, answer correctness, and response time. A quantized embedding model will be compared with an unquantized counterpart for memory use and retrieval quality; no result is assumed in advance.
+The reproducible evaluation uses 20 synthetic customers, six months of records, current/expired contract pairs and 30 questions. It measures financial correctness, rule precision/recall and retrieval ranking against a permission-preserving baseline. Quantization is deferred: the current retrieval engine has no pretrained weights to quantize. Human relevance assessment and live model quality remain future validation work.
+
+Open **Profitability & evidence** to load a customer/month, inspect sources, attest complete costs, search reviewed contracts and request a verified investigation. [Setup, demo and API reference](docs/ANALYSIS_GUIDE.md). [Deployment preparation](docs/DEPLOYMENT.md).
 
 ## Repository guide
 

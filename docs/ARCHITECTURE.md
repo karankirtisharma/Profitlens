@@ -1,6 +1,6 @@
 # ProfitLens architecture
 
-**Implemented through Week 4:** authenticated workspaces, scoped business records/imports, private contract review and exact revenue/cost reports with data-quality warnings. Contribution, margin, findings, retrieval and AI investigation remain later stages.
+**Current implementation (15 October 2026):** authenticated workspaces, imports/private contracts, exact financial analysis, cost reviews, financial discrepancy rules, lexical retrieval and verified extractive investigation integration. Live provider quality and Docker deployment are unverified; see the [implementation report](ROADMAP_IMPLEMENTATION_REPORT.md).
 
 ## Implemented data foundation
 
@@ -28,26 +28,32 @@ CSV preview validates one file type at a time and stores a reviewable batch. Con
 
 PDF files live outside the web root and have generated storage names. Authorized API requests return files; no static directory serves uploads. Extracted page text is unverified evidence. Reviewed monthly terms include effective dates, rate/discount, currency, source page and reviewer. [Read the access and import guarantees](SECURITY_AND_IMPORTS.md).
 
-## Target investigation pipeline
+## Implemented investigation pipeline
 
 ```mermaid
 flowchart LR
   DB[(Business records)] --> Calc[Deterministic profitability]
   Calc --> Rules[Reviewable anomaly findings]
-  PDF[Reviewed contracts and passages] --> Vector[(pgvector)]
+  PDF[Reviewed page-attributed contracts] --> Search[PostgreSQL passages / BM25]
   Rules --> Context[Authorized customer/period context]
   DB --> Context
-  Vector --> Context
-  Context --> Model[Pretrained generative model]
+  Search --> Context
+  Context --> Model[Optional hosted model / strict schema]
   Model --> Verify[Schema, citation and numeric verification]
   Verify --> UI[Evidence-linked investigation]
 ```
 
-These investigation components are planned. The AI provider will receive only authorized context and cannot create authoritative financial values or approve access. Contract content is evidence, never an instruction to the application. Citation validity does not prove semantic support; the later evaluation will check both. Unsupported or missing evidence must produce a visible limitation.
+`profitability.py` extends the Week 4 engine without replacing it. `retrieval.py` indexes overlapping 1,200-character page chunks and ranks authorized candidates with BM25. Context mode filters reviewed contracts to cover the full month; baseline mode removes only that temporal/review filter, retaining tenant/customer authorization. No vector extension or neural embedding model is used.
+
+`explanations.py` builds a bounded evidence pack and calls a fixed-host OpenRouter or NVIDIA adapter only when configured and sufficient evidence exists. JSON schema permits metric claims, finding IDs and exact quotations, not unconstrained narrative. Decimal values/units, known IDs and quote substrings are verified before the server renders a readable summary. Unsupported output is withheld. This verifies provenance and arithmetic, not semantic relevance or causation.
+
+`analysis_api.py` releases the database connection before provider I/O and rechecks session, customer permissions and the evidence hash afterward. Changes during generation return 409; lost access returns 401/404. Saved investigations are scoped on every read and hide results when current evidence differs. Five investigation requests per workspace/minute limit accidental provider usage. Private PDFs remain available only through authorized downloads.
+
+The additive `20261015_roadmap` migration creates `cost_reviews`, `document_passages` and `investigations`, with organization/customer foreign keys. Expense-value hashes invalidate cost attestations; chunk IDs include contract/page/position/content/index version. Model output and evidence snapshots stay in PostgreSQL, not public assets. The browser never receives a provider key.
 
 ## Financial boundary
 
-Invoice `subtotal` is before discount and excludes tax. Supported `refund` is a pre-tax reduction in the same period. Net billed revenue is `subtotal - discount - refund`; tax is excluded. Attributed costs join by customer and billing period. Missing inputs are unavailable and cost completeness stays unverified; [financial rules](FINANCIAL_RULES.md) describe warning and API behavior. Contribution will be revenue minus attributed cost; margin is contribution divided by revenue only when revenue is positive. Missing expenses do not establish zero cost. Unsupported credits, duplicates and unmatched periods require explicit handling. See [data contracts](DATA_CONTRACTS.md).
+Invoice subtotal is before discount and excludes tax. Net billed revenue is `subtotal - discount - refund`. Contribution is revenue minus recorded direct costs; margin is contribution/revenue × 100 only for positive revenue. Missing inputs remain unavailable. Results are provisional until an authorized cost attestation matches the exact current expense inputs. Pricing compares pre-refund billed charges with unique reviewed fixed monthly terms; prior/current cost and margin comparisons require complete-cost attestations for both months. See [financial rules](FINANCIAL_RULES.md) and [analysis guide](ANALYSIS_GUIDE.md).
 
 ## Repository layout
 
@@ -62,4 +68,4 @@ docs/                         Scope, architecture, setup and verified progress
 tests/                        Ingestion and PostgreSQL/API behavior tests
 ```
 
-[Development](DEVELOPMENT.md) records runtime choices and commands. [Progress](ROADMAP.md) records actual milestone verification. Local file storage and account provisioning suit the current prototype; deployment, recovery, backups and hosting integration need the later deployment milestone.
+[Development](DEVELOPMENT.md) records runtime choices. [Deployment](DEPLOYMENT.md) covers private persistent volumes, migration/backup steps and the unverified container boundary. [Progress](ROADMAP.md) records milestone verification.

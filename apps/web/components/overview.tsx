@@ -327,10 +327,10 @@ export function Overview({ customers, data, canWrite, changeView }: Props) {
       <div className="scope-note">
         <Info size={16} />
         <p>
-          <strong>Week 4 · Revenue, costs & data quality.</strong> Open Revenue
-          & costs for exact amounts and source-level warnings. Contribution,
-          margin, anomaly detection and AI explanations are planned for later
-          releases.
+          <strong>Financial analysis with traceable evidence.</strong> Review
+          revenue, costs, contribution and margin in the analysis screens. Ask
+          ProfitLens about accessible records; verify AI interpretations against
+          the linked sources. Missing costs remain unknown.
         </p>
       </div>
     </div>

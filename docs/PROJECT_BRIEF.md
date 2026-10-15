@@ -8,7 +8,7 @@
 
 **Team:** Group project; membership is managed through the college process
 
-**Current implementation:** Weeks 1–4 complete: authenticated workspace, persistent business records, validated imports, protected PDFs, manually reviewed contract terms and deterministic revenue/cost reports with quality warnings. Contribution/margin, anomaly rules, retrieval and AI experiments remain planned.
+**Current implementation (15 October 2026):** the existing workspace now adds contribution/margin, cost review, discrepancy rules, permission-scoped BM25 retrieval and extractive AI integration with deterministic checks. Live model quality and container deployment remain unverified. [Actual implementation report](ROADMAP_IMPLEMENTATION_REPORT.md).
 
 ## Problem and proposed solution
 
@@ -16,7 +16,7 @@ Small businesses often keep contracts, invoices, customer records, and costs in 
 
 ## Academic contribution
 
-The project combines validated CSV/PDF ingestion, robust deterministic financial analysis, organization- and customer-aware retrieval, and verified evidence-grounded generation. A controlled comparison will test whether customer/period-aware retrieval improves relevance and answer support over a permission-scoped semantic baseline. The same pretrained embedding model will also be compared in quantized and unquantized configurations for memory use, latency, and retrieval quality; the result is an experiment, not a promised improvement.
+The contribution is the integration of validated inputs, deterministic financial analysis, permission-aware retrieval and checked explanations. The current benchmark compares period-aware BM25 with the same permission-scoped BM25 search without temporal filtering. It does not establish semantic answer quality. Embeddings and quantization are deferred until a pretrained retrieval model is justified by measured need.
 
 ## V.E.T.S. fit
 
@@ -41,5 +41,5 @@ Banking/payment execution, payroll, production accounting compliance, autonomous
 - Verified contribution and margin calculations, including documented edge cases.
 - Cross-organization and role-access tests that prevent unauthorized retrieval and AI context exposure.
 - Traceable rule alerts and AI explanations with source references or explicit uncertainty.
-- Reproducible evaluation on synthetic cases: calculation accuracy, anomaly precision/recall, retrieval relevance, answer support, response time, and a documented quantization comparison on feasible hardware.
+- Reproducible synthetic evaluation: calculation accuracy, anomaly precision/recall, retrieval ranking and verification failure cases. Live answer relevance and full response time require separate measurement. Quantization is conditional on introducing a justified embedding model.
 - Working end-to-end demonstration and clear limitations.

@@ -2,6 +2,8 @@
 
 The project has a twelve-week development period. This page records verified implementation, not college approval or assumed completion based on dates.
 
+**15 October update:** Weeks 5–12 now have a bounded local implementation and evaluation. Live hosted-model validation and Docker deployment verification remain incomplete; semantic embeddings/pgvector are deferred. The detailed [implementation report](ROADMAP_IMPLEMENTATION_REPORT.md) supersedes older future-tense entries below.
+
 | Milestone | Verified evidence | Status |
 | --- | --- | --- |
 | Week 1: foundation and ingestion preview | CSV/PDF validation, customer-period linking, source references and nine original tests | Complete — 27 September 2026 |
@@ -41,8 +43,16 @@ Verification on separate local PostgreSQL databases: **53 Python tests** and **1
 
 Four reproducible `W4-` synthetic customers are added by explicit presentation seeding, with expected amounts documented in [data/week4](../data/week4/README.md). Existing imported data and edits are preserved; the separate teacher upload pack remains available for fresh imports.
 
-## What remains
+## Current completion boundary — 15 October 2026
 
-The application organizes, validates and calculates recorded revenue/costs. Contribution, margin and rule-based findings are next (Week 5), followed by contract retrieval, AI investigations, output verification and measured model-efficiency experiments. No contribution/margin result, anomaly score, semantic retrieval benchmark or AI evaluation result is claimed in this release.
+| Phase | Current evidence | Status |
+| --- | --- | --- |
+| Week 5 | Contribution/margin, hash-bound cost reviews, pricing/cost/margin findings, scoped API and working screen | Implemented and locally tested |
+| Weeks 6–7 | Page chunks, provenance, BM25 ranking, reviewed-period filtering, permission-preserving baseline | Implemented lexical RAG foundation; neural embeddings/pgvector deferred |
+| Weeks 8–9 | Strict OpenRouter/NVIDIA adapter, exact metric/quote verification, abstention/failure states, reauthorization, stale-aware history | Code and mocked-provider tests complete; live model behavior/quality unverified |
+| Weeks 10–11 | Frozen synthetic corpus, 30 questions, financial labels, retrieval baseline and regression/security tests | Local evaluation complete; external/human validation not performed |
+| Week 12 | Additive migration, local backup, separate seeded demo, integration tests, docs, Docker preparation | Local integration complete; Docker images/public hosting unverified |
+
+Quantization is intentionally deferred because lexical retrieval has no pretrained weights. A future neural retrieval decision should first address the measured paraphrase misses; any memory/quality comparison would then be a separate experiment. No multi-industry expansion was implemented.
 
 Operational limits are documented in [Development](DEVELOPMENT.md) and [Workspace access and imports](SECURITY_AND_IMPORTS.md). PDF OCR, automatic contract-term extraction, public registration, cloud object storage and public deployment are not part of the completed Weeks 2–3 scope.

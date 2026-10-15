@@ -22,7 +22,8 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError
 
 from . import database as db
-from . import finance, imports, records, schemas
+from . import finance, imports, records, retrieval, schemas
+from .analysis_api import router as analysis_router
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
 from .security import (
@@ -46,6 +47,7 @@ app = FastAPI(
     description="Organization-scoped business records, imports and reviewed contracts.",
 )
 PREFIX = "/api/workspaces/{organization_id}"
+app.include_router(analysis_router)
 
 
 @app.middleware("http")
@@ -466,7 +468,9 @@ def upload_contract(
             "uploaded",
             {"filename": safe_filename(file.filename), "sha256": fingerprint},
         )
-        return contract_view(contract_row(conn, s, cid))
+        row = contract_row(conn, s, cid)
+        retrieval.index_contract(conn, row)
+        return contract_view(row)
     except Exception:
         path.unlink(missing_ok=True)
         raise
