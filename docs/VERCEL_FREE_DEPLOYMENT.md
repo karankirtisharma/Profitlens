@@ -183,7 +183,7 @@ This section supersedes the earlier pre-deployment verification status above. No
 | PostgreSQL | Neon `profitlens-demo-db`, Free plan, Washington DC region; Auth and Realtime disabled |
 | PDFs | `profitlens-private-pdfs`, **Private**, IAD1; API Production connection only |
 | Authentication | Same-origin frontend rewrite verified; Secure, HttpOnly, SameSite=Strict, host-only session cookie |
-| AI | `AI_PROVIDER=disabled`; no cloud model key configured and no inference calls made |
+| AI | Initially disabled; enabled later the same day with OpenRouter `openai/gpt-4.1-mini`. See the follow-up verification below. |
 | Schema | Empty database verified before migration; head `20261015_roadmap`; `alembic check` reported no new upgrade operations |
 | Demo inventory | Northstar Services: 11 customers, 58 invoices, 85 expenses, 3 PDFs; separate Seabrook fixture supports isolation checks |
 
@@ -198,7 +198,7 @@ Verified code-release deployment IDs (later documentation-only pushes can produc
 - Browser checks verified login, populated dashboard/charts, contract page evidence/review dialog and the financial analysis view. `CLOUD-QA`, October 2026, has revenue INR 9,500.00, reviewed cost INR 7,000.00, contribution INR 2,500.00 and margin 26.32%. These are synthetic ground-truth values, not measured customer outcomes.
 - `/api/live`, `/api/health` and `/api/config` returned 200 on both the direct API domain and frontend proxy. Hosted file limits were 4,000,000 bytes.
 
-This is a bounded deployment smoke test, not a complete hosted load/security audit. Full local regression evidence remains in the earlier table. Extended idle/cold-start behaviour, quota exhaustion, disaster recovery, direct anonymous Blob-delivery access and live AI quality were not tested in this cloud setup. Storage is configured Private and API anonymous/cross-organization access was tested. A dedicated least-privilege database runtime role and verified backups remain recommended before sensitive use. Do not run destructive pytest fixtures against this demo database.
+This is a bounded deployment smoke test, not a complete hosted load/security audit. Full local regression evidence remains in the earlier table. Extended idle/cold-start behaviour, quota exhaustion, disaster recovery and direct anonymous Blob-delivery access were not tested in this cloud setup. The initial checks ran with AI disabled; the follow-up below records bounded live AI checks. Storage is configured Private and API anonymous/cross-organization access was tested. A dedicated least-privilege database runtime role and verified backups remain recommended before sensitive use. Do not run destructive pytest fixtures against this demo database.
 
 ### Using and maintaining this deployment
 
@@ -209,3 +209,25 @@ This is a bounded deployment smoke test, not a complete hosted load/security aud
 5. The private `.env.cloud-admin` holds the direct TLS database URL and private store settings for one-off local administration. It is separate from the ordinary local `.env`. Do not commit, display or paste its contents into support logs. Synthetic provisioning and migrations are explicit, never build hooks.
 6. Keep the Free/Hobby plans and monitor their shared quotas. Vercel's account dashboard already showed approximately 8.87/10 GB deployment storage across existing projects during setup; this is an account-wide observation, not ProfitLens usage. No unrelated projects were deleted and no paid upgrade was selected.
 7. Before the faculty review, rehearse after an idle period, keep a working local fallback, and test a private database-plus-PDF backup/restore. The earlier rollback section applies; use a Blob-compatible API revision.
+
+### Hosted AI follow-up — 15 October 2026
+
+With explicit authorization, the existing local OpenRouter credential was saved as `OPENROUTER_API_KEY`, type **Secret**, in the **API project / Production only**. It was not added to the frontend, Preview, Development, Git or public documentation. `AI_PROVIDER=openrouter` and `AI_MODEL=openai/gpt-4.1-mini` retain the local model. `AI_TIMEOUT_SECONDS=20` remains unchanged. API deployment `FT8dosFLAWkQUmcgUqZVh3CLiXuJ` reported Ready on source revision `fb55a01`; this was a configuration deployment without application-code changes.
+
+**24 assertions passed across four live synthetic chat scenarios**, through the frontend's HTTPS `/api` proxy and normal session authentication:
+
+| Check | Observed result |
+|---|---|
+| Manual customer/month financial question | Exact synthetic CLOUD-QA values: revenue 9,500, cost 7,000, contribution 2,500 INR; margin 26.32% |
+| Automatic workspace question | Selected October 2026 and all accessible customers; returned financial summary and navigation actions |
+| Reviewed contract question | Returned the 10,000 INR monthly fee with a reviewed, page-linked source |
+| Unsupported future net-profit question | Marked insufficient evidence; did not produce a guaranteed forecast |
+| Authentication and permissions | Anonymous chat denied (401); cross-organization request and analyst request for an unassigned customer denied (404) |
+| Provider metadata | Correct provider/model configured; status response contains no credential field |
+| Browser popup | Additional automatic customer/month question returned a live answer, financial cards, record navigation and a source excerpt in the popup |
+
+Local reproducible checks and redacted synthetic results are retained under Git-ignored `.local/cloud_ai_smoke.py` and `.local/cloud-ai-results.json`. They require the separately provisioned demo login; they do not read or send local business files. Re-running calls the live provider and consumes credits. The provider's `live_model_verified` status field remains false by design because configuration alone is not a test result; the observations here establish the bounded test evidence.
+
+Limitations: this is not an accuracy benchmark or a guarantee for arbitrary questions. Numeric/source checks do not validate all prose. Observed replies included awkward count wording and a duplicated percentage suffix in one browser answer; the financial cards remained correct. One insufficient-evidence reply suggested supplying future data, which should not be interpreted as making a forecast or guarantee possible. No timeout/outage simulation or spending-limit exhaustion was performed on production. Only synthetic cloud evidence was used.
+
+Hosting stays on Hobby/Free plans. OpenRouter inference is separately metered. The existing answer limit is 900 output tokens, automatic scope planning is 350, and chat is limited to 20 requests per minute per workspace. Disable inference by setting API Production `AI_PROVIDER=disabled` and redeploying; financial records, imports and deterministic reporting continue to work. Do not copy the key to any `NEXT_PUBLIC_*` variable.

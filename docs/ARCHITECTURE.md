@@ -1,6 +1,6 @@
 # ProfitLens architecture
 
-Deployment follow-up (15 October 2026): the [free hosted demo](VERCEL_FREE_DEPLOYMENT.md) keeps this application architecture, adds private Vercel Blob persistence and uses Neon through a pooled TLS URL. Local disk storage remains the default. Live authentication, imports, financial checks, permission boundaries and PDF persistence across an API redeploy have been verified using synthetic data. Hosted AI remains disabled.
+Deployment follow-up (15 October 2026): the [free hosted demo](VERCEL_FREE_DEPLOYMENT.md) keeps this application architecture, adds private Vercel Blob persistence and uses Neon through a pooled TLS URL. Local disk storage remains the default. Live authentication, imports, financial checks, permission boundaries and PDF persistence across an API redeploy have been verified using synthetic data. Hosted AI uses the existing OpenRouter adapter and `openai/gpt-4.1-mini`, with its credential in the API project's Production-only Secret configuration. Four live chat scenarios and the browser popup were verified; model interpretation still requires human review.
 
 **Current implementation (15 October 2026):** authenticated workspaces, imports/private contracts, exact financial analysis, cost reviews, financial discrepancy rules, lexical retrieval and verified extractive investigation integration. Live provider quality and Docker deployment are unverified; see the [implementation report](ROADMAP_IMPLEMENTATION_REPORT.md).
 

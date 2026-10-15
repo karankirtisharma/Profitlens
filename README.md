@@ -93,7 +93,7 @@ Open **Profitability & evidence** to load a customer/month, inspect sources, att
 
 ## Repository guide
 
-The [hosted faculty demo](https://profitlens-six-psi.vercel.app) runs on Vercel Hobby with separate Next.js/FastAPI projects, Neon Free PostgreSQL and private Vercel Blob storage. It requires a provisioned account and contains synthetic fixtures only. Hosted uploads are capped at 4 MB; local storage and limits remain the default. Live authentication, import, finance, permission and PDF-persistence checks passed on 15 October 2026. AI is disabled on the free hosted demo; provider inference is separate from hosting. See the [deployment guide, verification record and rollback steps](docs/VERCEL_FREE_DEPLOYMENT.md).
+The [hosted faculty demo](https://profitlens-six-psi.vercel.app) runs on Vercel Hobby with separate Next.js/FastAPI projects, Neon Free PostgreSQL and private Vercel Blob storage. It requires a provisioned account and contains synthetic fixtures only. Hosted uploads are capped at 4 MB; local storage and limits remain the default. Live authentication, import, finance, permission and PDF-persistence checks passed on 15 October 2026. Hosted chat uses OpenRouter with `openai/gpt-4.1-mini`; its key is a backend Production-only secret. Four live synthetic chat scenarios passed 24 assertions, and the popup response was verified in the browser. Provider inference consumes its own credits, separately from free hosting. See the [deployment guide, verification record and rollback steps](docs/VERCEL_FREE_DEPLOYMENT.md).
 
 | Path | Purpose |
 | --- | --- |
