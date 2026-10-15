@@ -1,5 +1,7 @@
 # ProfitLens delivery progress
 
+> Latest minor-project fixes and fresh verification: [release report](MINOR_SCOPE_RELEASE_REPORT.md). Earlier dated results below retain their historical scope.
+
 The project has a twelve-week development period. This page records verified implementation, not college approval or assumed completion based on dates.
 
 **15 October update:** Weeks 5–12 now have a bounded local implementation and evaluation. Live hosted-model validation and Docker deployment verification remain incomplete; semantic embeddings/pgvector are deferred. The detailed [implementation report](ROADMAP_IMPLEMENTATION_REPORT.md) supersedes older future-tense entries below.

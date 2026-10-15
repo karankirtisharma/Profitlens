@@ -61,6 +61,22 @@ test("profitability, reviewed evidence and honest offline AI status", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Load history" }).click();
   await expect(page.getByText("Recent investigations loaded.")).toBeVisible();
+  // A finance-only question reaches the provider without demanding a contract.
+  await page.getByLabel("Investigation evidence").selectOption("financial");
+  await page.getByLabel("Analysis customer").selectOption("EVAL-11");
+  await page
+    .getByRole("button", { name: "Load analysis", exact: true })
+    .click();
+  await page
+    .getByLabel("Business question")
+    .fill("What is the recorded revenue?");
+  await page
+    .getByRole("button", { name: "Generate with configured AI" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "provider unavailable", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/Cost coverage is not confirmed/)).toBeVisible();
   await page.screenshot({
     path: "test-results/analysis-desktop.png",
     fullPage: true,
@@ -77,4 +93,14 @@ test("profitability, reviewed evidence and honest offline AI status", async ({
     path: "test-results/analysis-mobile.png",
     fullPage: true,
   });
+  await page.getByLabel("Investigation evidence").scrollIntoViewIfNeeded();
+  await expect(page.getByLabel("Investigation evidence")).toBeInViewport();
+  await page.screenshot({ path: "test-results/analysis-mobile-evidence.png" });
+  await page
+    .getByRole("region", { name: "Profitability results" })
+    .scrollIntoViewIfNeeded();
+  await expect(
+    page.getByRole("region", { name: "Profitability results" }),
+  ).toContainText("1000.00 INR");
+  await page.screenshot({ path: "test-results/analysis-mobile-financial.png" });
 });

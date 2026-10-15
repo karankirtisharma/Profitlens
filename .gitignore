@@ -22,6 +22,8 @@ build/
 # Node / Next.js (later milestones)
 node_modules/
 .next/
+.next-e2e/
+.next-verify/
 .turbo/
 coverage/
 *.tsbuildinfo

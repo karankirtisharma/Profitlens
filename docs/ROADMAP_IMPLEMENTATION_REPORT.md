@@ -1,5 +1,7 @@
 # ProfitLens roadmap implementation report
 
+> Latest minor-project fixes and fresh verification: [release report](MINOR_SCOPE_RELEASE_REPORT.md). Earlier dated results below retain their historical scope.
+
 **Snapshot:** 15 October 2026. Baseline audited: Git commit `fa1e0f2`. This report describes local implementation and testing; it does not claim a deployed service.
 
 **Pre-publication verification, 15 October 2026:** All 114 backend tests passed in the dedicated test database (one existing Starlette/httpx deprecation warning). Ruff lint/format passed for 43 Python files; TypeScript, ESLint and frontend formatting passed. The latest dataset workspaces and new-import preview also passed a separate live browser check. The earlier full-browser/build results below retain their original scope. Private datasets, credentials, local planning notes and presentation artifacts are excluded from the code publication.

@@ -1,0 +1,837 @@
+{
+  "dataset_version": "synthetic-evaluation-v1",
+  "counts": {
+    "customers": 20,
+    "months": 6,
+    "invoices": 120,
+    "expenses": 115,
+    "contracts": 40,
+    "questions": 30
+  },
+  "financial": {
+    "contribution_correct": 20,
+    "cases": 20,
+    "true_positive": 15,
+    "false_positive": 0,
+    "false_negative": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "retrieval": {
+    "baseline": {
+      "summary": {
+        "development": {
+          "questions": 10,
+          "answerable": 10,
+          "recall_at_3": 1.0,
+          "precision_of_returned_at_3": 0.5,
+          "mrr": 0.5,
+          "correct_abstentions": 0,
+          "unanswerable": 0
+        },
+        "held_out": {
+          "questions": 20,
+          "answerable": 15,
+          "recall_at_3": 0.6667,
+          "precision_of_returned_at_3": 0.3333,
+          "mrr": 0.3333,
+          "correct_abstentions": 5,
+          "unanswerable": 5
+        }
+      },
+      "questions": [
+        {
+          "question_id": "Q01",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.154,
+          "hits": [
+            "OLD-01",
+            "DOC-01"
+          ]
+        },
+        {
+          "question_id": "Q02",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.033,
+          "hits": [
+            "OLD-02",
+            "DOC-02"
+          ]
+        },
+        {
+          "question_id": "Q03",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.025,
+          "hits": [
+            "OLD-03",
+            "DOC-03"
+          ]
+        },
+        {
+          "question_id": "Q04",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.024,
+          "hits": [
+            "OLD-04",
+            "DOC-04"
+          ]
+        },
+        {
+          "question_id": "Q05",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.024,
+          "hits": [
+            "OLD-05",
+            "DOC-05"
+          ]
+        },
+        {
+          "question_id": "Q06",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-06",
+            "DOC-06"
+          ]
+        },
+        {
+          "question_id": "Q07",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.023,
+          "hits": [
+            "OLD-07",
+            "DOC-07"
+          ]
+        },
+        {
+          "question_id": "Q08",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.073,
+          "hits": [
+            "OLD-08",
+            "DOC-08"
+          ]
+        },
+        {
+          "question_id": "Q09",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.027,
+          "hits": [
+            "OLD-09",
+            "DOC-09"
+          ]
+        },
+        {
+          "question_id": "Q10",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.023,
+          "hits": [
+            "OLD-10",
+            "DOC-10"
+          ]
+        },
+        {
+          "question_id": "Q11",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.021,
+          "hits": [
+            "OLD-11",
+            "DOC-11"
+          ]
+        },
+        {
+          "question_id": "Q12",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-12",
+            "DOC-12"
+          ]
+        },
+        {
+          "question_id": "Q13",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.02,
+          "hits": [
+            "OLD-13",
+            "DOC-13"
+          ]
+        },
+        {
+          "question_id": "Q14",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-14",
+            "DOC-14"
+          ]
+        },
+        {
+          "question_id": "Q15",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-15",
+            "DOC-15"
+          ]
+        },
+        {
+          "question_id": "Q16",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-16",
+            "DOC-16"
+          ]
+        },
+        {
+          "question_id": "Q17",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.032,
+          "hits": [
+            "OLD-17",
+            "DOC-17"
+          ]
+        },
+        {
+          "question_id": "Q18",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.024,
+          "hits": [
+            "OLD-18",
+            "DOC-18"
+          ]
+        },
+        {
+          "question_id": "Q19",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.023,
+          "hits": [
+            "OLD-19",
+            "DOC-19"
+          ]
+        },
+        {
+          "question_id": "Q20",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 0.5,
+          "reciprocal_rank": 0.5,
+          "correct_abstention": null,
+          "latency_ms": 0.022,
+          "hits": [
+            "OLD-20",
+            "DOC-20"
+          ]
+        },
+        {
+          "question_id": "Q21",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.018,
+          "hits": []
+        },
+        {
+          "question_id": "Q22",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.016,
+          "hits": []
+        },
+        {
+          "question_id": "Q23",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.016,
+          "hits": []
+        },
+        {
+          "question_id": "Q24",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.016,
+          "hits": []
+        },
+        {
+          "question_id": "Q25",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.015,
+          "hits": []
+        },
+        {
+          "question_id": "Q26",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.016,
+          "hits": []
+        },
+        {
+          "question_id": "Q27",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.015,
+          "hits": []
+        },
+        {
+          "question_id": "Q28",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.015,
+          "hits": []
+        },
+        {
+          "question_id": "Q29",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.015,
+          "hits": []
+        },
+        {
+          "question_id": "Q30",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.015,
+          "hits": []
+        }
+      ]
+    },
+    "context": {
+      "summary": {
+        "development": {
+          "questions": 10,
+          "answerable": 10,
+          "recall_at_3": 1.0,
+          "precision_of_returned_at_3": 1.0,
+          "mrr": 1.0,
+          "correct_abstentions": 0,
+          "unanswerable": 0
+        },
+        "held_out": {
+          "questions": 20,
+          "answerable": 15,
+          "recall_at_3": 0.6667,
+          "precision_of_returned_at_3": 0.6667,
+          "mrr": 0.6667,
+          "correct_abstentions": 5,
+          "unanswerable": 5
+        }
+      },
+      "questions": [
+        {
+          "question_id": "Q01",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.018,
+          "hits": [
+            "DOC-01"
+          ]
+        },
+        {
+          "question_id": "Q02",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.015,
+          "hits": [
+            "DOC-02"
+          ]
+        },
+        {
+          "question_id": "Q03",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-03"
+          ]
+        },
+        {
+          "question_id": "Q04",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-04"
+          ]
+        },
+        {
+          "question_id": "Q05",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.015,
+          "hits": [
+            "DOC-05"
+          ]
+        },
+        {
+          "question_id": "Q06",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-06"
+          ]
+        },
+        {
+          "question_id": "Q07",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-07"
+          ]
+        },
+        {
+          "question_id": "Q08",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-08"
+          ]
+        },
+        {
+          "question_id": "Q09",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-09"
+          ]
+        },
+        {
+          "question_id": "Q10",
+          "split": "development",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-10"
+          ]
+        },
+        {
+          "question_id": "Q11",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-11"
+          ]
+        },
+        {
+          "question_id": "Q12",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-12"
+          ]
+        },
+        {
+          "question_id": "Q13",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-13"
+          ]
+        },
+        {
+          "question_id": "Q14",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-14"
+          ]
+        },
+        {
+          "question_id": "Q15",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-15"
+          ]
+        },
+        {
+          "question_id": "Q16",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-16"
+          ]
+        },
+        {
+          "question_id": "Q17",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-17"
+          ]
+        },
+        {
+          "question_id": "Q18",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-18"
+          ]
+        },
+        {
+          "question_id": "Q19",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.014,
+          "hits": [
+            "DOC-19"
+          ]
+        },
+        {
+          "question_id": "Q20",
+          "split": "held_out",
+          "category": "lexical",
+          "recall_at_3": 1.0,
+          "precision_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "correct_abstention": null,
+          "latency_ms": 0.013,
+          "hits": [
+            "DOC-20"
+          ]
+        },
+        {
+          "question_id": "Q21",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.011,
+          "hits": []
+        },
+        {
+          "question_id": "Q22",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.011,
+          "hits": []
+        },
+        {
+          "question_id": "Q23",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.01,
+          "hits": []
+        },
+        {
+          "question_id": "Q24",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.01,
+          "hits": []
+        },
+        {
+          "question_id": "Q25",
+          "split": "held_out",
+          "category": "paraphrase",
+          "recall_at_3": 0.0,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": null,
+          "latency_ms": 0.01,
+          "hits": []
+        },
+        {
+          "question_id": "Q26",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.011,
+          "hits": []
+        },
+        {
+          "question_id": "Q27",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.01,
+          "hits": []
+        },
+        {
+          "question_id": "Q28",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.01,
+          "hits": []
+        },
+        {
+          "question_id": "Q29",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.009,
+          "hits": []
+        },
+        {
+          "question_id": "Q30",
+          "split": "held_out",
+          "category": "unanswerable",
+          "recall_at_3": null,
+          "precision_at_3": 0,
+          "reciprocal_rank": 0,
+          "correct_abstention": true,
+          "latency_ms": 0.009,
+          "hits": []
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Small synthetic corpus; not a customer study or production-quality estimate.",
+    "Baseline preserves customer permissions; only temporal filtering differs.",
+    "BM25 parameters fixed before this benchmark. Five paraphrase queries expose lexical limitations.",
+    "Latency measures local ranking only, excludes database, network, and generation.",
+    "No live generative model or semantic embedding/quantization benchmark is claimed."
+  ]
+}

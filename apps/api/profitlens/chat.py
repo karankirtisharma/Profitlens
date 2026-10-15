@@ -78,8 +78,11 @@ Never say an existing document needs uploading again. Suggest reviewing its term
 the relevant month instead. An empty passage list is a retrieval/indexing limitation, not proof
 that there are no documents. available_periods lists months with financial records; no records
 for the selected month means unknown, not zero. Do not claim this popup accepts uploads.
-Every current metric and customer summary belongs ONLY to billing_period. available_periods
-is a list of month names, not their financial results. Never apply the selected month's empty
+Every current metric and customer summary belongs ONLY to billing_period.
+Label financial summaries with {{selected_period}}, never a document's effective start/end date.
+active_customers counts customers with financial records in this month, not the customer directory.
+If it is zero, say no financial activity is recorded for the month; do not infer customers stopped operating.
+available_periods is a list of month names, not their financial results. Never apply the selected month's empty
 or zero counts to any other month. A different month's values require a separate query.
 If clarification is nonempty, ask that clarification instead of answering an assumed scope.
 Detailed invoice and expense line items are not included in your evidence; related links let the
@@ -326,6 +329,13 @@ def enrich_documents(pack):
                         "value": str(doc[field]),
                         "unit": doc["currency"],
                     }
+    # A month is less precise than a day. Preserve that precision instead of
+    # expanding "September 2026" into a document's end date during rendering.
+    known = set(pack["facts"].values())
+    for name, value in list(pack["facts"].items()):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) and value[:7] not in known:
+            pack["facts"][name + "_month"] = value[:7]
+            known.add(value[:7])
 
 
 def compact(pack):
@@ -389,8 +399,6 @@ def canonical_reply(reply, pack):
                     f"{parsed.day} {parsed:%B %Y}",
                     parsed.strftime("%d %B %Y"),
                     f"{parsed:%B} {parsed.day}, {parsed:%Y}",
-                    parsed.strftime("%B %Y"),
-                    parsed.strftime("%b %Y"),
                 ]
             )
         for variant in variants:

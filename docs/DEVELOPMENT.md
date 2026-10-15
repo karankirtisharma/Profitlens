@@ -129,3 +129,7 @@ Without `TEST_DATABASE_URL`, the 29 local ingestion and financial calculation te
 - The new analysis module adds contribution/margin, reviewable discrepancies, BM25 evidence retrieval and verified extractive provider integration. Semantic search is not implemented; live AI requires configuration. See [Analysis setup](ANALYSIS_GUIDE.md) and [verification report](ROADMAP_IMPLEMENTATION_REPORT.md).
 
 Browser-test ports default to 3001 (web) and 8001 (API). Optional `E2E_WEB_PORT` and `E2E_API_PORT` environment variables let the isolated harness use free ports while other projects are running. The harness derives the API origin and allowed browser origin from those values.
+
+## Isolated build verification
+
+Browser tests use `.next-e2e` to avoid replacing `.next` for a running development session. `NEXT_DIST_DIR` optionally selects a separate Next.js build directory; `.next-verify` is ignored for production-build checks. Browser test ports remain independently configurable. The latest [minor-project verification report](MINOR_SCOPE_RELEASE_REPORT.md) distinguishes real provider checks, mocked flows and remaining limits.

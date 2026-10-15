@@ -4,7 +4,7 @@
 
 ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It connects customer records, invoices, attributed expenses and PDF contracts with deterministic contribution/margin calculations, reviewable discrepancies and permission-scoped evidence investigations.
 
-> **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; systematic model-quality evaluation and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/ROADMAP_IMPLEMENTATION_REPORT.md).
+> **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; a bounded synthetic evidence-selection evaluation is now recorded, while broader conversational quality and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/MINOR_SCOPE_RELEASE_REPORT.md).
 
 ## The problem it addresses
 
@@ -87,7 +87,7 @@ The CLI prints a JSON report with `valid`, record counts, customer-period links,
 
 The twelve-week roadmap builds storage and authentication first, then financial rules, retrieval, verified explanations and evaluation. The [progress record](docs/ROADMAP.md) separates implemented modules from unverified external integrations. Multi-industry expansion is outside this delivery.
 
-The reproducible evaluation uses 20 synthetic customers, six months of records, current/expired contract pairs and 30 questions. It measures financial correctness, rule precision/recall and retrieval ranking against a permission-preserving baseline. Quantization is deferred: the current retrieval engine has no pretrained weights to quantize. Human relevance assessment and live model quality remain future validation work.
+The reproducible evaluation uses 20 synthetic customers, six months of records, current/expired contract pairs and 30 questions. It measures financial correctness, rule precision/recall and retrieval ranking against a permission-preserving baseline. Quantization is deferred: the current retrieval engine has no pretrained weights to quantize. A small synthetic live evidence-selection evaluation is recorded; five held-out paraphrases still miss lexical retrieval. Broader human relevance and conversational-quality validation remain incomplete.
 
 Open **Profitability & evidence** to load a customer/month, inspect sources, attest complete costs, search reviewed contracts and request a verified investigation. [Setup, demo and API reference](docs/ANALYSIS_GUIDE.md). [Deployment preparation](docs/DEPLOYMENT.md).
 
@@ -112,3 +112,7 @@ Open **Profitability & evidence** to load a customer/month, inspect sources, att
 ProfitLens is a decision-support prototype. It is not an accounting authority or payment system. Estimated opportunities need human review, and results depend on the completeness of supplied data. The college demo uses synthetic records; real customer data and secrets must not be committed. The code is publicly viewable, while [LICENSE.md](LICENSE.md) reserves reuse rights.
 
 The project is being developed by a team. Project idea and copyright: Karan Kirti Sharma.
+
+## Minor-project scope and latest verification
+
+The [active SRS](docs/requirements/SRS.md) and [focused roadmap](docs/implementation/phased-roadmap.md) keep the project bounded to customer-profitability investigation. Financial-only, contract-only and combined evidence modes support different valid workflows without inventing missing costs or contracts. The [release report](docs/MINOR_SCOPE_RELEASE_REPORT.md) records 122 backend passes, 15 browser scenarios passing across the full run/corrected-case rerun, production build checks, a 24-case synthetic explanation evaluation and the corrected chat date-rendering defect. General accounting/industry modules remain future work.

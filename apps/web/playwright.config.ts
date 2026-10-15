@@ -43,7 +43,7 @@ export default defineConfig({
       url: webOrigin,
       timeout: 90000,
       reuseExistingServer: false,
-      env: { API_INTERNAL_URL: apiOrigin },
+      env: { API_INTERNAL_URL: apiOrigin, NEXT_DIST_DIR: ".next-e2e" },
     },
   ],
 });

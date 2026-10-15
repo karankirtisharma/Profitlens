@@ -14,7 +14,7 @@ Chat requires a configured provider: there are no canned business answers or off
 4. Choose that workspace, open **Profitability & evidence**, select `EVAL-01`, month `2026-09`, and **Load analysis**. Expected revenue 1200, direct costs 400, contribution 800, margin 66.67%; a pricing mismatch references the reviewed 1000 monthly charge.
 5. `EVAL-06` shows a cost increase and margin decline; `EVAL-11` has missing costs and unavailable contribution; `EVAL-16` is a control. April–September costs are explicitly attested only where the synthetic fixture contains expenses.
 6. Search “What does the payroll monthly delivery agreement cover?” for `EVAL-01`. The current PDF should be cited with its page. Expired terms are excluded in context mode.
-7. With AI disabled, **Generate with configured AI** shows an explicit provider-unavailable state; it does not invent a response. Missing costs or contract evidence produce insufficient-evidence without calling a provider.
+7. With AI disabled, **Generate with configured AI** shows an explicit provider-unavailable state; it does not invent a response. Select the evidence scope: financial questions use available records without requiring contracts or cost confirmation; contract-only questions require reviewed matching passages; combined questions need both. Missing prerequisites for that scope produce insufficient-evidence without calling a provider. Provisional amounts remain labelled.
 
 Ready-to-import CSVs/PDFs and labels are in `demo-files/evaluation/`. Import customers, then invoices and expenses. Attach each PDF to its matching customer; manually review current terms before context retrieval. Importing into a different workspace does not transfer the seed's cost attestations.
 
@@ -66,7 +66,7 @@ All paths below start `/api/workspaces/{organization_id}` and require a valid se
 | GET `/evidence/search` | `customer_id`, `billing_period`, `q`, `mode=context|baseline`, `k≤10`. Page references and lexical scores. | Both modes preserve organization/customer permissions; 422 >2000 candidate passages. |
 | POST `/evidence/reindex` | Rebuild existing page chunks; returns document/passage counts and version. | Admin/finance; ≤200 documents per workspace action. |
 | GET `/ai/status` | Provider, model, configured flag; no secret. | Workspace members. |
-| POST `/investigations` | Customer, month, question≤1000 characters. Returns ID, evidence and result status. | ≤100 financial source rows; five requests/workspace/minute; 409 changed inputs during generation; no unchecked output. |
+| POST `/investigations` | Customer, month, question≤1000 characters, optional `evidence_scope=financial|contract|combined` (default combined). Returns ID, scoped evidence and result status. | ≤100 financial source rows; five requests/workspace/minute; 409 changed inputs during generation; no unchecked output. |
 | GET `/investigations` | Optional customer filter; latest 50 visible metadata rows. Status is the saved status, not a fresh validity check. | Current permissions enforced. |
 | GET `/investigations/{id}` | Revalidates evidence hash; returns result/evidence or a stale marker. | 404 inaccessible; changed evidence hides the old answer. |
 
@@ -104,3 +104,9 @@ Workspace totals cover all visible customers with invoice or expense activity, u
 Try “How is profit this month?”, “Check the latest available month; what needs review?”, “Explain EVAL-01 in September 2026”, then open a related record. Unsupported multi-month ranges ask for clarification. The planner adds latency and can misunderstand intent; inspect the displayed scope/month and use manual filters if needed. Natural-language interpretation still requires human review.
 
 Verification for this update: 114 backend tests passed; both targeted Chromium flows passed, including automatic-scope payloads, optional filter reset, formatted cards, mobile layout, invoice-detail navigation and customer/month-prefilled analysis navigation. TypeScript, ESLint and Ruff passed. Real OpenRouter checks on the explicitly synthetic evaluation workspace covered current-month no-data, latest-month review, and customer analysis; two live browser replies and a PDF link passed. These are smoke checks, not a correctness benchmark. Northstar was not live-tested in this update.
+
+## Minor-project scope correction and date fix
+
+The analysis screen now exposes **Investigation evidence**. Use Financial records for revenue/cost questions, Reviewed contract terms for document questions, and both for comparing billing with terms. Financial-only mode does not retrieve contract text or assert contract compliance. Unknown costs remain unavailable; unconfirmed contribution stays provisional. The popup still selects its authorized scope automatically; the new selector is for formal saved investigations. Historical snapshots without the evidence-scope field can become stale and should be rerun.
+
+Chat month labels no longer expand a month into a contract day. Exact document dates retain their day. See the [current release report](MINOR_SCOPE_RELEASE_REPORT.md) for 122 backend tests, browser/build verification, actual model outputs and known lexical/semantic limits.

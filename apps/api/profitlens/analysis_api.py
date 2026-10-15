@@ -36,6 +36,7 @@ class Question(BaseModel):
     customer_id: str = Field(min_length=1, max_length=80)
     billing_period: str = Field(pattern=r"^\d{4}-\d{2}$")
     question: str = Field(min_length=5, max_length=1000)
+    evidence_scope: explanations.EvidenceScope = "combined"
 
 
 @router.get("/profitability")
@@ -209,14 +210,24 @@ def investigate(organization_id: str, payload: Question, request: Request):
         s = scope(organization_id, current_user(request, conn), conn)
         throttle(conn, s)
         pack = explanations.evidence(
-            conn, s, payload.customer_id, payload.billing_period, payload.question
+            conn,
+            s,
+            payload.customer_id,
+            payload.billing_period,
+            payload.question,
+            payload.evidence_scope,
         )
     result = explanations.explain(pack)
     with db.engine.begin() as conn:
         # Permission/session revocation and changed inputs during model latency invalidate the result.
         s = scope(organization_id, current_user(request, conn), conn)
         latest = explanations.evidence(
-            conn, s, payload.customer_id, payload.billing_period, payload.question
+            conn,
+            s,
+            payload.customer_id,
+            payload.billing_period,
+            payload.question,
+            payload.evidence_scope,
         )
         if explanations.pack_hash(latest) != explanations.pack_hash(pack):
             raise HTTPException(
@@ -285,7 +296,12 @@ def detail(
     if not row:
         raise HTTPException(404, "Investigation not found")
     latest = explanations.evidence(
-        conn, s, row["customer_id"], row["billing_period"], row["question"]
+        conn,
+        s,
+        row["customer_id"],
+        row["billing_period"],
+        row["question"],
+        row["snapshot"]["evidence"].get("evidence_scope", "combined"),
     )
     if explanations.pack_hash(latest) != explanations.pack_hash(
         row["snapshot"]["evidence"]

@@ -1,0 +1,662 @@
+{
+  "scope": "synthetic evaluation-demo on dedicated e2e DB; normal login; actual configured model",
+  "cases": [
+    {
+      "question": "Show the recorded contribution and margin for EVAL-01 in September 2026.",
+      "http_status": 200,
+      "elapsed_seconds": 3.42,
+      "result": {
+        "reply": "**Contribution and Margin for 2026-09-30**\n- Contribution recorded: 800.00 INR\n- Margin percentage: 66.67 percent",
+        "mode": "ai",
+        "scope_label": "Synthetic Company 01",
+        "actions": [
+          {
+            "view": "finance",
+            "label": "Open financial records",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "analysis",
+            "label": "Review profitability & issues",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "invoices",
+            "label": "Open INV-01-9",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": "INV-01-9"
+          },
+          {
+            "view": "expenses",
+            "label": "Open EXP-01-9",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": "EXP-01-9"
+          },
+          {
+            "view": "contracts",
+            "label": "Open contract library",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "imports",
+            "label": "Import records",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          }
+        ],
+        "cards": [
+          {
+            "label": "Net billed revenue",
+            "value": "1200.00 INR",
+            "tone": "neutral"
+          },
+          {
+            "label": "Attributed cost",
+            "value": "400.00 INR",
+            "tone": "neutral"
+          },
+          {
+            "label": "Contribution \u00b7 not net profit",
+            "value": "800.00 INR",
+            "tone": "positive"
+          },
+          {
+            "label": "Contribution margin",
+            "value": "66.67 percent",
+            "tone": "positive"
+          }
+        ],
+        "insufficient_evidence": false,
+        "customer_id": "EVAL-01",
+        "billing_period": "2026-09",
+        "profitability_status": "confirmed",
+        "sources": [
+          {
+            "source_id": "passage:2dc5a27c3a195d338e4dfcf4e4e16dbb7181735d540fb9afb97c920a20446de2",
+            "filename": "EVAL-01-current.pdf",
+            "page": 1,
+            "source_url": "/api/workspaces/evaluation-demo/contracts/9d89b5d3-49b9-4983-97b5-615bc1db3c4d/file#page=1",
+            "quote": "Current service agreement for EVAL-01. The payroll service includes scheduled monthly\ndelivery. Monthly charge INR 1000. Payment is due within thirty days.\nPricing covers the stated period only.",
+            "evidence_status": "reviewed_period_match"
+          }
+        ],
+        "metrics": [
+          {
+            "metric_id": "contribution",
+            "value": "800.00",
+            "unit": "INR"
+          },
+          {
+            "metric_id": "margin_percent",
+            "value": "66.67",
+            "unit": "percent"
+          }
+        ],
+        "available_periods": [
+          "2026-09",
+          "2026-08",
+          "2026-07",
+          "2026-06",
+          "2026-05",
+          "2026-04"
+        ],
+        "findings": [
+          {
+            "id": "EVAL-01:2026-09:pricing_mismatch",
+            "rule": "pricing_mismatch",
+            "severity": "review",
+            "actual": "1200.00",
+            "expected": "1000.00",
+            "difference": "200.00",
+            "unit": "INR",
+            "source_ids": [
+              "invoice:INV-01-9",
+              "contract:9d89b5d3-49b9-4983-97b5-615bc1db3c4d"
+            ],
+            "formula": "sum(subtotal - discount) - (reviewed monthly rate - monthly discount); refunds excluded from price comparison",
+            "limitation": "Candidate discrepancy for human review; does not establish cause or savings."
+          }
+        ],
+        "record_ids": {
+          "invoices": [
+            "INV-01-9"
+          ],
+          "expenses": [
+            "EXP-01-9"
+          ]
+        },
+        "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+      }
+    },
+    {
+      "question": "What is the revenue for EVAL-11 in September 2026? Are costs complete?",
+      "http_status": 200,
+      "elapsed_seconds": 3.94,
+      "result": {
+        "reply": "**Revenue for 2026-09-30**\n- The net billed revenue for the selected customer in 2026-09 is 1000.00 INR.\n- This matches the current monthly rate in the active service agreement, which is 1000.00 INR with no discount.\n\n**Cost Completeness**\n- Costs for this period are marked as missing or incomplete, so the full cost details are not available for 2026-09.",
+        "mode": "ai",
+        "scope_label": "Synthetic Company 11",
+        "actions": [
+          {
+            "view": "finance",
+            "label": "Open financial records",
+            "customer_id": "EVAL-11",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "analysis",
+            "label": "Review profitability & issues",
+            "customer_id": "EVAL-11",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "invoices",
+            "label": "Open INV-11-9",
+            "customer_id": "EVAL-11",
+            "billing_period": "2026-09",
+            "record_id": "INV-11-9"
+          },
+          {
+            "view": "contracts",
+            "label": "Open contract library",
+            "customer_id": "EVAL-11",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "imports",
+            "label": "Import records",
+            "customer_id": "EVAL-11",
+            "billing_period": "2026-09",
+            "record_id": null
+          }
+        ],
+        "cards": [
+          {
+            "label": "Net billed revenue",
+            "value": "1000.00 INR",
+            "tone": "warning"
+          },
+          {
+            "label": "Attributed cost",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution \u00b7 not net profit",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution margin",
+            "value": "Unavailable",
+            "tone": "warning"
+          }
+        ],
+        "insufficient_evidence": true,
+        "customer_id": "EVAL-11",
+        "billing_period": "2026-09",
+        "profitability_status": "unavailable",
+        "sources": [
+          {
+            "source_id": "passage:0d76d7b199dcab740a7c237fcadaa9d41bd2637afea769626f6a47aafbad03ea",
+            "filename": "EVAL-11-current.pdf",
+            "page": 1,
+            "source_url": "/api/workspaces/evaluation-demo/contracts/5248c5b7-6dbd-4cf2-bb6f-62f7bccd588c/file#page=1",
+            "quote": "Current service agreement for EVAL-11. The payroll service includes scheduled monthly\ndelivery. Monthly charge INR 1000. Payment is due within thirty days.\nPricing covers the stated period only.",
+            "evidence_status": "reviewed_period_match"
+          }
+        ],
+        "metrics": [
+          {
+            "metric_id": "net_billed_revenue",
+            "value": "1000.00",
+            "unit": "INR"
+          },
+          {
+            "metric_id": "document_aa_monthly_rate",
+            "value": "1000.00",
+            "unit": "INR"
+          }
+        ],
+        "available_periods": [
+          "2026-09",
+          "2026-08",
+          "2026-07",
+          "2026-06",
+          "2026-05",
+          "2026-04"
+        ],
+        "findings": [],
+        "record_ids": {
+          "invoices": [
+            "INV-11-9"
+          ],
+          "expenses": []
+        },
+        "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+      }
+    },
+    {
+      "question": "How is profit this month?",
+      "http_status": 200,
+      "elapsed_seconds": 3.24,
+      "result": {
+        "reply": "**Profit Status for This Month**\n- There are no active customers recorded for 2026-10.\n- Consequently, no profitability data is available for this period.\n- The latest available financial records are from 2026-09.\n\nPlease check back when customer activity resumes or select a previous month for profit details.",
+        "mode": "ai",
+        "scope_label": "All accessible customers",
+        "actions": [
+          {
+            "view": "finance",
+            "label": "Open financial records",
+            "customer_id": null,
+            "billing_period": "2026-10",
+            "record_id": null
+          },
+          {
+            "view": "imports",
+            "label": "Import records",
+            "customer_id": null,
+            "billing_period": "2026-10",
+            "record_id": null
+          }
+        ],
+        "cards": [
+          {
+            "label": "Net billed revenue",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Attributed cost",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution \u00b7 not net profit",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution margin",
+            "value": "Unavailable",
+            "tone": "warning"
+          }
+        ],
+        "insufficient_evidence": true,
+        "customer_id": null,
+        "billing_period": "2026-10",
+        "profitability_status": "no_records",
+        "sources": [],
+        "metrics": [],
+        "available_periods": [
+          "2026-09",
+          "2026-08",
+          "2026-07",
+          "2026-06",
+          "2026-05",
+          "2026-04"
+        ],
+        "findings": [],
+        "record_ids": {
+          "invoices": [],
+          "expenses": []
+        },
+        "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+      }
+    }
+  ],
+  "followup_cases": [
+    {
+      "question": "Show the recorded contribution and margin for EVAL-01 in September 2026.",
+      "http_status": 200,
+      "elapsed_seconds": 3.48,
+      "result": {
+        "reply": "**Contribution and Margin for the selected customer in 2026-09-30**\n- Contribution: 800.00 INR\n- Margin Percentage: 66.67 percent",
+        "mode": "ai",
+        "scope_label": "Synthetic Company 01",
+        "actions": [
+          {
+            "view": "finance",
+            "label": "Open financial records",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "analysis",
+            "label": "Review profitability & issues",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "invoices",
+            "label": "Open INV-01-9",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": "INV-01-9"
+          },
+          {
+            "view": "expenses",
+            "label": "Open EXP-01-9",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": "EXP-01-9"
+          },
+          {
+            "view": "contracts",
+            "label": "Open contract library",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          },
+          {
+            "view": "imports",
+            "label": "Import records",
+            "customer_id": "EVAL-01",
+            "billing_period": "2026-09",
+            "record_id": null
+          }
+        ],
+        "cards": [
+          {
+            "label": "Net billed revenue",
+            "value": "1200.00 INR",
+            "tone": "neutral"
+          },
+          {
+            "label": "Attributed cost",
+            "value": "400.00 INR",
+            "tone": "neutral"
+          },
+          {
+            "label": "Contribution \u00b7 not net profit",
+            "value": "800.00 INR",
+            "tone": "positive"
+          },
+          {
+            "label": "Contribution margin",
+            "value": "66.67 percent",
+            "tone": "positive"
+          }
+        ],
+        "insufficient_evidence": false,
+        "customer_id": "EVAL-01",
+        "billing_period": "2026-09",
+        "profitability_status": "confirmed",
+        "sources": [
+          {
+            "source_id": "passage:2dc5a27c3a195d338e4dfcf4e4e16dbb7181735d540fb9afb97c920a20446de2",
+            "filename": "EVAL-01-current.pdf",
+            "page": 1,
+            "source_url": "/api/workspaces/evaluation-demo/contracts/9d89b5d3-49b9-4983-97b5-615bc1db3c4d/file#page=1",
+            "quote": "Current service agreement for EVAL-01. The payroll service includes scheduled monthly\ndelivery. Monthly charge INR 1000. Payment is due within thirty days.\nPricing covers the stated period only.",
+            "evidence_status": "reviewed_period_match"
+          }
+        ],
+        "metrics": [
+          {
+            "metric_id": "contribution",
+            "value": "800.00",
+            "unit": "INR"
+          },
+          {
+            "metric_id": "margin_percent",
+            "value": "66.67",
+            "unit": "percent"
+          }
+        ],
+        "available_periods": [
+          "2026-09",
+          "2026-08",
+          "2026-07",
+          "2026-06",
+          "2026-05",
+          "2026-04"
+        ],
+        "findings": [
+          {
+            "id": "EVAL-01:2026-09:pricing_mismatch",
+            "rule": "pricing_mismatch",
+            "severity": "review",
+            "actual": "1200.00",
+            "expected": "1000.00",
+            "difference": "200.00",
+            "unit": "INR",
+            "source_ids": [
+              "invoice:INV-01-9",
+              "contract:9d89b5d3-49b9-4983-97b5-615bc1db3c4d"
+            ],
+            "formula": "sum(subtotal - discount) - (reviewed monthly rate - monthly discount); refunds excluded from price comparison",
+            "limitation": "Candidate discrepancy for human review; does not establish cause or savings."
+          }
+        ],
+        "record_ids": {
+          "invoices": [
+            "INV-01-9"
+          ],
+          "expenses": [
+            "EXP-01-9"
+          ]
+        },
+        "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+      }
+    },
+    {
+      "question": "How is profit this month?",
+      "http_status": 200,
+      "elapsed_seconds": 3.02,
+      "result": {
+        "reply": "**Profit Status for This Month**\n- No active customers are recorded for 2026-10.\n- Consequently, there are no profitability records available for this period.\n- The latest available financial data is from 2026-09.\n\nPlease check if you want to review profit details for a previous month with available data.",
+        "mode": "ai",
+        "scope_label": "All accessible customers",
+        "actions": [
+          {
+            "view": "finance",
+            "label": "Open financial records",
+            "customer_id": null,
+            "billing_period": "2026-10",
+            "record_id": null
+          },
+          {
+            "view": "imports",
+            "label": "Import records",
+            "customer_id": null,
+            "billing_period": "2026-10",
+            "record_id": null
+          }
+        ],
+        "cards": [
+          {
+            "label": "Net billed revenue",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Attributed cost",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution \u00b7 not net profit",
+            "value": "Unavailable",
+            "tone": "warning"
+          },
+          {
+            "label": "Contribution margin",
+            "value": "Unavailable",
+            "tone": "warning"
+          }
+        ],
+        "insufficient_evidence": true,
+        "customer_id": null,
+        "billing_period": "2026-10",
+        "profitability_status": "no_records",
+        "sources": [],
+        "metrics": [],
+        "available_periods": [
+          "2026-09",
+          "2026-08",
+          "2026-07",
+          "2026-06",
+          "2026-05",
+          "2026-04"
+        ],
+        "findings": [],
+        "record_ids": {
+          "invoices": [],
+          "expenses": []
+        },
+        "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+      }
+    }
+  ],
+  "review": "Initial and prompt-only follow-up financial headings incorrectly expanded September 2026 to a contract end date. Root cause: date canonicalizer accepted month-only aliases for full-day facts. Removed those aliases, added explicit coarse month facts and regression tests. Final live result retained below. No-activity prose remains a model interpretation; no-data status refers to records, not company inactivity.",
+  "date_precision_fix": {
+    "question": "Show the recorded contribution and margin for EVAL-01 in September 2026.",
+    "http_status": 200,
+    "result": {
+      "reply": "**Contribution and Margin for the selected customer in 2026-09**\n- Contribution: 800.00 INR\n- Margin Percentage: 66.67 percent",
+      "mode": "ai",
+      "scope_label": "Synthetic Company 01",
+      "actions": [
+        {
+          "view": "finance",
+          "label": "Open financial records",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": null
+        },
+        {
+          "view": "analysis",
+          "label": "Review profitability & issues",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": null
+        },
+        {
+          "view": "invoices",
+          "label": "Open INV-01-9",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": "INV-01-9"
+        },
+        {
+          "view": "expenses",
+          "label": "Open EXP-01-9",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": "EXP-01-9"
+        },
+        {
+          "view": "contracts",
+          "label": "Open contract library",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": null
+        },
+        {
+          "view": "imports",
+          "label": "Import records",
+          "customer_id": "EVAL-01",
+          "billing_period": "2026-09",
+          "record_id": null
+        }
+      ],
+      "cards": [
+        {
+          "label": "Net billed revenue",
+          "value": "1200.00 INR",
+          "tone": "neutral"
+        },
+        {
+          "label": "Attributed cost",
+          "value": "400.00 INR",
+          "tone": "neutral"
+        },
+        {
+          "label": "Contribution \u00b7 not net profit",
+          "value": "800.00 INR",
+          "tone": "positive"
+        },
+        {
+          "label": "Contribution margin",
+          "value": "66.67 percent",
+          "tone": "positive"
+        }
+      ],
+      "insufficient_evidence": false,
+      "customer_id": "EVAL-01",
+      "billing_period": "2026-09",
+      "profitability_status": "confirmed",
+      "sources": [
+        {
+          "source_id": "passage:2dc5a27c3a195d338e4dfcf4e4e16dbb7181735d540fb9afb97c920a20446de2",
+          "filename": "EVAL-01-current.pdf",
+          "page": 1,
+          "source_url": "/api/workspaces/evaluation-demo/contracts/9d89b5d3-49b9-4983-97b5-615bc1db3c4d/file#page=1",
+          "quote": "Current service agreement for EVAL-01. The payroll service includes scheduled monthly\ndelivery. Monthly charge INR 1000. Payment is due within thirty days.\nPricing covers the stated period only.",
+          "evidence_status": "reviewed_period_match"
+        }
+      ],
+      "metrics": [
+        {
+          "metric_id": "contribution",
+          "value": "800.00",
+          "unit": "INR"
+        },
+        {
+          "metric_id": "margin_percent",
+          "value": "66.67",
+          "unit": "percent"
+        }
+      ],
+      "available_periods": [
+        "2026-09",
+        "2026-08",
+        "2026-07",
+        "2026-06",
+        "2026-05",
+        "2026-04"
+      ],
+      "findings": [
+        {
+          "id": "EVAL-01:2026-09:pricing_mismatch",
+          "rule": "pricing_mismatch",
+          "severity": "review",
+          "actual": "1200.00",
+          "expected": "1000.00",
+          "difference": "200.00",
+          "unit": "INR",
+          "source_ids": [
+            "invoice:INV-01-9",
+            "contract:9d89b5d3-49b9-4983-97b5-615bc1db3c4d"
+          ],
+          "formula": "sum(subtotal - discount) - (reviewed monthly rate - monthly discount); refunds excluded from price comparison",
+          "limitation": "Candidate discrepancy for human review; does not establish cause or savings."
+        }
+      ],
+      "record_ids": {
+        "invoices": [
+          "INV-01-9"
+        ],
+        "expenses": [
+          "EXP-01-9"
+        ]
+      },
+      "notice": "Figures matched to current records; excerpts copied from linked sources. AI interpretation still needs review."
+    }
+  }
+}

@@ -84,6 +84,7 @@ export function AnalysisPanel({
   const [question, setQuestion] = useState(
     "What do the monthly service contract and recorded margin show?",
   );
+  const [evidenceScope, setEvidenceScope] = useState("combined");
   const [reviewNote, setReviewNote] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [passages, setPassages] = useState<Passage[] | null>(null);
@@ -220,8 +221,10 @@ export function AnalysisPanel({
               <p>
                 Prior month ({row.previous.billing_period}): contribution{" "}
                 {row.previous.contribution ?? "unavailable"}; margin{" "}
-                {row.previous.margin_percent ?? "unavailable"}% ·{" "}
-                {row.previous.profitability_status}.
+                {row.previous.margin_percent === null
+                  ? "unavailable"
+                  : `${row.previous.margin_percent}%`}{" "}
+                · {row.previous.profitability_status}.
               </p>
             )}
             <p className="finance-note">
@@ -337,11 +340,34 @@ export function AnalysisPanel({
             )}
           </section>
           <section className="panel glass">
-            <h2>Contract evidence & investigations</h2>
+            <h2>Evidence & investigations</h2>
             <p>
               Search uses page-attributed BM25 lexical retrieval, restricted to
               this customer and reviewed contracts covering the month. It can
               miss paraphrases.
+            </p>
+            <label>
+              Investigation evidence
+              <select
+                value={evidenceScope}
+                disabled={busy}
+                onChange={(e) => {
+                  setEvidenceScope(e.target.value);
+                  setInvestigation(null);
+                }}
+              >
+                <option value="financial">Financial records</option>
+                <option value="contract">Reviewed contract terms</option>
+                <option value="combined">
+                  Financial records and contract terms
+                </option>
+              </select>
+            </label>
+            <p className="finance-note">
+              Financial questions do not require a contract or confirmed cost
+              coverage. Available costs and margins stay provisional until
+              reviewed. Contract questions require matching reviewed passages.
+              Choose both when comparing billing with agreed terms.
             </p>
             <label>
               Business question
@@ -386,6 +412,7 @@ export function AnalysisPanel({
                           customer_id: row.customer_id,
                           billing_period: row.billing_period,
                           question,
+                          evidence_scope: evidenceScope,
                         }),
                       },
                     );

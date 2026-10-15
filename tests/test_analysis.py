@@ -345,3 +345,135 @@ def test_grant_revoked_during_generation_returns_no_output(monkeypatch):
 
     monkeypatch.setattr(explanations, "generate", revoked)
     assert ask(analyst).status_code == 404
+
+
+def scoped_ask(c, scope, question="What is the recorded revenue for this month?"):
+    return c.post(
+        BASE + "/investigations",
+        json={
+            "customer_id": "C1",
+            "billing_period": "2026-09",
+            "question": question,
+            "evidence_scope": scope,
+        },
+    )
+
+
+def revenue_answer(pack):
+    return ModelAnswer(
+        insufficient_evidence=False,
+        metrics=[
+            MetricClaim(
+                metric_id="net_billed_revenue", **pack["metrics"]["net_billed_revenue"]
+            )
+        ],
+        finding_ids=[],
+        citations=[],
+    )
+
+
+def test_revenue_only_investigation_without_costs_or_contract(monkeypatch):
+    c = client()
+    c.post(BASE + "/records/invoices", json=invoice()).raise_for_status()
+    monkeypatch.setattr(explanations, "generate", revenue_answer)
+    response = scoped_ask(c, "financial")
+    assert response.status_code == 201
+    data = response.json()
+    assert data["result"]["status"] == "verified"
+    assert data["evidence"]["passages"] == []
+    assert "contribution" not in data["evidence"]["metrics"]
+    assert "90.00 INR" in data["result"]["summary"]
+    assert "Cost coverage is not confirmed" in " ".join(data["result"]["limitations"])
+    detail = c.get(BASE + "/investigations/" + data["id"]).json()
+    assert detail["stale"] is False
+    assert detail["evidence"]["evidence_scope"] == "financial"
+    assert scoped_ask(client("outsider"), "financial").status_code == 404
+
+
+def test_contract_only_question_needs_no_invoice_or_cost(monkeypatch):
+    c = client()
+    doc = upload(
+        c,
+        "C1",
+        pdf("Monthly service support agreement includes maintenance and support."),
+    )
+    c.put(BASE + f"/contracts/{doc['id']}/terms", json=TERMS).raise_for_status()
+
+    def answer(pack):
+        assert pack["metrics"] == {} and pack["invoice_lines"] == []
+        p = pack["passages"][0]
+        return ModelAnswer(
+            insufficient_evidence=False,
+            metrics=[],
+            finding_ids=[],
+            citations=[Citation(source_id=p["source_id"], quote=p["content"])],
+        )
+
+    monkeypatch.setattr(explanations, "generate", answer)
+    response = scoped_ask(
+        c, "contract", "What monthly maintenance and support is covered?"
+    )
+    assert response.status_code == 201
+    assert response.json()["result"]["status"] == "verified"
+
+
+def test_unreviewed_contract_and_empty_financial_scope_do_not_call_provider(
+    monkeypatch,
+):
+    c = client()
+    upload(c, "C1", pdf())
+
+    def unexpected(_):
+        raise AssertionError("No usable evidence must not call the model")
+
+    monkeypatch.setattr(explanations, "generate", unexpected)
+    for scope in ("contract", "financial", "combined"):
+        assert (
+            scoped_ask(c, scope).json()["result"]["status"] == "insufficient_evidence"
+        )
+    assert scoped_ask(c, "unknown").status_code == 422
+
+
+def test_provisional_contribution_is_labelled_and_contract_claims_rejected(monkeypatch):
+    c = client()
+    setup(c)
+
+    def provisional(pack):
+        return ModelAnswer(
+            insufficient_evidence=False,
+            metrics=[
+                MetricClaim(metric_id="contribution", **pack["metrics"]["contribution"])
+            ],
+            finding_ids=[],
+            citations=[],
+        )
+
+    monkeypatch.setattr(explanations, "generate", provisional)
+    result = scoped_ask(c, "financial").json()["result"]
+    assert result["status"] == "verified"
+    assert result["summary"].startswith("Provisional Contribution: 50.00 INR")
+
+    def fabricated(pack):
+        answer = provisional(pack)
+        answer.citations = [
+            Citation(
+                source_id="passage:invented", quote="An invented monthly contract rate."
+            )
+        ]
+        return answer
+
+    monkeypatch.setattr(explanations, "generate", fabricated)
+    assert scoped_ask(c, "financial").json()["result"]["status"] == "rejected"
+
+
+def test_combined_requires_both_evidence_types_but_not_cost_attestation(monkeypatch):
+    c = client()
+    ready(c)
+    with db.engine.begin() as conn:
+        conn.execute(delete(db.cost_reviews))
+    monkeypatch.setattr(explanations, "generate", valid_answer)
+    assert ask(c).json()["result"]["status"] == "verified"
+    monkeypatch.setattr(explanations, "generate", revenue_answer)
+    result = ask(c).json()["result"]
+    assert result["status"] == "rejected"
+    assert "missing_evidence" in result["verification_errors"]

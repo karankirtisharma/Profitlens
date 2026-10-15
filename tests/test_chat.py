@@ -265,6 +265,7 @@ def test_old_month_retains_reference_document_and_actual_date_facts(monkeypatch)
     assert r.status_code == 200, r.text
     assert "2026-02" in r.json()["reply"]
     assert "2026-09-01" in r.json()["reply"]
+    assert "select 2026-09 for financial data" in r.json()["reply"]
     assert r.json()["sources"][0]["evidence_status"] == "outside_selected_period"
 
 
@@ -306,3 +307,4 @@ def test_unreviewed_document_quotes_do_not_become_financial_metrics(monkeypatch)
     assert r.json()["metrics"] == []
     assert "not validated pricing" in r.json()["reply"]
     assert r.json()["sources"][0]["evidence_status"] == "unreviewed"
+    assert "from 2026-09 to 2027-02" in r.json()["reply"]
