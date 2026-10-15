@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -30,6 +30,16 @@ class Settings(BaseSettings):
     openrouter_api_key: SecretStr = SecretStr("")
     nvidia_api_key: SecretStr = SecretStr("")
     ai_timeout_seconds: int = 30
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def select_psycopg_driver(cls, value):
+        """Accept provider-managed PostgreSQL URLs without altering credentials/TLS."""
+        if isinstance(value, str):
+            for prefix in ("postgresql://", "postgres://"):
+                if value.startswith(prefix):
+                    return "postgresql+psycopg://" + value[len(prefix) :]
+        return value
 
     @model_validator(mode="after")
     def validate_hosted_settings(self):

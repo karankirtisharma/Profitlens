@@ -62,6 +62,17 @@ def test_local_and_hosted_upload_limits():
     assert hosted().request_limit < 4_500_000
 
 
+@pytest.mark.parametrize("scheme", ["postgres", "postgresql", "postgresql+psycopg"])
+def test_provider_database_urls_preserve_credentials_and_tls(scheme):
+    suffix = (
+        "user:p%40ss%2Fword@db.invalid/demo?sslmode=require&channel_binding=require"
+    )
+    configured = hosted(database_url=f"{scheme}://{suffix}")
+    assert configured.database_url == f"postgresql+psycopg://{suffix}"
+    with pytest.raises(ValidationError):
+        hosted(database_url=f"{scheme}://user:fake@db.invalid/demo?sslmode=disable")
+
+
 def test_config_and_liveness_do_not_need_database(monkeypatch):
     monkeypatch.setattr(settings, "upload_limit_bytes", 4_000_000)
     client = TestClient(app)
