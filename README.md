@@ -93,6 +93,8 @@ Open **Profitability & evidence** to load a customer/month, inspect sources, att
 
 ## Repository guide
 
+For a non-commercial faculty demo, [Vercel Hobby deployment preparation](docs/VERCEL_FREE_DEPLOYMENT.md) uses separate Next.js/FastAPI projects, Neon Free PostgreSQL and opt-in private Vercel Blob storage. Hosted uploads are capped at 4 MB; local storage and limits remain the default. Cloud accounts, quotas, credentials and live smoke checks are still required. AI provider usage is separate from free hosting.
+
 | Path | Purpose |
 | --- | --- |
 | `apps/api/profitlens/` | FastAPI, access rules, persistent imports, data models and the original ingestion CLI. |

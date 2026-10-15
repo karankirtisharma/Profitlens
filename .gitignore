@@ -49,6 +49,7 @@ Thumbs.db
 
 # Private local runtime and design context
 .local/
+.vercel/
 .21st/
 playwright-report/
 test-results/

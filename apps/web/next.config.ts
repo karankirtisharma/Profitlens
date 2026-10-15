@@ -1,4 +1,22 @@
 import type { NextConfig } from "next";
+
+const apiOrigin = process.env.API_INTERNAL_URL || "http://127.0.0.1:8000";
+if (process.env.VERCEL) {
+  const parsed = new URL(apiOrigin);
+  if (
+    !process.env.API_INTERNAL_URL ||
+    parsed.protocol !== "https:" ||
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash ||
+    parsed.username ||
+    parsed.password
+  ) {
+    throw new Error(
+      "Vercel requires API_INTERNAL_URL as an HTTPS backend origin without a path or credentials",
+    );
+  }
+}
 const config: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   output: "standalone",
@@ -7,7 +25,7 @@ const config: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.API_INTERNAL_URL || "http://127.0.0.1:8000"}/api/:path*`,
+        destination: `${apiOrigin.replace(/\/$/, "")}/api/:path*`,
       },
     ];
   },

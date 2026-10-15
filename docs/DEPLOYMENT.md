@@ -1,5 +1,7 @@
 # Deployment preparation and recovery
 
+**Free college demo:** use the current [Vercel Hobby + Neon + private Blob guide](VERCEL_FREE_DEPLOYMENT.md), including setup, environment names, migration commands, test evidence and rollback. The instructions below describe the separate container option. Cloud deployment has not been verified.
+
 The repository contains `Dockerfile.api`, `apps/web/Dockerfile` and `compose.deploy.yaml`. The standalone Next.js build is locally verified. Docker is unavailable in the current environment, so image builds, Compose startup, target-host networking and public deployment **remain unverified**. These files are preparation, not evidence of a deployed service.
 
 ## Before deploying
@@ -23,6 +25,6 @@ Rollback removes new analysis tables and their contents. Do not downgrade a live
 
 ## Operational limits
 
-This is a bounded single-workspace-analysis prototype, not a production security certification. No OCR, SSO/MFA, password-reset workflow, retention/deletion policy, cloud object storage or external monitoring is implemented. Customer selectors show the first 200 customers. Retrieval is in-process BM25 over at most 2000 authorized passages; there is no vector extension, GPU or pretrained embedding model. Provider calls have bounded timeout/output and a workspace rate limit, but no distributed job queue. Review storage growth and provider spending separately.
+This is a bounded single-workspace-analysis prototype, not a production security certification. No OCR, SSO/MFA, password-reset workflow, retention/deletion policy or external monitoring is implemented. An opt-in private Vercel Blob adapter now exists; local storage remains the default. Customer selectors show the first 200 customers. Retrieval is in-process BM25 over at most 2000 authorized passages; there is no vector extension, GPU or pretrained embedding model. Provider calls have bounded timeout/output and a workspace rate limit, but no distributed job queue. Review storage growth and provider spending separately.
 
-Vercel can host the web frontend when its same-origin API forwarding is configured at build time. The Python API, persistent PostgreSQL and private file storage require their own persistent hosting; deploying this entire repository as a static Vercel site is insufficient.
+Vercel can host both the Next.js frontend and FastAPI API in separate projects. PostgreSQL and private documents still need persistent services; the function filesystem is not durable. Deploying the repository as a static site alone is insufficient. See the free-demo guide above.

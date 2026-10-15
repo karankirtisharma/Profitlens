@@ -1,5 +1,7 @@
 # ProfitLens architecture
 
+Deployment follow-up (15 October 2026): the optional [free hosted demo](VERCEL_FREE_DEPLOYMENT.md) keeps this application architecture, adds private Vercel Blob persistence and uses Neon through a pooled TLS URL. Local disk storage remains the default. Cloud integration is prepared and locally tested, not yet verified on a live deployment.
+
 **Current implementation (15 October 2026):** authenticated workspaces, imports/private contracts, exact financial analysis, cost reviews, financial discrepancy rules, lexical retrieval and verified extractive investigation integration. Live provider quality and Docker deployment are unverified; see the [implementation report](ROADMAP_IMPLEMENTATION_REPORT.md).
 
 ## Implemented data foundation

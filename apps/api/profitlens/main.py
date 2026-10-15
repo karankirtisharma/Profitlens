@@ -2,9 +2,11 @@
 
 import hashlib
 import secrets
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 from typing import Literal
+from urllib.parse import quote
 
 from fastapi import (
     Depends,
@@ -17,12 +19,12 @@ from fastapi import (
     Response,
     UploadFile,
 )
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import delete, select, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from . import database as db
-from . import finance, imports, records, retrieval, schemas
+from . import finance, imports, records, retrieval, schemas, storage
 from .analysis_api import router as analysis_router
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
@@ -56,8 +58,10 @@ async def guard(request, call_next):
         if request.headers.get("origin") != settings.web_origin:
             return JSONResponse({"detail": "Untrusted request origin"}, status_code=403)
     length = request.headers.get("content-length")
-    if length and (not length.isdigit() or int(length) > 11 * 1024 * 1024):
-        return JSONResponse({"detail": "Request exceeds 11 MiB"}, status_code=413)
+    if length and (not length.isdigit() or int(length) > settings.request_limit):
+        return JSONResponse(
+            {"detail": "Request exceeds the configured upload limit"}, status_code=413
+        )
     response = await call_next(request)
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -77,6 +81,29 @@ async def conflict(request, exc):
 def health(conn=Depends(connection, scope="function")):
     conn.execute(text("SELECT 1"))
     return {"status": "ok", "database": "postgresql"}
+
+
+@app.exception_handler(OperationalError)
+@app.exception_handler(storage.StorageUnavailable)
+async def dependency_unavailable(request, exc):
+    return JSONResponse(
+        {"detail": "A required service is unavailable. Try again later."},
+        status_code=503,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.get("/api/live")
+def live():
+    return {"status": "ok"}
+
+
+@app.get("/api/config")
+def public_config():
+    return {
+        "csv_max_bytes": settings.file_limit("csv"),
+        "pdf_max_bytes": settings.file_limit("pdf"),
+    }
 
 
 @app.post("/api/auth/login")
@@ -363,9 +390,10 @@ def preview_import(
     s=Depends(writer),
     conn=Depends(connection, scope="function"),
 ):
-    content = file.file.read(5 * 1024 * 1024 + 1)
-    if len(content) > 5 * 1024 * 1024:
-        raise HTTPException(413, "CSV exceeds 5 MiB")
+    limit = settings.file_limit("csv")
+    content = file.file.read(limit + 1)
+    if len(content) > limit:
+        raise HTTPException(413, f"CSV exceeds the {limit:,} byte upload limit")
     return imports.preview(conn, s, kind, safe_filename(file.filename), content)
 
 
@@ -421,9 +449,10 @@ def upload_contract(
 ):
     lock_workspace(conn, s)
     customer_exists(conn, s, customer_id)
-    content = file.file.read(10 * 1024 * 1024 + 1)
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(413, "PDF exceeds 10 MiB")
+    limit = settings.file_limit("pdf")
+    content = file.file.read(limit + 1)
+    if len(content) > limit:
+        raise HTTPException(413, f"PDF exceeds the {limit:,} byte upload limit")
     fingerprint = hashlib.sha256(content).hexdigest()
     prior = (
         conn.execute(
@@ -438,15 +467,16 @@ def upload_contract(
     )
     if prior:
         return contract_view(prior)
-    directory = settings.storage_dir.resolve() / s.org
-    directory.mkdir(parents=True, exist_ok=True)
     key = db.uid() + ".pdf"
-    path = directory / key
-    path.write_bytes(content)
-    try:
+    # Parser scratch space is temporary; durable files use the private store.
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / key
+        path.write_bytes(content)
         result = extract_contract_text(path, s.org, customer_id)
-        if result.issues:
-            raise HTTPException(422, [i.as_dict() for i in result.issues])
+    if result.issues:
+        raise HTTPException(422, [i.as_dict() for i in result.issues])
+    storage.put(s.org, key, content)
+    try:
         cid = db.uid()
         conn.execute(
             db.contracts.insert().values(
@@ -472,7 +502,7 @@ def upload_contract(
         retrieval.index_contract(conn, row)
         return contract_view(row)
     except Exception:
-        path.unlink(missing_ok=True)
+        storage.remove(s.org, key)
         raise
 
 
@@ -481,14 +511,18 @@ def contract_file(
     contract_id: str, s=Depends(scope), conn=Depends(connection, scope="function")
 ):
     row = contract_row(conn, s, contract_id)
-    path = settings.storage_dir.resolve() / s.org / row["file_key"]
-    if not path.is_file():
-        raise HTTPException(404, "Stored file is unavailable")
-    return FileResponse(
-        path,
+    try:
+        content = storage.read(s.org, row["file_key"])
+    except FileNotFoundError:
+        raise HTTPException(404, "Stored file is unavailable") from None
+    if hashlib.sha256(content).hexdigest() != row["fingerprint"]:
+        raise storage.StorageUnavailable("Stored file integrity check failed")
+    return Response(
+        content,
         media_type="application/pdf",
-        filename=row["filename"],
-        content_disposition_type="attachment",
+        headers={
+            "Content-Disposition": f"attachment; filename*=utf-8''{quote(row['filename'], safe='')}"
+        },
     )
 
 

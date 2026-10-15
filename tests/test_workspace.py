@@ -192,6 +192,79 @@ TERMS = {
 
 def test_fresh_migration_and_health():
     assert TestClient(app).get("/api/health").json()["database"] == "postgresql"
+
+
+def test_hosted_upload_cap_and_secure_session(monkeypatch):
+    c = client()
+    monkeypatch.setattr(settings, "upload_limit_bytes", 1000)
+    response = c.post(
+        BASE + "/imports/invoices/preview",
+        files={"file": ("large.csv", b"x" * 1001, "text/csv")},
+    )
+    assert response.status_code == 413
+    response = c.post(
+        BASE + "/contracts",
+        data={"customer_id": "C1"},
+        files={"file": ("large.pdf", b"x" * 1001, "application/pdf")},
+    )
+    assert response.status_code == 413
+    assert c.get(BASE + "/contracts").json() == []
+    assert c.get(BASE + "/records/invoices").json() == []
+    monkeypatch.setattr(settings, "cookie_secure", True)
+    monkeypatch.setattr(settings, "web_origin", "https://faculty.example.test")
+    with TestClient(
+        app, base_url=settings.web_origin, headers={"Origin": settings.web_origin}
+    ) as https:
+        login = https.post(
+            "/api/auth/login",
+            json={"email": "admin@example.test", "password": PASSWORD},
+        )
+        assert login.status_code == 200
+        cookie = login.headers["set-cookie"].lower()
+        assert (
+            "secure" in cookie and "httponly" in cookie and "samesite=strict" in cookie
+        )
+        assert "domain=" not in cookie
+        assert https.get("/api/auth/me").status_code == 200
+        assert (
+            https.post(
+                "/api/auth/logout", headers={"Origin": "https://evil.example.test"}
+            ).status_code
+            == 403
+        )
+        assert https.post("/api/auth/logout").status_code == 200
+        assert https.get("/api/auth/me").status_code == 401
+
+
+def test_storage_failure_and_integrity_are_safe(monkeypatch):
+    from profitlens import storage
+
+    c = client()
+    content = pdf()
+    contract = upload(c, content=content)
+    route = BASE + f"/contracts/{contract['id']}/file"
+    response = c.get(route)
+    assert response.content == content
+    assert response.headers["cache-control"] == "no-store"
+    monkeypatch.setattr(storage, "read", lambda *args: b"tampered")
+    assert c.get(route).status_code == 503
+
+    # Authorization happens before touching cloud storage.
+    def unavailable(*args):
+        raise storage.StorageUnavailable("private provider details")
+
+    monkeypatch.setattr(storage, "read", unavailable)
+    assert client("outsider").get(route).status_code == 404
+    response = c.get(route)
+    assert response.status_code == 503 and "provider details" not in response.text
+    monkeypatch.setattr(storage, "put", unavailable)
+    response = c.post(
+        BASE + "/contracts",
+        data={"customer_id": "C1"},
+        files={"file": ("new.pdf", pdf("new content"), "application/pdf")},
+    )
+    assert response.status_code == 503
+    assert len(c.get(BASE + "/contracts").json()) == 1
     with db.engine.connect() as conn:
         assert conn.execute(
             text("SELECT version_num FROM alembic_version")

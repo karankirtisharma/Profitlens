@@ -14,6 +14,37 @@ async function login(page: Page, account = "karan") {
   ).toBeVisible();
   await expect(page.getByText("Loading workspace records…")).not.toBeVisible();
 }
+
+test("hosted upload limit rejects large files before sending business data", async ({
+  page,
+}) => {
+  await page.route("**/api/config", (route) =>
+    route.fulfill({
+      json: { csv_max_bytes: 4_000_000, pdf_max_bytes: 4_000_000 },
+    }),
+  );
+  let uploads = 0;
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      request.url().includes("/imports/") &&
+      request.url().endsWith("/preview")
+    )
+      uploads++;
+  });
+  await login(page);
+  await page.getByRole("button", { name: "Imports", exact: true }).click();
+  await page.getByLabel("CSV file").setInputFiles({
+    name: "oversized.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.alloc(4_000_001, "x"),
+  });
+  await page
+    .getByRole("button", { name: "Preview import", exact: true })
+    .click();
+  await expect(page.getByText(/Choose a CSV file no larger/)).toBeVisible();
+  expect(uploads).toBe(0);
+});
 test("authenticated workspace and manual business-record editing", async ({
   page,
 }) => {

@@ -53,6 +53,32 @@ import {
 
 export default function Home() {
   const { play, ready } = useExperience();
+  const [uploadLimits, setUploadLimits] = useState<{
+    csv_max_bytes: number;
+    pdf_max_bytes: number;
+  } | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    void api<{ csv_max_bytes: number; pdf_max_bytes: number }>("/config", {
+      signal: controller.signal,
+    })
+      .then(setUploadLimits)
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+  async function validateUpload(form: FormData, type: "csv" | "pdf") {
+    const limits =
+      uploadLimits ||
+      (await api<{ csv_max_bytes: number; pdf_max_bytes: number }>("/config"));
+    setUploadLimits(limits);
+    const limit = limits[`${type}_max_bytes`];
+    const file = form.get("file");
+    if (!(file instanceof File) || file.size > limit) {
+      throw new Error(
+        `Choose a ${type.toUpperCase()} file no larger than ${limit.toLocaleString()} bytes. Split larger imports before uploading.`,
+      );
+    }
+  }
   const [account, setAccount] = useState<Account | null>(null),
     [org, setOrg] = useState(""),
     [boot, setBoot] = useState(true),
@@ -711,7 +737,11 @@ export default function Home() {
                         <h2>New CSV import</h2>
                         <p className="muted">
                           Import customers first, then invoices and expenses.
-                          Maximum 5 MiB / 10,000 rows.
+                          Maximum{" "}
+                          {uploadLimits
+                            ? `${uploadLimits.csv_max_bytes.toLocaleString()} bytes`
+                            : "server-configured size"}{" "}
+                          / 10,000 rows.
                         </p>
                       </div>
                       <Upload size={26} />
@@ -721,6 +751,7 @@ export default function Home() {
                         e.preventDefault();
                         const form = new FormData(e.currentTarget);
                         void action(async () => {
+                          await validateUpload(form, "csv");
                           const p = await api<Batch>(
                             `${base}/imports/${kind}/preview`,
                             { method: "POST", body: form },
@@ -901,8 +932,11 @@ export default function Home() {
                     <section className="panel glass import-panel">
                       <h2>Upload a contract</h2>
                       <p className="muted">
-                        Text-based PDF · Maximum 10 MiB / 100 pages · Terms
-                        require human review.
+                        Text-based PDF · Maximum{" "}
+                        {uploadLimits
+                          ? `${uploadLimits.pdf_max_bytes.toLocaleString()} bytes`
+                          : "server-configured size"}{" "}
+                        / 100 pages · Terms require human review.
                       </p>
                       <form
                         onSubmit={(e) => {
@@ -910,6 +944,7 @@ export default function Home() {
                           const element = e.currentTarget;
                           const form = new FormData(element);
                           void action(async () => {
+                            await validateUpload(form, "pdf");
                             const c = await api<Contract>(`${base}/contracts`, {
                               method: "POST",
                               body: form,

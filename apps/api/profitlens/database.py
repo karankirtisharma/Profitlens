@@ -19,6 +19,7 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.pool import NullPool
 
 from .config import settings
 
@@ -30,7 +31,18 @@ metadata = MetaData(
         "pk": "pk_%(table_name)s",
     }
 )
-engine = create_engine(settings.database_url, pool_pre_ping=True)
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    **(
+        {
+            "poolclass": NullPool,
+            "connect_args": {"connect_timeout": 10, "prepare_threshold": None},
+        }
+        if settings.database_pool_mode == "null"
+        else {}
+    ),
+)
 
 
 def now():
