@@ -429,3 +429,20 @@ def test_planner_schema_all_fields_required():
 
     schema = Plan.model_json_schema()
     assert set(schema["required"]) == set(schema["properties"])
+
+
+def test_source_handle_formatting_keeps_numeric_guard():
+    pack = {
+        "metrics": {},
+        "facts": {},
+        "source_context": {"scope": "all"},
+        "source_citations": [{"source_id": "source-row:a"}],
+    }
+    reply = chat.canonical_reply(
+        "See source-row:a; recorded amount INR 999.00 paid to vendor.", pack
+    )
+    assert "source-row:a" not in reply
+    assert "recorded against" in reply
+    assert (
+        "999.00" in reply
+    )  # Still rejected by the numeric guard, never silently removed.

@@ -122,7 +122,9 @@ def enrich(conn, s, pack, all_periods=False, intent="overview"):
         prefix = "source_row_" + chr(97 + index)
         metric = prefix + "_amount"
         pack["metrics"][metric] = {"value": str(row["amount"]), "unit": row["currency"]}
-        source_id = "source-row:" + row["id"]
+        # Short per-response handles avoid exposing database UUIDs to the model.
+        # The server alone resolves handles to authorized source URLs.
+        source_id = "source-row:" + chr(97 + index)
         pack["metric_sources"][metric] = source_id
         pack["facts"][prefix + "_description"] = (
             row["description"][:200] or "Unspecified description"
