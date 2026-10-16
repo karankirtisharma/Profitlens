@@ -332,3 +332,93 @@ def test_unreviewed_document_quotes_do_not_become_financial_metrics(monkeypatch)
     assert "not validated pricing" in r.json()["reply"]
     assert r.json()["sources"][0]["evidence_status"] == "unreviewed"
     assert "from 2026-09 to 2027-02" in r.json()["reply"]
+
+
+def test_source_chat_totals_citations_and_permissions(monkeypatch):
+    c = client()
+    data = b"date,amount,customer,description\n2026-09-01,100,C1,Service\n2026-09-02,-20,C1,Credit\n2026-09-03,900,C2,Restricted\n"
+    doc = c.post(BASE + "/sources", files={"file": ("sales.csv", data)}).json()
+    mapping = {
+        "kind": "reported_sales",
+        "columns": {
+            "date": "date",
+            "amount": "amount",
+            "customer_id": "customer",
+            "description": "description",
+        },
+        "currency": "INR",
+    }
+    preview = c.post(BASE + f"/sources/{doc['id']}/preview", json=mapping).json()
+    assert not preview["issues"]
+    assert (
+        c.post(
+            BASE + f"/sources/{doc['id']}/confirm",
+            json={"preview_token": preview["preview_token"]},
+        ).status_code
+        == 200
+    )
+    seen = []
+
+    def model(schema, prompt, payload, max_tokens):
+        evidence = payload["CURRENT_EVIDENCE"]
+        seen.append(evidence)
+        assert evidence["metrics"]["source_a_amount"]["value"] == "80.00"
+        assert "Restricted" not in str(evidence)
+        return answer(
+            evidence,
+            reply="Reported sales are {{source_a_amount}}; profit cannot be established.",
+            source_ids=[],
+        )
+
+    monkeypatch.setattr(explanations, "structured_completion", model)
+    r = ask(client("analyst"), message="Explain sales")
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert "80.00 INR" in out["reply"]
+    assert out["sources"] and "customer_id=C1" in out["sources"][0]["source_url"]
+    assert (
+        client("analyst")
+        .get(out["sources"][0]["source_url"])
+        .json()["groups"][0]["amount"]
+        == "80.00"
+    )
+    assert client("outsider").get(out["sources"][0]["source_url"]).status_code == 404
+    assert out["actions"][0]["view"] == "data"
+    assert "contribution" not in seen[0]["metrics"]
+
+
+def test_source_chat_rejects_fabricated_amount(monkeypatch):
+    from profitlens.security import scope
+    from profitlens.source_chat import enrich
+
+    c = client()
+    doc = c.post(
+        BASE + "/sources", files={"file": ("cost.csv", b"amount\n42\n")}
+    ).json()
+    p = c.post(
+        BASE + f"/sources/{doc['id']}/preview",
+        json={
+            "kind": "expenditure",
+            "columns": {"amount": "amount"},
+            "currency": "INR",
+        },
+    ).json()
+    c.post(
+        BASE + f"/sources/{doc['id']}/confirm",
+        json={"preview_token": p["preview_token"]},
+    )
+    with db.engine.begin() as conn:
+        s = scope("a", {"id": "admin"}, conn)
+        payload = chat.ChatRequest(message="What is profit?")
+        pack = enrich(conn, s, chat.evidence(conn, s, payload), True)
+    monkeypatch.setattr(
+        explanations,
+        "structured_completion",
+        lambda *a, **k: answer({}, reply="Profit is INR 999.00."),
+    )
+    with pytest.raises(Exception) as err:
+        chat.respond(pack, payload)
+    assert err.value.status_code == 502
+    assert all(
+        "profit" not in key and "contribution" not in key for key in pack["metrics"]
+    )

@@ -533,11 +533,15 @@ def facts(
     start: date | None = None,
     end: date | None = None,
     offset: int = Query(0, ge=0),
+    customer_id: str | None = None,
     s=Depends(scope),
     conn=Depends(connection, scope="function"),
 ):
     table = db.financial_facts
     predicate = visible(table, s)
+    if customer_id:
+        customer_exists(conn, s, customer_id)
+        predicate &= table.c.customer_id == customer_id
     if kind:
         predicate &= table.c.kind == kind
     if start:

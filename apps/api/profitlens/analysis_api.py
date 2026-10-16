@@ -9,7 +9,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
-from . import assistant, chat, explanations, profitability, retrieval, workspace_summary
+from . import (
+    assistant,
+    chat,
+    explanations,
+    profitability,
+    retrieval,
+    source_chat,
+    workspace_summary,
+)
 from . import database as db
 from .records import wire
 from .security import (
@@ -185,7 +193,11 @@ def converse(organization_id: str, payload: chat.ChatRequest, request: Request):
         pack = (
             assistant.evidence(conn, s, payload, query)
             if query
-            else workspace_summary.presentation(chat.evidence(conn, s, payload), s.role)
+            else source_chat.enrich(
+                conn,
+                s,
+                workspace_summary.presentation(chat.evidence(conn, s, payload), s.role),
+            )
         )
     result = chat.respond(pack, payload)
     with db.engine.begin() as conn:
@@ -193,7 +205,11 @@ def converse(organization_id: str, payload: chat.ChatRequest, request: Request):
         latest = (
             assistant.evidence(conn, s, payload, query)
             if query
-            else workspace_summary.presentation(chat.evidence(conn, s, payload), s.role)
+            else source_chat.enrich(
+                conn,
+                s,
+                workspace_summary.presentation(chat.evidence(conn, s, payload), s.role),
+            )
         )
         if explanations.pack_hash(latest) != explanations.pack_hash(pack):
             raise HTTPException(

@@ -8,7 +8,7 @@ import { useExperience } from "./experience";
 
 export type ChatAction = {
   view:
-    "finance" | "analysis" | "invoices" | "expenses" | "contracts" | "imports";
+    "data" | "finance" | "analysis" | "invoices" | "expenses" | "contracts" | "imports";
   label: string;
   customer_id?: string | null;
   billing_period?: string | null;
@@ -58,7 +58,7 @@ type Reply = {
   sources: {
     source_id: string;
     filename: string;
-    page: number;
+    page: number | null;
     source_url: string;
     quote: string;
     evidence_status?: string;
@@ -388,12 +388,14 @@ export function ChatbotLauncher({
                               target="_blank"
                               rel="noreferrer"
                             >
-                              {s.filename} · page {s.page}
+                              {s.filename}{s.page !== null && ` · page ${s.page}`}
                             </a>
                             <blockquote>{s.quote}</blockquote>
                             {s.evidence_status && (
                               <small>
-                                {s.evidence_status === "reviewed_period_match"
+                                {s.evidence_status === "source_observation"
+                                  ? "Original source observation · not verified profit"
+                                  : s.evidence_status === "reviewed_period_match"
                                   ? "Reviewed · covers the selected month"
                                   : s.evidence_status === "unreviewed"
                                     ? "Unreviewed document · pricing not validated"

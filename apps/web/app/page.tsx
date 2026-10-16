@@ -1280,6 +1280,7 @@ export default function Home() {
         onNavigate={(destination) => {
           if (
             ![
+              "data",
               "finance",
               "analysis",
               "invoices",
