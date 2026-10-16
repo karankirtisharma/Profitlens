@@ -124,6 +124,362 @@ def client(user="admin"):
 BASE = "/api/workspaces/a"
 
 
+def test_real_fhdc_pdf_expenditure_including_credit():
+    from decimal import Decimal
+    from pathlib import Path
+
+    folder = Path("data/private/real-world-fhdc-2025/originals")
+    files = sorted(folder.glob("procurement-*.csv"))
+    if len(files) != 4:
+        pytest.skip(
+            "Licensed original FHDC files must be downloaded for real-source verification"
+        )
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.organizations.update()
+            .where(db.organizations.c.id == "a")
+            .values(currency="GBP")
+        )
+    c = client()
+    for path in files:
+        response = c.post(
+            BASE + "/sources",
+            data={"adapter": "fhdc_card"},
+            files={"file": (path.name, path.read_bytes())},
+        )
+        assert response.status_code == 200, response.text
+        d = response.json()
+        mapping = {
+            "kind": "expenditure",
+            "columns": {
+                "amount": "net_amount",
+                "date": "transaction_date",
+                "counterparty": "supplier",
+                "description": "description",
+            },
+            "currency": "GBP",
+            "date_format": "DMY",
+        }
+        p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+        assert not p["issues"], p
+        assert (
+            c.post(
+                BASE + f"/sources/{d['id']}/confirm",
+                json={"preview_token": p["preview_token"]},
+            ).status_code
+            == 200
+        )
+        assert c.get(BASE + f"/sources/{d['id']}/file").content == path.read_bytes()
+    report = c.get(BASE + "/facts").json()
+    assert report["total"] == 142 and Decimal(report["groups"][0]["amount"]) == Decimal(
+        "27823.37"
+    )
+    assert report["unmatched"] == 142
+    assert c.get(BASE + "/records/invoices").json() == []
+
+
+def test_real_uci_source_xlsx_quantity_price():
+    import csv
+    from pathlib import Path
+
+    from openpyxl import Workbook
+
+    path = Path("data/private/uci-online-retail/source-linked-sales-sample.csv")
+    if not path.exists():
+        pytest.skip("Download and prepare the licensed UCI source first")
+    rows = list(csv.DictReader(path.open(encoding="utf8")))
+    book = Workbook()
+    book.active.append(list(rows[0]))
+    for row in rows:
+        book.active.append(list(row.values()))
+    buffer = io.BytesIO()
+    book.save(buffer)
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.organizations.update()
+            .where(db.organizations.c.id == "a")
+            .values(currency="GBP")
+        )
+    c = client()
+    d = c.post(
+        BASE + "/sources", files={"file": ("uci-source-subset.xlsx", buffer.getvalue())}
+    ).json()
+    p = c.post(
+        BASE + f"/sources/{d['id']}/preview",
+        json={
+            "kind": "reported_sales",
+            "columns": {
+                "quantity": "Quantity",
+                "unit_price": "UnitPrice",
+                "date": "InvoiceDate",
+                "counterparty": "CustomerID",
+                "description": "Description",
+            },
+            "currency": "GBP",
+            "amount_mode": "quantity_price",
+        },
+    ).json()
+    assert not p["issues"], p
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 200
+    )
+    report = c.get(BASE + "/facts").json()
+    assert report["total"] == 1084 and report["groups"][0]["amount"] == "25365.41"
+    assert len(report["months"]) == 11
+
+
+def test_source_mapping_provenance_retry_permissions_and_allocations():
+    c = client()
+    content = b"When,Value,Supplier,Extra\n31/01/2026,100.00,Acme,keep me\n01/02/2026,-20.00,Acme,credit\n"
+    d = c.post(BASE + "/sources", files={"file": ("spend.csv", content)}).json()
+    assert c.get(BASE + f"/sources/{d['id']}/file").content == content
+    assert (
+        c.post(BASE + "/sources", files={"file": ("renamed.csv", content)}).json()["id"]
+        == d["id"]
+    )
+    mapping = dict(
+        kind="expenditure",
+        columns={"amount": "Value", "date": "When", "counterparty": "Supplier"},
+        currency="INR",
+        date_format="DMY",
+        profile_name="Spend export",
+    )
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert p["issues"] == [] and "Extra" in p["unmapped_columns"]
+    for _ in range(2):
+        assert (
+            c.post(
+                BASE + f"/sources/{d['id']}/confirm",
+                json={"preview_token": p["preview_token"]},
+            ).status_code
+            == 200
+        )
+    report = c.get(BASE + "/facts").json()
+    assert (
+        report["total"] == 2
+        and report["groups"][0]["amount"] == "80.00"
+        and report["unmatched"] == 2
+    )
+    assert (
+        c.get(BASE + "/facts?start=2026-02-01").json()["groups"][0]["amount"]
+        == "-20.00"
+    )
+    fid = report["rows"][0]["id"]
+    assert c.get(BASE + f"/facts/{fid}").json()["raw"]["Extra"] == "keep me"
+    assert client("analyst").get(BASE + "/facts").json()["total"] == 0
+    assert client("analyst").get(BASE + f"/sources/{d['id']}/file").status_code == 403
+    assert client("outsider").get(BASE + f"/facts/{fid}").status_code == 404
+    assert (
+        c.put(
+            BASE + f"/facts/{fid}/allocations",
+            json=[{"customer_id": "C1", "amount": "101", "reason": "Test allocation"}],
+        ).status_code
+        == 422
+    )
+    assert (
+        c.put(
+            BASE + f"/facts/{fid}/allocations",
+            json=[
+                {"customer_id": "C1", "amount": "60", "reason": "Reviewed shared work"},
+                {"customer_id": "C2", "amount": "30", "reason": "Reviewed shared work"},
+            ],
+        ).json()["unallocated"]
+        == "10.00"
+    )
+    assert len(c.get(BASE + "/mapping-profiles").json()) == 1
+    # Same observations in a changed file are candidates, not silently counted twice.
+    duplicate = c.post(
+        BASE + "/sources", files={"file": ("again.csv", content + b"\n")}
+    ).json()
+    assert c.post(BASE + f"/sources/{duplicate['id']}/preview", json=mapping).json()[
+        "issues"
+    ]
+
+
+def test_source_xlsx_json_alias_and_invalid_recovery():
+    from openpyxl import Workbook
+
+    c = client()
+    assert (
+        c.post(
+            BASE + "/entity-aliases",
+            json={"alias": "Reviewed Acme", "customer_id": "C1"},
+        ).status_code
+        == 200
+    )
+    book = Workbook()
+    sheet = book.active
+    sheet.append(["Amount", "Customer", "Unknown"])
+    sheet.append([12.5, "Reviewed Acme", "retained"])
+    stream = io.BytesIO()
+    book.save(stream)
+    d = c.post(
+        BASE + "/sources", files={"file": ("export.xlsx", stream.getvalue())}
+    ).json()
+    mapping = dict(
+        kind="cash_inflow",
+        columns={"amount": "Amount", "counterparty": "Customer"},
+        currency="USD",
+    )
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert p["issues"]
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 409
+    )
+    mapping["currency"] = "INR"
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert not p["issues"]
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 200
+    )
+    report = client("analyst").get(BASE + "/facts").json()
+    assert report["total"] == 1 and report["rows"][0]["link_method"] == "reviewed_alias"
+    assert c.get(BASE + "/dashboard").json()["counts"]["financial_facts"] == 1
+    # A balance snapshot must not be reported as an additive time-series total.
+    d = c.post(
+        BASE + "/sources",
+        files={"file": ("balances.json", b'[{"amount":"100"},{"amount":"110"}]')},
+    ).json()
+    p = c.post(
+        BASE + f"/sources/{d['id']}/preview",
+        json={
+            "kind": "asset_balance",
+            "columns": {"amount": "amount"},
+            "currency": "INR",
+        },
+    ).json()
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 200
+    )
+    assert (
+        c.get(BASE + "/facts?kind=asset_balance").json()["groups"][0]["amount"] is None
+    )
+
+
+def test_reported_sales_import_unknowns_and_dashboard_permissions():
+    c = client()
+    content = b"invoice_id,customer_id,billing_period,currency,total,amount_basis,source_rows\nREAL1,C1,2026-09,INR,123.45,reported_sales,42;43\nREAL2,C2,2026-09,INR,10.00,reported_sales,44\n"
+    batch = c.post(
+        BASE + "/imports/invoices/preview",
+        files={"file": ("reported.csv", content, "text/csv")},
+    ).json()
+    assert batch["state"] == "ready", batch
+    assert batch["preview_rows"][0]["data"]["tax"] is None
+    for _ in range(2):
+        assert c.post(BASE + f"/imports/{batch['id']}/confirm").status_code == 200
+    stored = c.get(BASE + "/records/invoices/REAL1").json()
+    assert (
+        stored["subtotal"] is None
+        and stored["source"]["original"]["source_rows"] == "42;43"
+    )
+    summary = c.get(BASE + "/dashboard").json()
+    assert (
+        summary["reported_sales"] == "133.45"
+        and summary["verified_net_revenue"] is None
+    )
+    assert (
+        summary["counts"]["invoices"] == 2
+        and summary["contract_status"] == "not_provided"
+    )
+    analyst = client("analyst")
+    assert analyst.get(BASE + "/dashboard").json()["reported_sales"] == "123.45"
+    assert analyst.get(BASE + "/records/invoices/REAL2").status_code == 404
+    assert client("outsider").get(BASE + "/dashboard").status_code == 404
+    assert TestClient(app).get(BASE + "/dashboard").status_code == 401
+    result = c.get(
+        BASE + "/profitability?customer_id=C1&billing_period=2026-09"
+    ).json()["items"][0]
+    assert result["reported_sales"] == "123.45"
+    assert (
+        result["net_billed_revenue"] is None
+        and result["contribution"] is None
+        and result["margin_percent"] is None
+    )
+    assert result["findings"] == []
+    assert "unmatched_contract_period" not in {w["code"] for w in result["warnings"]}
+    assert "unknown_invoice_basis" in {w["code"] for w in result["warnings"]}
+    from profitlens.security import Scope
+    from profitlens.workspace_summary import summarize
+
+    with db.engine.begin() as conn:
+        evidence = summarize(
+            conn, Scope("a", {"id": "admin"}, "admin", "INR"), "2026-09"
+        )
+    assert evidence["metrics"]["reported_sales"]["value"] == "133.45"
+    assert "contribution" not in evidence["metrics"]
+
+
+def test_invoice_basis_validation_and_mixed_reporting():
+    c = client()
+    reported = dict(
+        invoice_id="R",
+        customer_id="C1",
+        billing_period="2026-09",
+        currency="INR",
+        total="100",
+        amount_basis="reported_sales",
+    )
+    assert (
+        c.post(BASE + "/records/invoices", json=reported | {"tax": "0"}).status_code
+        == 422
+    )
+    assert (
+        c.post(
+            BASE + "/records/invoices", json=reported | {"amount_basis": "verified"}
+        ).status_code
+        == 422
+    )
+    assert c.post(BASE + "/records/invoices", json=reported).status_code == 201
+    assert c.post(BASE + "/records/invoices", json=invoice()).status_code == 201
+    summary = c.get(BASE + "/dashboard").json()
+    assert (
+        summary["reported_sales"] == "100.00"
+        and summary["verified_net_revenue"] == "90.00"
+    )
+    assert (
+        c.get(BASE + "/profitability?customer_id=C1&billing_period=2026-09").json()[
+            "items"
+        ][0]["net_billed_revenue"]
+        is None
+    )
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.invoices.insert(),
+            [
+                dict(
+                    organization_id="a",
+                    invoice_id=f"B{i}",
+                    customer_id="C1",
+                    billing_period="2026-09",
+                    currency="INR",
+                    total="1",
+                    amount_basis="reported_sales",
+                )
+                for i in range(201)
+            ],
+        )
+    summary = c.get(BASE + "/dashboard").json()
+    assert (
+        summary["counts"]["invoices"] == 203 and summary["reported_sales"] == "301.00"
+    )
+
+
 def invoice(id="I1", customer="C1", **overrides):
     return (
         dict(

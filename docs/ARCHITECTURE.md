@@ -71,3 +71,6 @@ tests/                        Ingestion and PostgreSQL/API behavior tests
 ```
 
 [Development](DEVELOPMENT.md) records runtime choices. [Deployment](DEPLOYMENT.md) covers private persistent volumes, migration/backup steps and the unverified container boundary. [Progress](ROADMAP.md) records milestone verification.
+# Source-first addition (16 October 2026)
+
+The [source-first release](SOURCE_FIRST_RELEASE.md) adds private source documents, raw records and typed financial observations beside the existing verified ledger, with reviewed mappings and provenance. Generic observations are not automatically posted into profitability or AI evidence. Existing architecture below remains applicable to the verified financial workflow.

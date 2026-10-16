@@ -37,6 +37,7 @@ class ImportedRow(Generic[RecordT]):
     record: RecordT
     source_file: str
     source_row: int
+    original: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -112,8 +113,17 @@ def load_csv(path: str | Path, kind: str, organization_id: str) -> ImportResult:
                     )
                 )
                 return result
-            missing = set(columns) - set(headers)
-            unexpected = set(headers) - set(columns)
+            # Two explicit invoice layouts; never infer accounting semantics from amounts.
+            required = set(columns)
+            allowed = set(columns)
+            if kind == "customers":
+                required.discard("industry")
+            if kind == "invoices" and "amount_basis" in headers:
+                required -= {"subtotal", "discount", "tax", "refund"}
+                allowed.add("amount_basis")
+            metadata_columns = {h for h in headers if h.startswith("source_")}
+            missing = required - set(headers)
+            unexpected = set(headers) - allowed - metadata_columns
             if missing or unexpected:
                 detail = f"missing={sorted(missing)}, unexpected={sorted(unexpected)}"
                 result.issues.append(
@@ -145,7 +155,20 @@ def load_csv(path: str | Path, kind: str, organization_id: str) -> ImportResult:
                     continue
                 try:
                     record = model.model_validate(
-                        {**raw, "organization_id": organization_id}
+                        {
+                            **{
+                                k: (
+                                    None
+                                    if kind == "invoices"
+                                    and k in {"subtotal", "discount", "tax", "refund"}
+                                    and v == ""
+                                    else v
+                                )
+                                for k, v in raw.items()
+                                if k in allowed
+                            },
+                            "organization_id": organization_id,
+                        }
                     )
                 except ValidationError as exc:
                     for error in exc.errors():
@@ -161,7 +184,7 @@ def load_csv(path: str | Path, kind: str, organization_id: str) -> ImportResult:
                             )
                         )
                     continue
-                result.rows.append(ImportedRow(record, source.name, row_number))
+                result.rows.append(ImportedRow(record, source.name, row_number, raw))
     except (OSError, UnicodeError, csv.Error) as exc:
         result.issues.append(ImportIssue("read_error", str(exc), source.name))
     return result

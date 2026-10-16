@@ -15,6 +15,7 @@ dependencies = [
   "python-multipart>=0.0.20,<1", "pydantic-settings>=2.7,<3",
   "httpx>=0.28,<1",
   "vercel-blob==0.5.0",
+  "openpyxl==3.1.5", "defusedxml==0.7.1",
 ]
 
 [tool.setuptools]

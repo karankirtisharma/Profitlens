@@ -36,7 +36,12 @@ def summarize(conn, scope, period):
         if all(r["profitability_status"] == "confirmed" for r in active)
         else "provisional"
     )
-    for field in ("net_billed_revenue", "attributed_cost", "contribution"):
+    for field in (
+        "reported_sales",
+        "net_billed_revenue",
+        "attributed_cost",
+        "contribution",
+    ):
         if active and all(r[field] is not None for r in active):
             result["metrics"][field] = {
                 "value": money(sum((Decimal(r[field]) for r in active), Decimal(0))),
@@ -83,12 +88,15 @@ def presentation(pack, role):
         actions.append(action("imports", "Import records"))
     cards = []
     for key, label in (
+        ("reported_sales", "Reported sales · tax basis unknown"),
         ("net_billed_revenue", "Net billed revenue"),
         ("attributed_cost", "Attributed cost"),
         ("contribution", "Contribution · not net profit"),
         ("margin_percent", "Contribution margin"),
     ):
         metric = pack["metrics"].get(key)
+        if key == "reported_sales" and metric is None:
+            continue
         negative = (
             metric
             and key in ("contribution", "margin_percent")

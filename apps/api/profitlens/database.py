@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Table,
     UniqueConstraint,
+    Uuid,
     create_engine,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -148,12 +149,13 @@ invoices = Table(
     "invoices",
     metadata,
     *record_columns("invoice_id"),
+    Column("amount_basis", String(20), nullable=False, server_default="verified"),
     *[
-        Column(key, Numeric(14, 2), nullable=False)
+        Column(key, Numeric(14, 2), nullable=key != "total")
         for key in ("subtotal", "discount", "tax", "refund", "total")
     ],
     CheckConstraint(
-        "subtotal >= 0 AND discount >= 0 AND tax >= 0 AND refund >= 0 AND total >= 0 AND discount + refund <= subtotal AND total = subtotal - discount + tax - refund",
+        "total >= 0 AND ((amount_basis = 'reported_sales' AND subtotal IS NULL AND discount IS NULL AND tax IS NULL AND refund IS NULL) OR (amount_basis = 'verified' AND subtotal IS NOT NULL AND discount IS NOT NULL AND tax IS NOT NULL AND refund IS NOT NULL AND subtotal >= 0 AND discount >= 0 AND tax >= 0 AND refund >= 0 AND discount + refund <= subtotal AND total = subtotal - discount + tax - refund))",
         name="invoice_amounts",
     ),
 )
@@ -279,4 +281,114 @@ investigations = Table(
         ["organization_id", "customer_id"],
         ["customers.organization_id", "customers.customer_id"],
     ),
+)
+
+# Source-first records remain separate from the verified invoice/cost ledger.
+source_documents = Table(
+    "source_documents",
+    metadata,
+    orgcol(),
+    Column("id", Uuid(as_uuid=False), primary_key=True, default=uid),
+    Column("filename", String(200), nullable=False),
+    Column("file_key", String(80), nullable=False),
+    Column("sha256", String(64), nullable=False),
+    Column("format", String(10), nullable=False),
+    Column("state", String(20), nullable=False, server_default="extracted"),
+    Column("headers", JSONB, nullable=False),
+    Column("pages", JSONB, nullable=False, default=list),
+    Column("mapping", JSONB, nullable=False, default=dict),
+    Column("issues", JSONB, nullable=False, default=list),
+    Column("created_by", String(36), ForeignKey("users.id"), nullable=False),
+    timestamp(),
+    UniqueConstraint("organization_id", "sha256"),
+)
+raw_records = Table(
+    "raw_records",
+    metadata,
+    orgcol(),
+    Column("document_id", Uuid(as_uuid=False), primary_key=True),
+    Column("row_number", Integer, primary_key=True),
+    Column("values", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "document_id"],
+        ["source_documents.organization_id", "source_documents.id"],
+    ),
+)
+financial_facts = Table(
+    "financial_facts",
+    metadata,
+    orgcol(),
+    Column("id", Uuid(as_uuid=False), primary_key=True, default=uid),
+    Column("document_id", Uuid(as_uuid=False), nullable=False),
+    Column("row_number", Integer, nullable=False),
+    Column("record_key", String(200), nullable=False),
+    Column("raw_hash", String(64), nullable=False),
+    Column("kind", String(30), nullable=False),
+    Column("amount", Numeric(14, 2), nullable=False),
+    Column("currency", String(3), nullable=False),
+    Column("occurred_on", Date),
+    Column("description", String(1000), nullable=False, server_default=""),
+    Column("counterparty", String(200), nullable=False, server_default=""),
+    Column("customer_id", String(80)),
+    Column("link_method", String(30), nullable=False, server_default="unmatched"),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "document_id", "row_number"],
+        [
+            "raw_records.organization_id",
+            "raw_records.document_id",
+            "raw_records.row_number",
+        ],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+    UniqueConstraint("organization_id", "record_key"),
+    CheckConstraint(
+        "kind IN ('reported_sales','expenditure','cash_inflow','cash_outflow','commitment','asset_balance','liability_balance')",
+        name="fact_kind",
+    ),
+)
+mapping_profiles = Table(
+    "mapping_profiles",
+    metadata,
+    orgcol(),
+    Column("name", String(80), primary_key=True),
+    Column("version", Integer, nullable=False),
+    Column("mapping", JSONB, nullable=False),
+    timestamp(),
+)
+entity_aliases = Table(
+    "entity_aliases",
+    metadata,
+    orgcol(),
+    Column("alias", String(200), primary_key=True),
+    Column("customer_id", String(80), nullable=False),
+    Column("reviewed_by", String(36), ForeignKey("users.id"), nullable=False),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+)
+cost_allocations = Table(
+    "cost_allocations",
+    metadata,
+    orgcol(),
+    Column("fact_id", Uuid(as_uuid=False), primary_key=True),
+    Column("customer_id", String(80), primary_key=True),
+    Column("amount", Numeric(14, 2), nullable=False),
+    Column("reason", String(500), nullable=False),
+    Column("reviewed_by", String(36), ForeignKey("users.id"), nullable=False),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "fact_id"],
+        ["financial_facts.organization_id", "financial_facts.id"],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "customer_id"],
+        ["customers.organization_id", "customers.customer_id"],
+    ),
+    CheckConstraint("amount > 0", name="allocation_positive"),
 )

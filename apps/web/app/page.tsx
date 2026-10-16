@@ -45,6 +45,7 @@ import { NavItem, SideNav } from "../components/side-nav";
 import { AnimatedInput } from "../components/animated-input";
 import { FinancePanel, FinancialReport } from "../components/finance-panel";
 import { AnalysisPanel } from "../components/analysis-panel";
+import { SourceExplorer } from "../components/source-explorer";
 import { Stage } from "../components/stage";
 import {
   ChatbotLauncher,
@@ -131,12 +132,21 @@ export default function Home() {
       );
       setCustomers(list);
       if (view === "overview") {
-        const [invoices, expenses, contractList] = await Promise.all([
+        const [invoices, expenses, contractList, summary] = await Promise.all([
           api<RecordData[]>(`${base}/records/invoices?limit=200`, options),
           api<RecordData[]>(`${base}/records/expenses?limit=200`, options),
           api<Contract[]>(`${base}/contracts`, options),
+          api<NonNullable<OverviewData["summary"]>>(
+            `${base}/dashboard`,
+            options,
+          ),
         ]);
-        setOverviewData({ invoices, expenses, contracts: contractList });
+        setOverviewData({
+          invoices,
+          expenses,
+          contracts: contractList,
+          summary,
+        });
       }
       if (["customers", "invoices", "expenses"].includes(view))
         setRows(
@@ -300,6 +310,7 @@ export default function Home() {
       </>
     );
   const nav: NavItem[] = [
+    { id: "data", label: "Source data & insights", icon: Database },
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "finance", label: "Revenue & costs", icon: Calculator },
     { id: "analysis", label: "Profitability & evidence", icon: FileCheck2 },
@@ -396,7 +407,9 @@ export default function Home() {
           <div className="topbar-actions">
             <span className="data-badge">
               <Database size={13} aria-hidden="true" />
-              {org === "demo-fhdc-real"
+              {["demo-fhdc-real", "demo-fhdc-source", "demo-uci-real"].includes(
+                org,
+              )
                 ? "Real-world public data · GBP"
                 : [
                       "demo-org",
@@ -428,6 +441,7 @@ export default function Home() {
                   {
                     overview:
                       "A trusted starting point for your customer profitability investigations.",
+                    data: "Original documents, reviewed mappings and source-linked financial observations.",
                     finance:
                       "Exact recorded amounts, with sources and clear data-quality limits.",
                     analysis:
@@ -470,6 +484,47 @@ export default function Home() {
               )}
             </div>
           </div>
+          {org === "demo-uci-real" && (
+            <aside className="alert" aria-label="Real-world dataset provenance">
+              <p>
+                <strong>
+                  Real-world sales: UCI Online Retail, Daqing Chen (2015), CC BY
+                  4.0.
+                </strong>{" "}
+                An anonymous UK retailer; selected complete positive sales
+                invoices from a fixed customer cohort in January–November 2011.
+                This is a historical retail example, not a study of our target
+                B2B users. Tax, costs, cancellations and contracts are not
+                supplied in this selection. Sales totals are not profit or net
+                revenue.{" "}
+                <a
+                  href="https://archive.ics.uci.edu/dataset/352/online+retail"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Original dataset and licence ↗
+                </a>
+              </p>
+            </aside>
+          )}
+          {org === "demo-fhdc-source" && (
+            <aside className="alert">
+              <strong>
+                Real-world public expenditure: Folkestone &amp; Hythe District
+                Council · OGL v3.0.
+              </strong>{" "}
+              Four original procurement-card PDFs, including credits. GBP is
+              declared from UK reporting. Suppliers are not customers; no
+              customer costs, sales revenue or contract links are inferred.{" "}
+              <a
+                href="https://www.folkestone-hythe.gov.uk/council-transparency/councils-publication-scheme"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Publisher and licence ↗
+              </a>
+            </aside>
+          )}
           {org === "demo-fhdc-real" && (
             <aside className="alert" aria-label="Real-world dataset provenance">
               <p>
@@ -576,6 +631,14 @@ export default function Home() {
                   }}
                 />
               )}
+              {view === "data" && org && (
+                <SourceExplorer
+                  key={org}
+                  base={base}
+                  currency={workspace?.currency || "INR"}
+                  canWrite={canWrite}
+                />
+              )}
               {view === "overview" && org && !error && (
                 <Overview
                   customers={customers}
@@ -584,6 +647,15 @@ export default function Home() {
                   changeView={changeView}
                 />
               )}
+              {view === "overview" &&
+                !!overviewData.summary?.counts.financial_facts && (
+                  <SourceExplorer
+                    key={org}
+                    base={base}
+                    currency={workspace?.currency || "INR"}
+                    canWrite={canWrite}
+                  />
+                )}
               {["customers", "invoices", "expenses"].includes(view) && (
                 <section className="panel glass">
                   <div className="table-toolbar">
@@ -690,6 +762,11 @@ export default function Home() {
                                         ? `${r.source.filename} · row ${r.source.row}`
                                         : "Manual record"}
                                   </small>
+                                  {r.amount_basis === "reported_sales" && (
+                                    <span className="tag">
+                                      Reported sales · tax basis unknown
+                                    </span>
+                                  )}
                                 </td>
                                 <td>
                                   {view === "customers"
@@ -818,7 +895,26 @@ export default function Home() {
                         </label>
                       </div>
                       <p className="format-hint">
-                        Required columns: <code>{fields[kind].join(", ")}</code>
+                        Standard columns: <code>{fields[kind].join(", ")}</code>
+                        {kind === "invoices" && (
+                          <>
+                            {" "}
+                            For sales with unknown breakdown, use{" "}
+                            <code>
+                              invoice_id,customer_id,billing_period,currency,total,amount_basis
+                            </code>{" "}
+                            with <code>amount_basis=reported_sales</code>. Omit
+                            unknown subtotal, discount, tax and refund. Never
+                            enter invented zeros.
+                          </>
+                        )}
+                        {kind === "customers" && <> Industry is optional.</>}
+                        <>
+                          {" "}
+                          Optional <code>source_*</code> columns are preserved
+                          as provenance. Other unknown columns are rejected for
+                          explicit review.
+                        </>
                       </p>
                       <button className="primary" disabled={busy}>
                         <Search size={16} />
@@ -854,8 +950,13 @@ export default function Home() {
                             <thead>
                               <tr>
                                 <th>Source row</th>
-                                {fields[preview.kind as Kind].map((f) => (
-                                  <th key={f}>{labels[f]}</th>
+                                {[
+                                  ...fields[preview.kind as Kind],
+                                  ...(preview.kind === "invoices"
+                                    ? ["amount_basis"]
+                                    : []),
+                                ].map((f) => (
+                                  <th key={f}>{labels[f] || "Amount basis"}</th>
                                 ))}
                               </tr>
                             </thead>
@@ -863,8 +964,13 @@ export default function Home() {
                               {preview.preview_rows.map((r) => (
                                 <tr key={r.source_row}>
                                   <td>{r.source_row}</td>
-                                  {fields[preview.kind as Kind].map((f) => (
-                                    <td key={f}>{r.data[f]}</td>
+                                  {[
+                                    ...fields[preview.kind as Kind],
+                                    ...(preview.kind === "invoices"
+                                      ? ["amount_basis"]
+                                      : []),
+                                  ].map((f) => (
+                                    <td key={f}>{r.data[f] ?? "Unknown"}</td>
                                   ))}
                                 </tr>
                               ))}
@@ -1246,70 +1352,92 @@ export default function Home() {
             }}
           >
             <div className="form-grid">
-              {fields[recordKind].map((f) => (
-                <label key={f}>
-                  {labels[f]}
-                  {f === "customer_id" && recordKind !== "customers" ? (
-                    <select
-                      name={f}
-                      defaultValue={String(selected?.[f] || "")}
-                      required
-                      disabled={!canWrite}
-                    >
-                      <option value="" disabled>
-                        Select a customer
-                      </option>
-                      {customers.map((c) => (
-                        <option key={c.customer_id} value={c.customer_id}>
-                          {c.name}
+              {selected?.amount_basis === "reported_sales" && (
+                <>
+                  <input
+                    type="hidden"
+                    name="amount_basis"
+                    value="reported_sales"
+                  />
+                  <p className="alert">
+                    Reported sales amount. Tax, discount and refund breakdown is
+                    unknown; this is not net revenue or profit.
+                  </p>
+                </>
+              )}
+              {fields[recordKind]
+                .filter(
+                  (f) =>
+                    !(
+                      selected?.amount_basis === "reported_sales" &&
+                      ["subtotal", "discount", "tax", "refund"].includes(f)
+                    ),
+                )
+                .map((f) => (
+                  <label key={f}>
+                    {labels[f]}
+                    {f === "customer_id" && recordKind !== "customers" ? (
+                      <select
+                        name={f}
+                        defaultValue={String(selected?.[f] || "")}
+                        required
+                        disabled={!canWrite}
+                      >
+                        <option value="" disabled>
+                          Select a customer
                         </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <AnimatedInput
-                      name={f}
-                      defaultValue={String(
-                        selected?.[f] ??
-                          (f === "currency"
-                            ? workspace?.currency
-                            : ["discount", "tax", "refund"].includes(f)
-                              ? "0"
-                              : ""),
-                      )}
-                      type={
-                        f === "billing_period"
-                          ? "month"
-                          : [
-                                "subtotal",
-                                "discount",
-                                "tax",
-                                "refund",
-                                "total",
-                                "amount",
-                              ].includes(f)
-                            ? "number"
-                            : "text"
-                      }
-                      min={0}
-                      step="0.01"
-                      required={f !== "industry"}
-                      readOnly={
-                        !canWrite ||
-                        (!!selected && f === fields[recordKind][0]) ||
-                        f === "currency"
-                      }
-                      maxLength={200}
-                    />
-                  )}
-                </label>
-              ))}
+                        {customers.map((c) => (
+                          <option key={c.customer_id} value={c.customer_id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <AnimatedInput
+                        name={f}
+                        defaultValue={String(
+                          selected?.[f] ??
+                            (f === "currency"
+                              ? workspace?.currency
+                              : ["discount", "tax", "refund"].includes(f)
+                                ? "0"
+                                : ""),
+                        )}
+                        type={
+                          f === "billing_period"
+                            ? "month"
+                            : [
+                                  "subtotal",
+                                  "discount",
+                                  "tax",
+                                  "refund",
+                                  "total",
+                                  "amount",
+                                ].includes(f)
+                              ? "number"
+                              : "text"
+                        }
+                        min={0}
+                        step="0.01"
+                        required={f !== "industry"}
+                        readOnly={
+                          !canWrite ||
+                          (!!selected && f === fields[recordKind][0]) ||
+                          f === "currency"
+                        }
+                        maxLength={200}
+                      />
+                    )}
+                  </label>
+                ))}
             </div>
-            {recordKind === "invoices" && (
-              <p className="footnote">
-                Total = subtotal − discount + tax − refund. Use same-period,
-                pre-tax refunds.
-              </p>
-            )}
+            {recordKind === "invoices" &&
+              selected?.amount_basis !== "reported_sales" && (
+                <p className="footnote">
+                  Total = subtotal − discount + tax − refund. Use same-period,
+                  pre-tax refunds.
+                </p>
+              )}
             {selected?.source && (
               <p className="footnote">
                 {selected.source.batch_id
@@ -1317,6 +1445,18 @@ export default function Home() {
                   : ""}
                 Edits retain the original source and create an audit event.
               </p>
+            )}
+            {selected?.source?.original && (
+              <details className="finance-sources">
+                <summary>
+                  Original imported values and source references
+                </summary>
+                <pre
+                  style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
+                >
+                  {JSON.stringify(selected.source.original, null, 2)}
+                </pre>
+              </details>
             )}
             {selected && recordKind === "customers" && (
               <div className="button-row">

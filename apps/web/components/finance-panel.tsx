@@ -5,12 +5,13 @@ import type { Kind, RecordData } from "../lib/workspace";
 type Source = { type?: string; filename?: string; row?: number };
 type InvoiceLine = {
   id: string;
-  subtotal: string;
-  discount: string;
-  refund: string;
-  tax_excluded: string;
-  payable_total: string;
-  net_billed_revenue: string;
+  subtotal: string | null;
+  discount: string | null;
+  refund: string | null;
+  tax_excluded: string | null;
+  payable_total: string | null;
+  net_billed_revenue: string | null;
+  reported_sales: string | null;
   source: Source;
 };
 type ExpenseLine = {
@@ -22,6 +23,7 @@ type ExpenseLine = {
 type FinancialItem = {
   customer_id: string;
   customer_name: string;
+  reported_sales: string | null;
   billing_period: string;
   net_billed_revenue: string | null;
   attributed_cost: string | null;
@@ -116,8 +118,10 @@ export function FinancePanel({
           records are not treated as zero.
         </p>
         <p className="finance-note">
-          Recorded amounts only: cost completeness is unverified. Contribution,
-          margin and anomaly detection arrive in later milestones.
+          Recorded amounts only: review contribution, margin and discrepancies
+          in Profitability & evidence. Reported sales with an unknown breakdown
+          are excluded from net revenue and profit calculations. Contracts are
+          optional.
         </p>
         {customers.length === 200 && (
           <p className="finance-note">
@@ -199,6 +203,14 @@ export function FinancePanel({
                   Calculation and sources for {item.customer_id}
                 </summary>
                 <h3>Invoice calculation</h3>
+                {item.reported_sales !== null && (
+                  <p className="alert">
+                    Reported sales:{" "}
+                    {amount(item.reported_sales, report.currency)}. The
+                    financial breakdown is unknown; this is not net revenue or
+                    profit.
+                  </p>
+                )}
                 <p className="finance-note">
                   Each line: subtotal − discount − refund = net billed revenue.
                   Tax is shown separately and is never subtracted again.
@@ -214,6 +226,7 @@ export function FinancePanel({
                           <th>Refund</th>
                           <th>Excluded tax</th>
                           <th>Net revenue</th>
+                          <th>Reported sales</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -244,6 +257,9 @@ export function FinancePanel({
                             </td>
                             <td>
                               {amount(line.net_billed_revenue, report.currency)}
+                            </td>
+                            <td>
+                              {amount(line.reported_sales, report.currency)}
                             </td>
                           </tr>
                         ))}

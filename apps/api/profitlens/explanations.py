@@ -144,6 +144,7 @@ def evidence(
     )
     metrics = {}
     for name in (
+        "reported_sales",
         "net_billed_revenue",
         "attributed_cost",
         "contribution",

@@ -20,6 +20,10 @@ The intended investigation path is:
 
 ## What works today
 
+**Source-first compatibility:** CSV/XLSX/JSON and text-PDF documents can now be retained privately, mapped with review and explored as meaning-labelled financial observations. Real sales and public procurement expenditure are demonstrated separately; unknown costs and unsupported profit remain explicit. [Architecture, verified datasets, setup and limits](docs/SOURCE_FIRST_RELEASE.md).
+
+**Adaptive real-data demo:** reported sales with unknown tax/cost breakdowns can be imported without invented zeros. The overview shows available sales trends, customer rankings and explicit evidence gaps; contracts are optional. See [source, licence, demo steps and verification](docs/ADAPTIVE_REAL_DATA_DEMO.md).
+
 | Capability | Current behavior |
 | --- | --- |
 | Secure workspace | Local accounts, expiring server-side sessions, admin/finance/analyst roles, organization isolation and assigned-customer access. |

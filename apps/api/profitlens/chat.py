@@ -63,6 +63,7 @@ excerpts; do not generate quotations. Never put finding IDs or invoice IDs in so
 For findings use finding_ids alone. If passages is empty, source_ids MUST be empty. Sources
 appear separately, so do not copy quotations, record IDs or source URLs into reply.
 Missing costs are unknown, not zero. Provisional figures require a clear caveat. Contribution
+Reported_sales means source sales amounts with unknown tax/discount/refund treatment; never call it net revenue, cash collected or profit.
 is not net profit. No prediction or causal certainty. If evidence cannot answer, set
 insufficient_evidence=true and explain what is missing; do not assert an unsupported answer.
 For greetings, thanks, small talk, identity or general help, set conversational=true,

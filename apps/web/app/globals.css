@@ -1849,7 +1849,72 @@ td.row-open {
 }
 .inventory {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.sales-bars {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.source-explorer,
+.source-explorer .panel,
+.source-explorer .form-grid > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.source-explorer pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.source-explorer input,
+.source-explorer select {
+  min-width: 0;
+  max-width: 100%;
+}
+.source-explorer .form-grid > button,
+.source-explorer .sales-bars > button {
+  height: auto;
+  min-height: 56px;
+  padding: 14px;
+  white-space: normal;
+  line-height: 1.5;
+}
+.source-explorer .sales-bars > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  text-align: left;
+  gap: 8px;
+}
+.source-explorer .doc-stack li {
+  flex-wrap: wrap;
+}
+.source-explorer .doc-stack button {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  min-width: 0;
+}
+.sales-bars > div {
+  display: grid;
+  grid-template-columns: 62px minmax(30px, 1fr) 95px;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.sales-bars strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sales-track {
+  height: 12px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.sales-track > span {
+  display: block;
+  height: 100%;
+  background: #63b8a5;
+  border-radius: 4px;
 }
 .metric {
   position: relative;

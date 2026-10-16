@@ -23,8 +23,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 
+from . import dashboard, finance, imports, records, retrieval, schemas, storage
 from . import database as db
-from . import finance, imports, records, retrieval, schemas, storage
 from .analysis_api import router as analysis_router
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
@@ -42,6 +42,7 @@ from .security import (
     visible,
     writer,
 )
+from .source_api import router as source_router
 
 app = FastAPI(
     title="ProfitLens API",
@@ -50,6 +51,12 @@ app = FastAPI(
 )
 PREFIX = "/api/workspaces/{organization_id}"
 app.include_router(analysis_router)
+app.include_router(source_router)
+
+
+@app.get(PREFIX + "/dashboard")
+def dashboard_summary(s=Depends(scope), conn=Depends(connection, scope="function")):
+    return dashboard.summary(conn, s)
 
 
 @app.middleware("http")

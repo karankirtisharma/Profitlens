@@ -103,15 +103,33 @@ def calculate(
 
     inv, revenue_blocked = checked(invoices, Invoice, "invoice_id")
     exp, cost_blocked = checked(expenses, Expense, "expense_id")
+    has_reported = any(r["amount_basis"] == "reported_sales" for r in inv)
+    if has_reported:
+        warn(
+            "unknown_invoice_basis",
+            "Reported sales amounts have no verified tax, discount or refund breakdown. Net revenue, contribution, margin and pricing comparisons are unavailable.",
+        )
+
+    def optional_money(value):
+        return money(value) if value is not None else None
+
     invoice_lines = [
         dict(
             id=r["invoice_id"],
-            subtotal=money(r["subtotal"]),
-            discount=money(r["discount"]),
-            refund=money(r["refund"]),
-            tax_excluded=money(r["tax"]),
-            payable_total=money(r["total"]),
-            net_billed_revenue=money(r["subtotal"] - r["discount"] - r["refund"]),
+            amount_basis=r["amount_basis"],
+            subtotal=optional_money(r["subtotal"]),
+            discount=optional_money(r["discount"]),
+            refund=optional_money(r["refund"]),
+            tax_excluded=optional_money(r["tax"]),
+            payable_total=money(r["total"])
+            if r["amount_basis"] == "verified"
+            else None,
+            reported_sales=money(r["total"])
+            if r["amount_basis"] == "reported_sales"
+            else None,
+            net_billed_revenue=money(r["subtotal"] - r["discount"] - r["refund"])
+            if r["amount_basis"] == "verified"
+            else None,
             source=r["source"],
         )
         for r in inv
@@ -127,7 +145,7 @@ def calculate(
     ]
     revenue = (
         None
-        if revenue_blocked or not inv
+        if revenue_blocked or not inv or has_reported
         else sum((r["subtotal"] - r["discount"] - r["refund"] for r in inv), ZERO)
     )
     cost = None if cost_blocked or not exp else sum((r["amount"] for r in exp), ZERO)
@@ -187,7 +205,7 @@ def calculate(
             matched.append(contract)
         elif first <= end and last >= start:
             partial.append(contract)
-    if not matched:
+    if valid_contracts and not matched:
         warn(
             "unmatched_contract_period",
             "No reviewed same-currency contract covers the full billing month. Pricing comparisons are unavailable.",
@@ -211,6 +229,18 @@ def calculate(
         customer_id=customer_id,
         billing_period=period,
         currency=currency,
+        reported_sales=money(
+            sum(
+                (r["total"] for r in inv if r["amount_basis"] == "reported_sales"), ZERO
+            )
+        )
+        if has_reported and not revenue_blocked
+        else None,
+        contract_status="applicable"
+        if len(matched) == 1 and not partial
+        else "unavailable"
+        if valid_contracts
+        else "not_provided",
         net_billed_revenue=money(revenue) if revenue is not None else None,
         attributed_cost=money(cost) if cost is not None else None,
         cost_completeness="unverified" if cost is not None else "unavailable",

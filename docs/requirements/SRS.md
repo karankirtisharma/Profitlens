@@ -1,5 +1,7 @@
 # ProfitLens — COM-711 Minor Project SRS
 
+> **16 October source-compatibility change:** the user authorized a broader bounded source-first layer after the real-data incompatibility audit. [Implemented source-first release](../SOURCE_FIRST_RELEASE.md) supersedes the strict-CSV-only boundary below for reviewed CSV/XLSX/JSON/text-PDF imports, typed observations, aliases and allocation evidence. It does not turn this prototype into a complete accounting/ERP system.
+
 > **Implementation follow-up — 15 October 2026:** the team authorized core fixes after this planning snapshot. Evidence-specific investigations and date precision are now fixed. [Current implementation and acceptance results](../MINOR_SCOPE_RELEASE_REPORT.md) supersede pending test/prerequisite statuses below; optional and deferred scope is unchanged.
 
 Version 0.2 · 15 October 2026 · **active planning scope: original 12-week team minor project**.

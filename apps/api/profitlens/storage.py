@@ -17,7 +17,7 @@ class StorageUnavailable(Exception):
 def object_name(organization_id: str, key: str) -> str:
     # These are database identifiers, never a browser-supplied path or URL.
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,36}", organization_id) or not re.fullmatch(
-        r"[a-f0-9-]{36}\.pdf", key
+        r"[a-f0-9-]{36}\.(pdf|csv|xlsx|json)", key
     ):
         raise StorageUnavailable("Invalid private file reference")
     return f"{organization_id}/{key}"
@@ -58,7 +58,12 @@ def put(organization_id: str, key: str, content: bytes) -> None:
             name,
             content,
             access="private",
-            content_type="application/pdf",
+            content_type={
+                "pdf": "application/pdf",
+                "csv": "text/csv",
+                "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "json": "application/json",
+            }[key.rsplit(".", 1)[1]],
             add_random_suffix=False,
             allow_overwrite=False,
         )

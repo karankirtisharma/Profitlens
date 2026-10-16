@@ -14,7 +14,13 @@ export type RecordData = {
   [key: string]: unknown;
   customer_id: string;
   name?: string;
-  source?: { type: string; filename?: string; row?: number; batch_id?: string };
+  source?: {
+    type: string;
+    filename?: string;
+    row?: number;
+    batch_id?: string;
+    original?: Record<string, unknown>;
+  };
 };
 export type Contract = {
   id: string;
@@ -49,7 +55,14 @@ export type Member = {
 };
 export type Kind = "customers" | "invoices" | "expenses";
 export type View =
-  "overview" | "finance" | "analysis" | Kind | "imports" | "contracts" | "team";
+  | "data"
+  | "overview"
+  | "finance"
+  | "analysis"
+  | Kind
+  | "imports"
+  | "contracts"
+  | "team";
 export const fields: Record<Kind, string[]> = {
   customers: ["customer_id", "name", "industry"],
   invoices: [

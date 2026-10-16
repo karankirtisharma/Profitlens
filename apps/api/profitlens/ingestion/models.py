@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -38,14 +39,26 @@ class PeriodRecord(ImportRecord):
 
 class Invoice(PeriodRecord):
     invoice_id: str = Field(min_length=1)
-    subtotal: Decimal = Field(ge=0, decimal_places=2)
-    discount: Decimal = Field(ge=0, decimal_places=2)
-    tax: Decimal = Field(ge=0, decimal_places=2)
-    refund: Decimal = Field(ge=0, decimal_places=2)
+    amount_basis: Literal["verified", "reported_sales"] = "verified"
+    subtotal: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+    discount: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+    tax: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+    refund: Decimal | None = Field(default=None, ge=0, decimal_places=2)
     total: Decimal = Field(ge=0, decimal_places=2)
 
     @model_validator(mode="after")
     def check_total(self) -> Invoice:
+        breakdown = (self.subtotal, self.discount, self.tax, self.refund)
+        if self.amount_basis == "reported_sales":
+            if any(value is not None for value in breakdown):
+                raise ValueError(
+                    "Reported sales must leave the unverified financial breakdown blank"
+                )
+            return self
+        if any(value is None for value in breakdown):
+            raise ValueError(
+                "Verified invoices require subtotal, discount, tax and refund"
+            )
         if self.discount + self.refund > self.subtotal:
             raise ValueError("discount plus refund cannot exceed subtotal")
         expected = self.subtotal - self.discount + self.tax - self.refund

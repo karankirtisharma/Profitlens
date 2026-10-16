@@ -140,7 +140,7 @@ def test_invalid_and_duplicate_expenses_are_not_silently_summed():
 @pytest.mark.parametrize(
     "contracts,expected",
     [
-        ([], {"unmatched_contract_period"}),
+        ([], set()),
         (
             [contract(state="unreviewed")],
             {"unmatched_contract_period", "unreviewed_contract"},
@@ -166,6 +166,9 @@ def test_contract_coverage_does_not_invent_pricing_or_change_revenue(
     r = result(contracts=contracts)
     assert expected <= codes(r)
     assert r["net_billed_revenue"] == "850.00"
+    if not contracts:
+        assert r["contract_status"] == "not_provided"
+        assert "unmatched_contract_period" not in codes(r)
 
 
 def test_leap_month_and_invalid_period():

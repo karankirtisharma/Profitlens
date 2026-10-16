@@ -59,7 +59,7 @@ def validate(kind, payload, s):
         ):
             raise HTTPException(422, f"{key} is too long")
     for key in ("subtotal", "discount", "tax", "refund", "total", "amount"):
-        if key in data and data[key] >= 10**12:
+        if data.get(key) is not None and data[key] >= 10**12:
             raise HTTPException(422, f"{key} exceeds supported amount")
     return data
 

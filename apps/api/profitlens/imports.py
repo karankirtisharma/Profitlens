@@ -91,6 +91,7 @@ def preview(conn, s, kind, filename, content):
         {
             "data": row.record.model_dump(mode="json", exclude={"organization_id"}),
             "source_row": row.source_row,
+            "original": row.original,
         }
         for row in result.rows
     ]
@@ -168,6 +169,7 @@ def confirm(conn, s, batch_id):
             "filename": batch["filename"],
             "row": row["source_row"],
             "sha256": batch["fingerprint"],
+            "original": row.get("original", {}),
         }
         conn.execute(table.insert().values(**data, source=source))
         log_event(
