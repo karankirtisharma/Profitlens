@@ -20,6 +20,8 @@ The intended investigation path is:
 
 ## What works today
 
+**Source-aware AI chat:** The popup can explain authorized real sales and expenditure with deterministic amounts and links to supporting source records. It supports a selected month or all imported dates, preserves unknown information, and does not infer profit from incomplete source data. Uses the existing server-side OpenRouter provider.
+
 **Source-first compatibility:** CSV/XLSX/JSON and text-PDF documents can now be retained privately, mapped with review and explored as meaning-labelled financial observations. Real sales and public procurement expenditure are demonstrated separately; unknown costs and unsupported profit remain explicit. [Architecture, verified datasets, setup and limits](docs/SOURCE_FIRST_RELEASE.md).
 
 **Adaptive real-data demo:** reported sales with unknown tax/cost breakdowns can be imported without invented zeros. The overview shows available sales trends, customer rankings and explicit evidence gaps; contracts are optional. See [source, licence, demo steps and verification](docs/ADAPTIVE_REAL_DATA_DEMO.md).
