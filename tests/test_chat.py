@@ -179,6 +179,30 @@ def test_general_conversation_and_insufficient_evidence_use_provider(monkeypatch
     assert called and result.json()["insufficient_evidence"]
 
 
+def test_manual_greeting_hides_unrelated_financial_panels(monkeypatch):
+    c = client()
+    setup(c)
+
+    def model(schema, prompt, payload, **kw):
+        assert "conversational" in schema.model_json_schema()["required"]
+        return chat.ChatAnswer(
+            reply="Hi! I'm your ProfitLens assistant. How can I help?",
+            conversational=True,
+            insufficient_evidence=False,
+            finding_ids=[],
+            source_ids=[],
+        )
+
+    monkeypatch.setattr(explanations, "structured_completion", model)
+    result = ask(c, message="hi")
+    assert result.status_code == 200
+    data = result.json()
+    assert data["billing_period"] is None and data["scope_label"] is None
+    assert (
+        not data["cards"] and not data["actions"] and not data["insufficient_evidence"]
+    )
+
+
 def test_chat_limits_input_and_rate(monkeypatch):
     c = client()
     assert ask(c, message=" ").status_code == 422

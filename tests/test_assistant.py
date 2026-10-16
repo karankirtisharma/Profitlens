@@ -52,6 +52,56 @@ def ask(c, **kw):
     )
 
 
+def test_greeting_skips_financial_retrieval(monkeypatch):
+    c = client()
+    setup(c)
+    monkeypatch.setattr(explanations, "provider_status", lambda: {"configured": True})
+
+    def complete(schema, prompt, payload, **kw):
+        if schema is assistant.Plan:
+            return assistant.Plan(
+                intent="conversation",
+                customer_id="C1",
+                billing_period="2026-09",
+                record_id=None,
+                clarification="",
+                resolution="resolved",
+            )
+        evidence = payload["CURRENT_EVIDENCE"]
+        assert evidence["scope_mode"] == "conversation"
+        assert not evidence["metrics"] and not evidence["documents"]
+        assert evidence["billing_period"] is None
+        return chat.ChatAnswer(
+            reply="Hi! I'm ProfitLens. How can I help?",
+            conversational=True,
+            insufficient_evidence=False,
+            finding_ids=[],
+            source_ids=[],
+        )
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Greeting must not calculate financial summaries")
+
+    monkeypatch.setattr(explanations, "structured_completion", complete)
+    monkeypatch.setattr(assistant.workspace_summary, "summarize", forbidden)
+    r = ask(c, message="hi")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["reply"].startswith("Hi!")
+    assert data["billing_period"] is None
+    assert not any(
+        data[k]
+        for k in (
+            "cards",
+            "actions",
+            "metrics",
+            "sources",
+            "notice",
+            "insufficient_evidence",
+        )
+    )
+
+
 def test_automatic_workspace_total_and_navigation(monkeypatch):
     c = client()
     setup(c)

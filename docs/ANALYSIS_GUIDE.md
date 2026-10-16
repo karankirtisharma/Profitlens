@@ -110,3 +110,10 @@ Verification for this update: 114 backend tests passed; both targeted Chromium f
 The analysis screen now exposes **Investigation evidence**. Use Financial records for revenue/cost questions, Reviewed contract terms for document questions, and both for comparing billing with terms. Financial-only mode does not retrieve contract text or assert contract compliance. Unknown costs remain unavailable; unconfirmed contribution stays provisional. The popup still selects its authorized scope automatically; the new selector is for formal saved investigations. Historical snapshots without the evidence-scope field can become stale and should be rerun.
 
 Chat month labels no longer expand a month into a contract day. Exact document dates retain their day. See the [current release report](MINOR_SCOPE_RELEASE_REPORT.md) for 122 backend tests, browser/build verification, actual model outputs and known lexical/semantic limits.
+
+
+### Conversational turns (16 October 2026)
+
+The AI scope selector distinguishes greetings, thanks and general ProfitLens help from financial questions. Automatic conversational turns do not retrieve financial summaries or documents. Replies come from the configured AI model, not canned greetings. These turns omit unrelated financial cards, month labels and missing-evidence warnings. Manual-filter greetings also omit those panels; financial questions retain existing evidence verification and authorization. Mixed greetings plus financial requests remain data queries. Classification is model-based and can still be imperfect.
+
+Validation: 31 chatbot/planner regression tests passed against the dedicated local test database. Live configured-model checks covered English/Hinglish greetings, product help and a mixed greeting/revenue request.

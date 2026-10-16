@@ -31,6 +31,7 @@ class ChatRequest(explanations.StrictModel):
 
 
 class ChatAnswer(explanations.StrictModel):
+    conversational: bool = False
     reply: str = Field(min_length=1, max_length=2400)
     insufficient_evidence: bool
     finding_ids: list[str] = Field(max_length=5)
@@ -64,6 +65,16 @@ appear separately, so do not copy quotations, record IDs or source URLs into rep
 Missing costs are unknown, not zero. Provisional figures require a clear caveat. Contribution
 is not net profit. No prediction or causal certainty. If evidence cannot answer, set
 insufficient_evidence=true and explain what is missing; do not assert an unsupported answer.
+For greetings, thanks, small talk, identity or general help, set conversational=true,
+insufficient_evidence=false and both evidence arrays empty. Respond warmly and briefly
+as the ProfitLens assistant, matching the user's language (including Hinglish). A greeting
+needs only a friendly welcome and an invitation to ask for help, not a capability lecture.
+Do not volunteer financial results, missing-data warnings, selected months or contract
+review requests on these turns. General product or concept questions deserve a direct
+explanation. Do not pretend to be human. For unrelated topics briefly steer back to ProfitLens.
+For any request about actual records, including a greeting plus a financial question,
+set conversational=false and use evidence. Follow-up financial questions also need evidence.
+scope_mode=conversation contains no business evidence: never infer financial facts from history.
 Greetings and general project help can have empty evidence arrays. Never claim a numeric
 or quote check proves your interpretation. Usually answer in two to five short sentences."""
 
@@ -451,6 +462,7 @@ def respond(pack, payload):
         schema = create_model(
             "GroundedChatAnswer",
             __base__=ChatAnswer,
+            conversational=(bool, ...),
             reply=(
                 str,
                 Field(
@@ -545,6 +557,27 @@ def respond(pack, payload):
     )
     if unreviewed_quote:
         reply += "\n\nDocument terms quoted here are unreviewed; they are not validated pricing for this month."
+    # A conversational response cannot suppress evidence for any factual citation or value.
+    if (pack.get("scope_mode") == "conversation" or answer.conversational) and not (
+        placeholders or answer.source_ids or answer.finding_ids
+    ):
+        return {
+            "reply": reply,
+            "mode": "ai",
+            "scope_label": None,
+            "actions": [],
+            "cards": [],
+            "insufficient_evidence": False,
+            "customer_id": None,
+            "billing_period": None,
+            "profitability_status": "not_applicable",
+            "sources": [],
+            "metrics": [],
+            "available_periods": [],
+            "findings": [],
+            "record_ids": {"invoices": [], "expenses": []},
+            "notice": "",
+        }
     passages = {p["source_id"]: p for p in pack["passages"]}
     cited = list(answer.source_ids)
     for doc in pack.get("documents", []):
