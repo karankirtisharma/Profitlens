@@ -51,6 +51,9 @@ def enrich(conn, s, pack, all_periods=False, intent="overview"):
     if not pack["invoice_lines"] and not pack["expense_lines"]:
         pack.update(metrics={}, cards=[], actions=[], findings=[], warnings=[])
         pack["profitability_status"] = "source_observations_only"
+        if all_periods:
+            pack["billing_period"] = None
+            pack["facts"].pop("selected_period", None)
     pack["source_context"] = {
         "scope": "all imported dates including unknown dates"
         if all_periods
@@ -148,7 +151,7 @@ def enrich(conn, s, pack, all_periods=False, intent="overview"):
             view="data",
             label="Explore source data & insights",
             customer_id=pack["customer_id"],
-            billing_period=period,
+            billing_period=None if all_periods else period,
             record_id=None,
         ),
     )

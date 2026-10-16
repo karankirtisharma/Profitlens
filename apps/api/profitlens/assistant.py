@@ -15,7 +15,7 @@ from .security import customer_exists, visible
 
 
 class Plan(explanations.StrictModel):
-    all_periods: bool = False
+    all_periods: bool
     intent: Literal[
         "conversation", "overview", "invoices", "expenses", "contracts", "issues"
     ]

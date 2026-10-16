@@ -422,3 +422,10 @@ def test_source_chat_rejects_fabricated_amount(monkeypatch):
     assert all(
         "profit" not in key and "contribution" not in key for key in pack["metrics"]
     )
+
+
+def test_planner_schema_all_fields_required():
+    from profitlens.assistant import Plan
+
+    schema = Plan.model_json_schema()
+    assert set(schema["required"]) == set(schema["properties"])

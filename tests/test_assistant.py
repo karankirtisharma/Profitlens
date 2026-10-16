@@ -23,6 +23,7 @@ def mock_model(monkeypatch, customer=None, period="2026-09", record=None, hook=N
             if hook:
                 hook()
             return assistant.Plan(
+                all_periods=False,
                 intent="invoices" if record else "overview",
                 customer_id=customer,
                 billing_period=period,
@@ -60,6 +61,7 @@ def test_greeting_skips_financial_retrieval(monkeypatch):
     def complete(schema, prompt, payload, **kw):
         if schema is assistant.Plan:
             return assistant.Plan(
+                all_periods=False,
                 intent="conversation",
                 customer_id="C1",
                 billing_period="2026-09",
@@ -190,6 +192,7 @@ def test_clarification_never_returns_guessed_financial_cards(monkeypatch):
     def model(schema, prompt, payload, **kw):
         if schema is assistant.Plan:
             return assistant.Plan(
+                all_periods=False,
                 intent="overview",
                 customer_id=None,
                 billing_period="2026-09",

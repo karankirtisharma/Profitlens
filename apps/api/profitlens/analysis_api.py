@@ -168,6 +168,7 @@ def converse(organization_id: str, payload: chat.ChatRequest, request: Request):
         if payload.automatic
         else (
             assistant.Plan(
+                all_periods=False,
                 intent="overview",
                 customer_id=None,
                 billing_period=payload.billing_period
