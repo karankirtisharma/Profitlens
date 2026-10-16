@@ -397,7 +397,7 @@ export default function Home() {
             <span className="data-badge">
               <Database size={13} aria-hidden="true" />
               {org === "demo-fhdc-real"
-                ? "Public data · unallocated debits only"
+                ? "Real-world public data · GBP"
                 : [
                       "demo-org",
                       "other-org",
@@ -470,6 +470,37 @@ export default function Home() {
               )}
             </div>
           </div>
+          {org === "demo-fhdc-real" && (
+            <aside className="alert" aria-label="Real-world dataset provenance">
+              <p>
+                <strong>
+                  Real-world data: Folkestone &amp; Hythe District Council.
+                </strong>{" "}
+                Public procurement-card expenses from 2025. Grouping records are
+                technical buckets, not customers. Sales invoices and customer
+                cost allocations are unavailable; the separate contract register
+                has no verified link to these expenses. Profit and contract
+                compliance cannot be established from this dataset. Contains
+                public sector information licensed under the{" "}
+                <a
+                  href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open Government Licence v3.0
+                </a>{" "}
+                ·{" "}
+                <a
+                  href="https://www.folkestone-hythe.gov.uk/council-transparency/councils-publication-scheme"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Publisher and reuse terms
+                </a>
+                .
+              </p>
+            </aside>
+          )}
           {error && (
             <div className="alert error" role="alert">
               {error}

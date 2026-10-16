@@ -231,7 +231,7 @@ export function Login({
         </div>
       </div>
       <footer className="login-foot">
-        <span>Week 4 · Revenue, costs & data quality</span>
+        <span>Financial analysis &amp; traceable evidence</span>
         <span>Background panes show synthetic sample records.</span>
       </footer>
     </main>

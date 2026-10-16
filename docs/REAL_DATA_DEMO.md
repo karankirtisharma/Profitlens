@@ -1,10 +1,12 @@
 # Real-data and synthetic dashboard demos
 
-Updated: 15 October 2026. These are two separate, explicitly provisioned **local development workspaces**, available to the existing `karan@profitlens.local` account. Nothing was added to Northstar, Seabrook or the older Evaluation workspace.
+Updated: 16 October 2026. The real FHDC workspace is now also available on the [hosted site](https://profitlens-six-psi.vercel.app) to the existing Karan administrator. Select **Real Data - FHDC Expenses (GBP)**. It is separate from Northstar's synthetic demo. The two original local development workspaces described below remain available locally; the focused synthetic companion was not newly copied to hosting.
+
+The hosted UI labels this workspace **Real-world public data · GBP** and displays publisher attribution, the OGL v3.0 licence, technical-bucket limitations and the absence of verified invoice/contract/customer-cost links. Product screens use capability wording rather than development-week milestones.
 
 ## Open the demos
 
-1. Open <http://localhost:3000> and sign in with your usual Karan account.
+1. For the hosted real dataset, open <https://profitlens-six-psi.vercel.app> with your cloud demo account. For both original local packs, open <http://localhost:3000> with your local account when local servers are running.
 2. Reload the page after provisioning so the Workspace selector fetches your new memberships.
 3. Choose the appropriate workspace below. The top badge also distinguishes public data from synthetic data.
 
@@ -75,6 +77,14 @@ Before that confirmation, baseline customer/invoice/expense counts are **3/6/5**
 For real data, re-uploading `real/expenses.csv` demonstrates retry/duplicate handling; it is already fully loaded. Do not rename IDs to manufacture new purchases or import this GBP file into the INR workspace. The excluded refund is an unsupported input example, not a valid positive-expense upload.
 
 ## Evidence and reproducibility
+
+### Hosted publication — 16 October 2026
+
+Explicit publisher: `scripts/datasets/fhdc_hosted.py --publish-hosted-demo`, run from the repository root with `PYTHONPATH=apps/api` and the Git-ignored `.env.cloud-admin`. This is a one-off administrative operation, never a build/startup hook. It validates original SHA-256 hashes and prepared totals, signs in normally, provisions only the dedicated GBP organization and its existing owner's membership, then uses HTTP preview/confirm and PDF upload. It refuses conflicting workspace metadata or changed membership and does not bypass login lockouts. Re-running confirmation is duplicate-safe. Credentials and original data remain Git-ignored.
+
+Verified through the hosted application: 2 technical buckets, 141 expenses, no invoices; total GBP 28,362.37; December debit cost GBP 6,035.77; contribution and margin remain null; the uploaded original register remains unreviewed and downloads with its original hash. Repeated import confirmations did not duplicate rows. Anonymous access returned 401 and an unrelated synthetic invoice ID returned 404. A fingerprint of business rows and memberships outside the new workspace was unchanged. No AI provider calls were made. The private report is `data/private/real-world-fhdc-2025/hosted-publication.json`.
+
+The existing local prepared files can also be selected in the hosted Imports screen. Re-uploading the real pack demonstrates duplicate protection; the dataset is already loaded. Do not import synthetic records into the real workspace.
 
 Local `data/private/real-world-fhdc-2025/` contains:
 
