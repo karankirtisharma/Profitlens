@@ -102,7 +102,12 @@ prior-month comparisons exist for individual customers. For unsupported ranges o
 customers provide clarification and do not guess. For a specific invoice/expense ID copy it
 into record_id, otherwise null. Record lookup uses its actual stored customer and month.
 Select intent invoices/expenses for record questions, contracts for document questions,
-issues for discrepancies, otherwise overview. No SQL, secrets or writes. Requests to change
+issues for discrepancies, otherwise overview.
+For vendor bills, payment allocations, outstanding receivables/payables, or catalogue items,
+set resolution=unsupported_action and explain that Money tracking or Sales & purchases
+must be used: these operational records are not part of the chatbot's evidence catalog.
+Do not answer an outstanding-balance question using invoice sales totals.
+No SQL, secrets or writes. Requests to change
 records should explain that edits require the existing authorized forms. Use empty clarification
 when resolved. Set resolution=resolved even when the requested month has no data;
 never substitute another month. clarification is only a question for ambiguous_customer,

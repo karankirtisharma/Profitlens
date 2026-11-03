@@ -46,6 +46,12 @@ import { AnimatedInput } from "../components/animated-input";
 import { FinancePanel, FinancialReport } from "../components/finance-panel";
 import { AnalysisPanel } from "../components/analysis-panel";
 import { SourceExplorer } from "../components/source-explorer";
+import {
+  DocumentLibrary,
+  ReportsHub,
+  QuickStart,
+} from "../components/workspace-hubs";
+import { OperationsPanel } from "../components/operations-panel";
 import { Stage } from "../components/stage";
 import {
   ChatbotLauncher,
@@ -310,13 +316,75 @@ export default function Home() {
       </>
     );
   const nav: NavItem[] = [
-    { id: "data", label: "Source data & insights", icon: Database },
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    {
+      id: "data",
+      label: "Source data & insights",
+      icon: Database,
+      group: "Workspace",
+    },
+    {
+      id: "documents",
+      label: "Documents",
+      icon: FileText,
+      group: "Workspace",
+      keywords: "files pdf download",
+    },
+    { id: "reports", label: "Reports", icon: Calculator, group: "Workspace" },
+    {
+      id: "customers",
+      label: "Customers",
+      icon: Users,
+      group: "Sales & purchases",
+    },
+    {
+      id: "invoices",
+      label: "Invoices",
+      icon: FileSpreadsheet,
+      group: "Sales & purchases",
+    },
+    {
+      id: "expenses",
+      label: "Expenses",
+      icon: FileText,
+      group: "Sales & purchases",
+    },
+    ...(canWrite
+      ? [
+          {
+            id: "vendors" as View,
+            label: "Vendors",
+            icon: Users,
+            group: "Sales & purchases",
+          },
+          {
+            id: "items" as View,
+            label: "Items",
+            icon: FileSpreadsheet,
+            group: "Sales & purchases",
+          },
+          {
+            id: "bills" as View,
+            label: "Bills",
+            icon: FileText,
+            group: "Sales & purchases",
+          },
+          {
+            id: "payments" as View,
+            label: "Payments",
+            icon: Calculator,
+            group: "Money tracking",
+          },
+          {
+            id: "accounts" as View,
+            label: "Receivables & payables",
+            icon: Calculator,
+            group: "Money tracking",
+          },
+        ]
+      : []),
     { id: "finance", label: "Revenue & costs", icon: Calculator },
     { id: "analysis", label: "Profitability & evidence", icon: FileCheck2 },
-    { id: "customers", label: "Customers", icon: Users },
-    { id: "invoices", label: "Invoices", icon: FileSpreadsheet },
-    { id: "expenses", label: "Expenses", icon: FileText },
     { id: "contracts", label: "Contracts", icon: FileCheck2 },
     ...(canWrite
       ? [{ id: "imports" as View, label: "Imports", icon: Upload }]
@@ -397,11 +465,7 @@ export default function Home() {
           <span className="crumb">
             {workspace?.name || "Workspace"} <ChevronRight size={14} />{" "}
             <strong>
-              {view === "team"
-                ? "Team access"
-                : view === "finance"
-                  ? "Revenue & costs"
-                  : title(view)}
+              {nav.find((item) => item.id === view)?.label || title(view)}
             </strong>
           </span>
           <div className="topbar-actions">
@@ -430,11 +494,7 @@ export default function Home() {
               <h1 id="workspace-title" tabIndex={-1}>
                 {view === "overview"
                   ? "Business data, connected."
-                  : view === "finance"
-                    ? "Revenue & costs"
-                    : view === "team"
-                      ? "Team access"
-                      : title(view)}
+                  : nav.find((item) => item.id === view)?.label || title(view)}
               </h1>
               <p className="lede">
                 {
@@ -457,6 +517,20 @@ export default function Home() {
                     imports:
                       "Validate first. Review the preview. Then commit your records.",
                     team: "Manage which customers your analysts can access.",
+                    reports:
+                      "Choose the right report for the records you actually have.",
+                    documents:
+                      "Find original source files and private contract documents in one place.",
+                    vendors:
+                      "Keep supplier identities separate from customers.",
+                    items:
+                      "Maintain a simple goods and services catalogue; stock is not tracked.",
+                    bills:
+                      "Record supplier bills with explicit payment history.",
+                    payments:
+                      "Record money already received or paid and allocate it to tracked documents.",
+                    accounts:
+                      "See outstanding balances only where payment history has been confirmed.",
                   }[view]
                 }
               </p>
@@ -581,6 +655,36 @@ export default function Home() {
             </div>
           ) : (
             <PageTransition identity={`${org}:${view}`}>
+              {view === "overview" && org && (
+                <QuickStart canWrite={canWrite} navigate={changeView} />
+              )}
+              {view === "documents" && org && (
+                <DocumentLibrary
+                  key={org}
+                  base={base}
+                  canWrite={canWrite}
+                  navigate={changeView}
+                />
+              )}
+              {view === "reports" && org && (
+                <ReportsHub canWrite={canWrite} navigate={changeView} />
+              )}
+              {canWrite &&
+                org &&
+                ["vendors", "items", "bills", "payments", "accounts"].includes(
+                  view,
+                ) && (
+                  <OperationsPanel
+                    key={`${org}:${view}`}
+                    base={base}
+                    view={
+                      view as
+                        "vendors" | "items" | "bills" | "payments" | "accounts"
+                    }
+                    currency={workspace?.currency || "INR"}
+                    canWrite={canWrite}
+                  />
+                )}
               {view === "analysis" && org && (
                 <AnalysisPanel
                   key={`${org}:${chatDestination?.customer_id}:${chatDestination?.billing_period}`}

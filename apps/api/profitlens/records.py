@@ -97,6 +97,10 @@ def write_record(conn, s, kind, payload, record_id=None):
     if not record_id and old:
         raise HTTPException(409, "This record ID already exists")
     if old:
+        if kind == "invoices":
+            from .operations import assert_invoice_editable
+
+            assert_invoice_editable(conn, s, key)
         # Keep original import source; append audit event for every correction.
         conn.execute(table.update().where(where).values(**data))
     else:

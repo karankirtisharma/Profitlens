@@ -392,3 +392,122 @@ cost_allocations = Table(
     ),
     CheckConstraint("amount > 0", name="allocation_positive"),
 )
+
+# Operational subledgers never post automatically into revenue or expenses.
+vendors = Table(
+    "vendors",
+    metadata,
+    orgcol(),
+    Column("vendor_id", String(80), primary_key=True),
+    Column("name", String(200), nullable=False),
+    Column("email", String(254), nullable=False, default=""),
+    Column("notes", String(1000), nullable=False, default=""),
+    timestamp(),
+)
+items = Table(
+    "items",
+    metadata,
+    orgcol(),
+    Column("item_id", String(80), primary_key=True),
+    Column("name", String(200), nullable=False),
+    Column("description", String(1000), nullable=False, default=""),
+    Column("unit_price", Numeric(14, 2), nullable=False),
+    Column("currency", String(3), nullable=False),
+    timestamp(),
+    CheckConstraint("unit_price >= 0", name="item_price_nonnegative"),
+)
+bills = Table(
+    "bills",
+    metadata,
+    orgcol(),
+    Column("bill_id", String(80), primary_key=True),
+    Column("vendor_id", String(80), nullable=False),
+    Column("issued_on", Date, nullable=False),
+    Column("due_on", Date),
+    Column("currency", String(3), nullable=False),
+    Column("total", Numeric(14, 2), nullable=False),
+    Column("opening_paid", Numeric(14, 2), nullable=False),
+    Column("description", String(1000), nullable=False, default=""),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "vendor_id"],
+        ["vendors.organization_id", "vendors.vendor_id"],
+    ),
+    CheckConstraint("total > 0", name="bill_positive"),
+    CheckConstraint(
+        "opening_paid >= 0 AND opening_paid <= total", name="bill_opening_paid"
+    ),
+    CheckConstraint("due_on IS NULL OR due_on >= issued_on", name="bill_due_date"),
+)
+invoice_terms = Table(
+    "invoice_terms",
+    metadata,
+    orgcol(),
+    Column("invoice_id", String(80), primary_key=True),
+    Column("due_on", Date),
+    Column("opening_paid", Numeric(14, 2), nullable=False),
+    Column("attested_by", String(36), ForeignKey("users.id"), nullable=False),
+    timestamp(),
+    ForeignKeyConstraint(
+        ["organization_id", "invoice_id"],
+        ["invoices.organization_id", "invoices.invoice_id"],
+    ),
+    CheckConstraint("opening_paid >= 0", name="opening_paid_nonnegative"),
+)
+payments = Table(
+    "payments",
+    metadata,
+    orgcol(),
+    Column("payment_id", String(80), primary_key=True),
+    Column("direction", String(10), nullable=False),
+    Column("paid_on", Date, nullable=False),
+    Column("currency", String(3), nullable=False),
+    Column("total", Numeric(14, 2), nullable=False),
+    Column("reference", String(200), nullable=False, default=""),
+    Column("state", String(10), nullable=False, server_default="active"),
+    Column("void_reason", String(1000), nullable=False, server_default=""),
+    Column("voided_at", DateTime(timezone=True)),
+    timestamp(),
+    CheckConstraint("direction IN ('received', 'made')", name="payment_direction"),
+    CheckConstraint("total > 0", name="payment_positive"),
+    CheckConstraint("state IN ('active', 'void')", name="payment_state"),
+    CheckConstraint(
+        "(state = 'active' AND void_reason = '' AND voided_at IS NULL) OR (state = 'void' AND length(trim(void_reason)) > 0 AND voided_at IS NOT NULL)",
+        name="payment_void_evidence",
+    ),
+)
+payment_allocations = Table(
+    "payment_allocations",
+    metadata,
+    orgcol(),
+    Column("id", String(36), primary_key=True, default=uid),
+    Column("payment_id", String(80), nullable=False),
+    Column("invoice_id", String(80)),
+    Column("bill_id", String(80)),
+    Column("amount", Numeric(14, 2), nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "payment_id"],
+        ["payments.organization_id", "payments.payment_id"],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "invoice_id"],
+        ["invoice_terms.organization_id", "invoice_terms.invoice_id"],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "bill_id"], ["bills.organization_id", "bills.bill_id"]
+    ),
+    CheckConstraint(
+        "(invoice_id IS NOT NULL AND bill_id IS NULL) OR (invoice_id IS NULL AND bill_id IS NOT NULL)",
+        name="one_allocation_target",
+    ),
+    CheckConstraint("amount > 0", name="allocation_positive"),
+    UniqueConstraint(
+        "organization_id",
+        "payment_id",
+        "invoice_id",
+        name="uq_payment_invoice_allocation",
+    ),
+    UniqueConstraint(
+        "organization_id", "payment_id", "bill_id", name="uq_payment_bill_allocation"
+    ),
+)
