@@ -437,13 +437,13 @@ export function OperationsPanel({
               <div className="ops-guidance">
                 <strong>
                   {summary.receivables.untracked_count ?? untracked.length}{" "}
-                  invoices need opening-balance review
+                  invoice records outside balance tracking
                 </strong>
                 <p>
                   Existing invoices are not assumed unpaid. Review any payments
                   already made before including an invoice in these balances.
-                  These are recorded obligations, not a profit or bank-balance
-                  report.
+                  Reported-sales records are not eligible for receivables. These
+                  are recorded obligations, not a profit or bank-balance report.
                 </p>
               </div>
             </>

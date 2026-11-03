@@ -36,6 +36,6 @@ No new real company data or financial relationships were fabricated. Operations 
 
 ## Hosting
 
-Local implementation and checks above are complete. Production requires the additive migrations before the updated API is deployed. The private backup/migration request was initially blocked by automatic approval review pending explicit authorization for the local backup destination. Do not infer a completed hosted rollout from this report; GitHub deployment status and a subsequent live smoke check are the release evidence.
+Production migration was explicitly authorized and applied on 3 November 2026. A private Git-ignored database backup was created and its archive/checksums verified (400,961 bytes). Existing selected business tables retained identical fingerprints after the additive migration to 20261103_payment_void. This is not a claim that backup restoration was tested. App rollout and hosted smoke checks are verified separately through GitHub/Vercel release status.
 
 See [Operations guide](OPERATIONS_GUIDE.md) for setup/rollback and [public demo research](research/zoho-demo-workflow-audit-2026-11-03.md) for the feature comparison.
