@@ -39,3 +39,11 @@ No new real company data or financial relationships were fabricated. Operations 
 Production migration was explicitly authorized and applied on 3 November 2026. A private Git-ignored database backup was created and its archive/checksums verified (400,961 bytes). Existing selected business tables retained identical fingerprints after the additive migration to 20261103_payment_void. This is not a claim that backup restoration was tested. App rollout and hosted smoke checks are verified separately through GitHub/Vercel release status.
 
 See [Operations guide](OPERATIONS_GUIDE.md) for setup/rollback and [public demo research](research/zoho-demo-workflow-audit-2026-11-03.md) for the feature comparison.
+
+## Hosted verification
+
+Release commit `ffc89ad999bf66ebf88dc66ee7369068e5f7d0ae` was merged after GitHub CI passed. Both frontend and API production deployments completed successfully on 3 November 2026.
+
+The authenticated hosted smoke run passed 47 checks across Northstar Services, UCI Sales and FHDC source workspaces: API list contracts, balance summaries and disclosures, full-record dashboard responses, anonymous/foreign-workspace denial, and untrusted-origin write rejection. UCI reported sales did not become receivables. No business records were created by this smoke run and no external AI calls were made.
+
+Browser verification confirmed the deployed grouped navigation, Documents library, Reports hub and Receivables & payables screen. Existing invoices remain outside balance tracking until explicitly reviewed; empty tracked lists are not presented as proof of no obligations. The live Reports layout was visually inspected. Hosted creation/payment mutation flows were not exercised; those were covered by the local database-backed browser suite.
