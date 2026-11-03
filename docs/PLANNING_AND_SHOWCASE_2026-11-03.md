@@ -79,3 +79,21 @@ Rollback: redeploy the previous application release and retain the additive tabl
 ## Public workflow references
 
 The behavior was informed by official [Zoho recurring-invoice documentation](https://www.zoho.com/in/books/help/recurring-invoice/) and [purchase-order documentation](https://www.zoho.com/in/books/help/purchase-order/). ProfitLens implements its own bounded workflows and original interface; it does not claim Zoho feature parity, certified accounting compliance or a measured cost advantage.
+
+## Hosted release verified - 3 November 2026
+
+PR #2 merged as `3061e168fffb30566fc6446f2df3f53ed2511217`. GitHub application checks passed in run 41651666085. Both Vercel Production deployments completed successfully:
+
+- Web: `Buw52tSPfx3BF8f3PvKXfx11M8ML`
+- API: `H32ocxWoXALH1FUEnPLJRP97HHqR`
+- Live application: https://profitlens-six-psi.vercel.app/
+
+The failed frontend Preview was caused by absent `API_INTERNAL_URL` in Preview. Production already had the required setting and built successfully. Production database/storage secrets were not copied into Preview. A fully connected isolated preview environment remains unconfigured.
+
+Authenticated hosted publication verified 8 synthetic customers, 37 invoices, 72 expenses and 4 reviewed contracts. Recurring schedules, invoice issuance, three purchase orders, bill conversion and partial payments were populated through the existing APIs. Tracked receivables were INR 160776.00 and payables INR 5000.00 at publication.
+
+The separate real workspace contains 600 DWP expenditure observations totaling GBP 539682013.66. Monthly totals matched the source subset, confirmation was repeated safely, the downloaded source matched uploaded bytes, and unsupported profit remained unavailable. Unauthorized workspace access was rejected. Four earlier demo workspace labels were reversibly archived; business records were preserved.
+
+Hosted browser checks passed for login, default synthetic workspace selection, loaded recurring schedules/drafts, loaded purchase orders and the real workspace's 600 observations. Four screenshots were captured and visually inspected privately. The first smoke attempt filled the login form before intro readiness; waiting for the existing `data-intro-ready` signal corrected the test. No application authentication changes were needed. No AI provider calls were made in this release verification.
+
+The earlier local-only PDF remains a dated pre-release snapshot and is not published in the current GitHub tree.
