@@ -60,3 +60,8 @@ Four reproducible `W4-` synthetic customers are added by explicit presentation s
 Quantization is intentionally deferred because lexical retrieval has no pretrained weights. A future neural retrieval decision should first address the measured paraphrase misses; any memory/quality comparison would then be a separate experiment. No multi-industry expansion was implemented.
 
 Operational limits are documented in [Development](DEVELOPMENT.md) and [Workspace access and imports](SECURITY_AND_IMPORTS.md). PDF OCR, automatic contract-term extraction, public registration, cloud object storage and public deployment are not part of the completed Weeks 2–3 scope.
+
+
+## Operations and usability expansion — 3 November 2026
+
+User-authorized expansion beyond the original minor-project scope adds vendor/item records, explicitly tracked invoice and bill balances, allocated payments and audited payment voiding. Document/report hubs and grouped navigation improve access to existing evidence workflows. This does not implement full accounting, recurring transactions, banking integrations, quotes, tax filing or inventory. Read [Operations guide](OPERATIONS_GUIDE.md) for semantics and migration instructions.

@@ -20,6 +20,23 @@ def summary(conn, scope):
         for table in (db.customers, db.invoices, db.expenses, db.contracts)
     }
     i = db.invoices
+    counts["reviewed_contracts"] = conn.scalar(
+        select(func.count())
+        .select_from(db.contracts)
+        .where(visible(db.contracts, scope), db.contracts.c.state == "reviewed")
+    )
+    record_months = {}
+    for table, key in ((db.invoices, "invoice_count"), (db.expenses, "expense_count")):
+        for period, count in conn.execute(
+            select(table.c.billing_period, func.count())
+            .where(visible(table, scope))
+            .group_by(table.c.billing_period)
+        ):
+            row = record_months.setdefault(
+                period,
+                {"billing_period": period, "invoice_count": 0, "expense_count": 0},
+            )
+            row[key] = count
     reported = i.c.amount_basis == "reported_sales"
     net = i.c.subtotal - i.c.discount - i.c.refund
     months = (
@@ -95,6 +112,7 @@ def summary(conn, scope):
             "currency": scope.currency,
             "counts": counts,
             "months": [dict(r) for r in months],
+            "record_months": [record_months[key] for key in sorted(record_months)],
             "top_reported_customers": [dict(r) for r in top],
             **dict(totals),
             "contract_status": "not_provided"

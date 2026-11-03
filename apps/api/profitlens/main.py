@@ -28,6 +28,7 @@ from . import database as db
 from .analysis_api import router as analysis_router
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
+from .operations import router as operations_router
 from .security import (
     COOKIE,
     DUMMY_HASH,
@@ -54,6 +55,7 @@ PREFIX = "/api/workspaces/{organization_id}"
 app.include_router(analysis_router)
 app.include_router(source_router)
 app.include_router(source_review_router)
+app.include_router(operations_router)
 
 
 @app.get(PREFIX + "/dashboard")

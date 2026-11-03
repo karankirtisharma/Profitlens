@@ -8,6 +8,10 @@ ProfitLens is a 12-week B.Tech COM-711 group project building a business intelli
 
 > **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; a bounded synthetic evidence-selection evaluation is now recorded, while broader conversational quality and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/MINOR_SCOPE_RELEASE_REPORT.md).
 
+## Business operations and easier navigation
+
+The workspace now includes grouped section search, a document library, a report hub, separate vendor/item records, reviewed bill/invoice opening balances, partial payment allocation and audited payment voiding. Operational records stay separate from profit calculations. See [workflow and limitations](docs/OPERATIONS_GUIDE.md) and the [Zoho public-demo audit](docs/research/zoho-demo-workflow-audit-2026-11-03.md). This is a focused expansion, not full Zoho Books feature parity.
+
 ## The problem it addresses
 
 A business may have an updated contract price in a PDF, recent invoices in a spreadsheet, and customer costs in another file. Seeing a falling margin is useful; identifying the records behind that change is more useful. ProfitLens is designed to connect those records and let a user review a calculation and its sources before acting.

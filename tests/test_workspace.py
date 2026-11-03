@@ -1263,3 +1263,90 @@ def test_financial_guard_never_returns_a_partial_total(monkeypatch):
         )
     r = c.get(BASE + "/finance")
     assert r.status_code == 422 and "No partial total" in r.json()["detail"]
+
+
+def test_dashboard_full_month_counts_and_contract_readiness_ignore_preview_cap():
+    """All-record charts remain scoped even when the record browser loads 200 rows."""
+    c = client()
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.invoices.insert(),
+            [
+                dict(
+                    organization_id=org,
+                    invoice_id=f"SUMMARY-{customer}-{index}",
+                    customer_id=customer,
+                    billing_period=period,
+                    currency="INR",
+                    total="1.00",
+                    amount_basis="reported_sales",
+                )
+                for org, customer, period, size in [
+                    ("a", "C1", "2026-09", 205),
+                    ("a", "C2", "2026-10", 3),
+                    ("b", "B1", "2026-09", 1),
+                ]
+                for index in range(size)
+            ],
+        )
+        conn.execute(
+            db.expenses.insert(),
+            [
+                dict(
+                    organization_id=org,
+                    expense_id=f"SUMMARY-{customer}-{index}",
+                    customer_id=customer,
+                    billing_period=period,
+                    currency="INR",
+                    category="Synthetic dashboard fixture",
+                    amount="1.00",
+                )
+                for org, customer, period, size in [
+                    ("a", "C1", "2026-08", 207),
+                    ("a", "C2", "2026-10", 1),
+                    ("b", "B1", "2026-09", 1),
+                ]
+                for index in range(size)
+            ],
+        )
+        conn.execute(
+            db.contracts.insert(),
+            [
+                dict(
+                    organization_id="a",
+                    customer_id="C1",
+                    filename=f"synthetic-dashboard-{index}.pdf",
+                    file_key=f"synthetic-{index}",
+                    fingerprint=f"{index:064x}",
+                    pages=[],
+                )
+                for index in range(201)
+            ],
+        )
+    for customer in ("C1", "C2"):
+        document = upload(c, customer=customer)
+        assert (
+            c.put(BASE + f"/contracts/{document['id']}/terms", json=TERMS).status_code
+            == 200
+        )
+    assert len(c.get(BASE + "/records/invoices?limit=200").json()) == 200
+    assert len(c.get(BASE + "/records/expenses?limit=200").json()) == 200
+    assert len(c.get(BASE + "/contracts").json()) == 200
+    result = c.get(BASE + "/dashboard").json()
+    assert result["counts"]["invoices"] == 208
+    assert result["counts"]["expenses"] == 208
+    assert result["counts"]["contracts"] == 203
+    assert result["counts"]["reviewed_contracts"] == 2
+    assert result["record_months"] == [
+        {"billing_period": "2026-08", "invoice_count": 0, "expense_count": 207},
+        {"billing_period": "2026-09", "invoice_count": 205, "expense_count": 0},
+        {"billing_period": "2026-10", "invoice_count": 3, "expense_count": 1},
+    ]
+    scoped = client("analyst").get(BASE + "/dashboard").json()
+    assert scoped["counts"]["invoices"] == 205
+    assert scoped["counts"]["expenses"] == 207
+    assert scoped["counts"]["contracts"] == 202
+    assert scoped["counts"]["reviewed_contracts"] == 1
+    assert scoped["record_months"] == result["record_months"][:2]
+    assert client("outsider").get(BASE + "/dashboard").status_code == 404
+    assert TestClient(app).get(BASE + "/dashboard").status_code == 401

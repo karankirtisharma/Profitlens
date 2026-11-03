@@ -1,0 +1,66 @@
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-block: 12px 22px;
+}
+.heading p,
+.quick p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.card {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.card h2 {
+  font-size: 21px;
+}
+.card p {
+  line-height: 1.6;
+}
+.card small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.card span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: auto;
+  font-weight: 600;
+}
+.card:hover {
+  border-color: var(--accent);
+}
+.note {
+  margin: 20px 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.quick {
+  margin-bottom: 20px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+@media (max-width: 680px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
