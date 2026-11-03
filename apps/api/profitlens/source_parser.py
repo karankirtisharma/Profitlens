@@ -130,8 +130,12 @@ def extract(content, filename, adapter="generic"):
             for r in data
         ]
         fmt = "json"
-    else:
-        reader = csv.DictReader(io.StringIO(content.decode("utf-8-sig")))
+    elif filename.lower().endswith((".csv", ".tsv")):
+        fmt = "tsv" if filename.lower().endswith(".tsv") else "csv"
+        reader = csv.DictReader(
+            io.StringIO(content.decode("utf-8-sig")),
+            delimiter="\t" if fmt == "tsv" else ",",
+        )
         check_headers(reader.fieldnames or [])
         for row in reader:
             if None in row or any(v is None for v in row.values()):
@@ -139,7 +143,8 @@ def extract(content, filename, adapter="generic"):
             rows.append(row)
             if len(rows) > MAX_ROWS:
                 raise ValueError("Select a source subset of at most 2,000 rows")
-        fmt = "csv"
+    else:
+        raise ValueError("Supported sources: CSV, TSV, XLSX, JSON and text PDF")
     if len(rows) > MAX_ROWS:
         raise ValueError("Select a source subset of at most 2,000 rows")
     headers = list(dict.fromkeys(k for row in rows for k in row))
@@ -165,7 +170,18 @@ def check_headers(headers):
 def suggestions(headers):
     aliases = {
         "amount": {"amount", "net_amount", "total", "value"},
-        "date": {"date", "transaction_date", "invoicedate", "invoice_date"},
+        "date": {
+            "date",
+            "transaction_date",
+            "invoicedate",
+            "invoice_date",
+            "value_date",
+            "booking_date",
+        },
+        "credit": {"credit", "credit_amount", "deposit", "money_in", "paid_in"},
+        "debit": {"debit", "debit_amount", "withdrawal", "money_out", "paid_out"},
+        "quantity": {"quantity", "qty"},
+        "unit_price": {"unit_price", "unitprice"},
         "counterparty": {"supplier", "vendor", "customer", "counterparty"},
         "description": {"description", "memo", "details"},
         "external_id": {"transaction_id", "record_id"},

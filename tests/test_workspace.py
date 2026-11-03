@@ -232,6 +232,128 @@ def test_real_uci_source_xlsx_quantity_price():
     assert len(report["months"]) == 11
 
 
+def test_monthly_review_exact_sources_incomplete_months_and_permissions():
+    from decimal import Decimal
+
+    c = client()
+    content = b"Date,Amount,Supplier,Customer\n2026-01-01,100,Acme,C1\n2026-02-01,160,Acme,C1\n2026-02-02,-10,Acme,C1\n2026-02-02,900,acme,C2\n,5,Unknown,C1\n2026-02-03,20,,C1\n"
+    d = c.post(BASE + "/sources", files={"file": ("review.csv", content)}).json()
+    mapping = dict(
+        kind="expenditure",
+        currency="INR",
+        columns={
+            "date": "Date",
+            "amount": "Amount",
+            "counterparty": "Supplier",
+            "customer_id": "Customer",
+        },
+    )
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert p["issues"] == []
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 200
+    )
+    review = c.get(BASE + "/source-review?period=2026-02&kind=expenditure").json()
+    assert Decimal(review["current"]["amount"]) == Decimal("1070")
+    assert Decimal(review["change"]) == Decimal("970")
+    assert review["missing_dates"] == 1
+    driver = next(d for d in review["drivers"] if d["counterparty"] == "Acme")
+    assert Decimal(driver["change"]) == Decimal("50")
+    evidence = c.get(driver["current_source_url"]).json()
+    assert evidence["total"] == 2
+    assert sum(Decimal(r["amount"]) for r in evidence["rows"]) == Decimal("150")
+    unknown = next(d for d in review["drivers"] if d["counterparty"] == "")
+    assert c.get(unknown["current_source_url"]).json()["total"] == 1
+    limited = client("analyst").get(BASE + "/source-review?period=2026-02").json()
+    assert Decimal(limited["current"]["amount"]) == Decimal("170")
+    assert all(d["counterparty"] != "acme" for d in limited["drivers"])
+    assert (
+        client("outsider").get(BASE + "/source-review?period=2026-02").status_code
+        == 404
+    )
+    assert (
+        client("analyst")
+        .get(BASE + "/source-review?period=2026-02&customer_id=C2")
+        .status_code
+        == 404
+    )
+    missing = c.get(BASE + "/source-review?period=2026-04").json()
+    assert missing["change"] is None and missing["current"]["amount"] is None
+    assert c.get(BASE + "/source-review?period=2026-13").status_code == 422
+    assert (
+        c.get(BASE + "/source-review?period=2026-02&kind=asset_balance").status_code
+        == 422
+    )
+
+
+def test_bank_import_is_reviewed_retry_safe_and_does_not_create_revenue():
+    c = client()
+    content = b"Date\tCredit\tDebit\tReference\n2026-11-01\t1000.00\t\tA\n2026-11-02\t\t125.50\tB\n"
+    d = c.post(BASE + "/sources", files={"file": ("bank.tsv", content)}).json()
+    mapping = dict(
+        kind="cash_inflow",
+        currency="INR",
+        amount_mode="bank_columns",
+        columns={"date": "Date", "credit": "Credit", "debit": "Debit"},
+    )
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert p["issues"] == [] and p["unmapped_columns"] == ["Reference"]
+    assert c.get(BASE + "/facts").json()["total"] == 0
+    for _ in range(2):
+        assert (
+            c.post(
+                BASE + f"/sources/{d['id']}/confirm",
+                json={"preview_token": p["preview_token"]},
+            ).status_code
+            == 200
+        )
+    facts = c.get(BASE + "/facts").json()
+    assert {g["kind"]: g["amount"] for g in facts["groups"]} == {
+        "cash_inflow": "1000.00",
+        "cash_outflow": "125.50",
+    }
+    assert facts["total"] == 2 and facts["unmatched"] == 2
+    assert c.get(BASE + f"/sources/{d['id']}/file").content == content
+    assert (
+        client("outsider").get(BASE + f"/facts/{facts['rows'][0]['id']}").status_code
+        == 404
+    )
+    assert client("analyst").get(BASE + "/facts").json()["total"] == 0
+    assert c.get(BASE + "/dashboard").json()["counts"]["invoices"] == 0
+
+
+def test_bank_conflict_blocks_entire_import():
+    c = client()
+    d = c.post(
+        BASE + "/sources", files={"file": ("bank.csv", b"In,Out\n10,\n3,4\n")}
+    ).json()
+    mapping = dict(
+        kind="cash_inflow",
+        currency="INR",
+        amount_mode="bank_columns",
+        columns={"credit": "In", "debit": "Out"},
+    )
+    p = c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).json()
+    assert p["issues"][0]["row"] == 2
+    assert (
+        c.post(
+            BASE + f"/sources/{d['id']}/confirm",
+            json={"preview_token": p["preview_token"]},
+        ).status_code
+        == 409
+    )
+    assert c.get(BASE + "/facts").json()["total"] == 0
+    mapping["kind"] = "reported_sales"
+    assert c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).status_code == 422
+    mapping["kind"] = "cash_inflow"
+    mapping["columns"]["debit"] = "In"
+    assert c.post(BASE + f"/sources/{d['id']}/preview", json=mapping).status_code == 422
+
+
 def test_source_mapping_provenance_retry_permissions_and_allocations():
     c = client()
     content = b"When,Value,Supplier,Extra\n31/01/2026,100.00,Acme,keep me\n01/02/2026,-20.00,Acme,credit\n"

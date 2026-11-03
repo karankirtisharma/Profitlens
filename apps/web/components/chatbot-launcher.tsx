@@ -5,14 +5,27 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ArrowUp, RotateCcw, X } from "lucide-react";
 import { api, type RecordData } from "../lib/workspace";
 import { useExperience } from "./experience";
+import { SourceEvidence } from "./source-evidence";
 
 export type ChatAction = {
   view:
-    "data" | "finance" | "analysis" | "invoices" | "expenses" | "contracts" | "imports";
+    | "data"
+    | "finance"
+    | "analysis"
+    | "invoices"
+    | "expenses"
+    | "contracts"
+    | "imports";
   label: string;
   customer_id?: string | null;
   billing_period?: string | null;
   record_id?: string | null;
+  source_filters?: {
+    start?: string;
+    end?: string;
+    kind?: string;
+    customer_id?: string;
+  };
 };
 function FormattedReply({ text }: { text: string }) {
   return (
@@ -85,6 +98,7 @@ export function ChatbotLauncher({
   onNavigate?: (action: ChatAction) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [manual, setManual] = useState(false);
   const [customer, setCustomer] = useState("");
   const [month, setMonth] = useState("");
@@ -387,25 +401,68 @@ export function ChatbotLauncher({
                               href={s.source_url}
                               target="_blank"
                               rel="noreferrer"
+                              onClick={(event) => {
+                                const url = new URL(
+                                  s.source_url,
+                                  window.location.origin,
+                                );
+                                const prefix = `/api${base}/facts/`;
+                                const id = url.pathname.startsWith(prefix)
+                                  ? url.pathname.slice(prefix.length)
+                                  : "";
+                                if (
+                                  url.origin === window.location.origin &&
+                                  /^[0-9a-f-]{36}$/i.test(id)
+                                ) {
+                                  event.preventDefault();
+                                  setEvidenceId(id);
+                                } else if (
+                                  url.origin === window.location.origin &&
+                                  url.pathname === `/api${base}/facts` &&
+                                  onNavigate
+                                ) {
+                                  event.preventDefault();
+                                  const source_filters = Object.fromEntries(
+                                    [
+                                      "start",
+                                      "end",
+                                      "kind",
+                                      "customer_id",
+                                    ].flatMap((key) =>
+                                      url.searchParams.has(key)
+                                        ? [[key, url.searchParams.get(key)!]]
+                                        : [],
+                                    ),
+                                  );
+                                  onNavigate({
+                                    view: "data",
+                                    label: "Supporting source records",
+                                    source_filters,
+                                  });
+                                  setOpen(false);
+                                }
+                              }}
                             >
-                              {s.filename}{s.page !== null && ` · page ${s.page}`}
+                              {s.filename}
+                              {s.page !== null && ` · page ${s.page}`}
                             </a>
                             <blockquote>{s.quote}</blockquote>
                             {s.evidence_status && (
                               <small>
                                 {s.evidence_status === "source_observation"
                                   ? "Original source observation · not verified profit"
-                                  : s.evidence_status === "reviewed_period_match"
-                                  ? "Reviewed · covers the selected month"
-                                  : s.evidence_status === "unreviewed"
-                                    ? "Unreviewed document · pricing not validated"
-                                    : s.evidence_status ===
-                                        "outside_selected_period"
-                                      ? "Outside the selected month · reference only"
+                                  : s.evidence_status ===
+                                      "reviewed_period_match"
+                                    ? "Reviewed · covers the selected month"
+                                    : s.evidence_status === "unreviewed"
+                                      ? "Unreviewed document · pricing not validated"
                                       : s.evidence_status ===
-                                          "currency_mismatch"
-                                        ? "Different currency · reference only"
-                                        : "No reporting month selected · reference only"}
+                                          "outside_selected_period"
+                                        ? "Outside the selected month · reference only"
+                                        : s.evidence_status ===
+                                            "currency_mismatch"
+                                          ? "Different currency · reference only"
+                                          : "No reporting month selected · reference only"}
                               </small>
                             )}
                           </div>
@@ -486,6 +543,13 @@ export function ChatbotLauncher({
             </small>
           </form>
         </section>
+      )}
+      {evidenceId && (
+        <SourceEvidence
+          base={base}
+          factId={evidenceId}
+          onClose={() => setEvidenceId(null)}
+        />
       )}
       <button
         type="button"

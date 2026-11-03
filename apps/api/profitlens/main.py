@@ -43,6 +43,7 @@ from .security import (
     writer,
 )
 from .source_api import router as source_router
+from .source_review import router as source_review_router
 
 app = FastAPI(
     title="ProfitLens API",
@@ -52,6 +53,7 @@ app = FastAPI(
 PREFIX = "/api/workspaces/{organization_id}"
 app.include_router(analysis_router)
 app.include_router(source_router)
+app.include_router(source_review_router)
 
 
 @app.get(PREFIX + "/dashboard")

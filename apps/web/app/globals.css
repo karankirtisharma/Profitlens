@@ -4,6 +4,75 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+.pricing-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  display: grid;
+  gap: 28px;
+}
+.source-evidence-body {
+  padding: 24px;
+}
+.pricing-heading {
+  max-width: 760px;
+  padding: 32px 0 8px;
+}
+.pricing-heading h1 {
+  font-size: clamp(32px, 5vw, 60px);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  margin: 20px 0;
+}
+.pricing-heading p {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  scroll-margin-top: 24px;
+}
+.pricing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pricing-card ul {
+  padding-left: 20px;
+  line-height: 1.8;
+  flex: 1;
+}
+.pricing-card .plan-price {
+  font-size: 38px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+.plan-price small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: normal;
+}
+.pricing-page details {
+  margin-top: 20px;
+}
+.pricing-page details p,
+.pricing-page ol {
+  line-height: 1.8;
+}
+@media (max-width: 800px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+  .pricing-page {
+    padding: 24px 16px;
+  }
+}
+
 /*
   ProfitLens design system: "Panes in Depth" (liquid glass).
   Glass has one job: depth. The source of a figure sits on the pane behind it.

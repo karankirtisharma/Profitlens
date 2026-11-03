@@ -1,0 +1,5 @@
+Date	Credit	Debit	Reference	Memo
+2026-01-05	1000.00		BANK-DEMO-01	Synthetic customer receipt
+2026-01-12		125.50	BANK-DEMO-02	Synthetic supplier payment
+2026-02-03	500.00		BANK-DEMO-03	Synthetic owner transfer - not sales
+2026-02-09		200.00	BANK-DEMO-04	Synthetic equipment payment - not automatically expense

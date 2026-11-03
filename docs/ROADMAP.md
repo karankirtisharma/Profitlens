@@ -1,5 +1,7 @@
 # ProfitLens delivery progress
 
+**3 November 2026:** focused product improvements add evidence-first monthly source review, guided TSV/bank-column imports, readable source dialogs and three proposed pricing plans. These extend the existing minor-project core; no full accounting, billing or ERP platform was added. [Current changes and verification](PRODUCT_REVIEW_2026-11-03.md).
+
 > Latest minor-project fixes and fresh verification: [release report](MINOR_SCOPE_RELEASE_REPORT.md). Earlier dated results below retain their historical scope.
 
 The project has a twelve-week development period. This page records verified implementation, not college approval or assumed completion based on dates.

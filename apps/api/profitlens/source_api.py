@@ -56,7 +56,7 @@ class Mapping(BaseModel):
     currency: str = Field(pattern="^[A-Z]{3}$")
     date_format: Literal["ISO", "DMY", "MDY"] = "ISO"
     decimal_format: Literal["dot", "comma"] = "dot"
-    amount_mode: Literal["direct", "quantity_price"] = "direct"
+    amount_mode: Literal["direct", "quantity_price", "bank_columns"] = "direct"
     namespace: str = Field(default="", max_length=60, pattern=r"^[A-Za-z0-9._-]*$")
     profile_name: str = Field(default="", max_length=80)
 
@@ -225,11 +225,57 @@ def download(
     )
 
 
+def parse_source_amount(value, decimal_format):
+    """Parse a declared numeric convention without treating missing money as zero."""
+    value = value.replace("£", "").strip()
+    if value.startswith("(") and value.endswith(")"):
+        value = "-" + value[1:-1]
+    pattern = (
+        r"-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?"
+        if decimal_format == "dot"
+        else r"-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?"
+    )
+    if not re.fullmatch(pattern, value):
+        raise ValueError(
+            "Amount is missing or incompatible with the selected numeric format"
+        )
+    amount = Decimal(
+        value.replace(",", "")
+        if decimal_format == "dot"
+        else value.replace(".", "").replace(",", ".")
+    )
+    if abs(amount) >= 10**12:
+        raise ValueError("Amount exceeds supported range")
+    return amount
+
+
+def bank_observation(credit, debit, decimal_format):
+    """A reviewed bank-account perspective, never revenue/expense recognition.
+
+    A blank opposite column is allowed only with one explicit positive side.
+    Zero/blank on both sides, negatives and double-sided rows require review.
+    """
+    incoming = parse_source_amount(credit, decimal_format) if credit else None
+    outgoing = parse_source_amount(debit, decimal_format) if debit else None
+    values = [v for v in (incoming, outgoing) if v is not None]
+    if any(v < 0 for v in values) or sum(v > 0 for v in values) != 1:
+        raise ValueError(
+            "Bank row requires exactly one positive money-in or money-out amount; review blank, zero, negative or double-sided rows"
+        )
+    return (
+        ("cash_inflow", incoming)
+        if incoming is not None and incoming > 0
+        else ("cash_outflow", outgoing)
+    )
+
+
 def normalized(conn, s, doc, mapping):
     if set(mapping.columns) - {
         "amount",
         "quantity",
         "unit_price",
+        "credit",
+        "debit",
         "date",
         "counterparty",
         "description",
@@ -238,9 +284,21 @@ def normalized(conn, s, doc, mapping):
         "currency",
     }:
         raise HTTPException(422, "Unknown mapping target")
-    required = (
-        ["amount"] if mapping.amount_mode == "direct" else ["quantity", "unit_price"]
-    )
+    required = {
+        "direct": ["amount"],
+        "quantity_price": ["quantity", "unit_price"],
+        "bank_columns": ["credit", "debit"],
+    }[mapping.amount_mode]
+    if mapping.amount_mode == "bank_columns":
+        if mapping.kind not in {"cash_inflow", "cash_outflow"}:
+            raise HTTPException(
+                422,
+                "Bank columns require cash-flow meaning, never sales or expenditure",
+            )
+        if mapping.columns.get("credit") == mapping.columns.get("debit"):
+            raise HTTPException(
+                422, "Money-in and money-out must use distinct source columns"
+            )
     if any(not mapping.columns.get(k) for k in required) or any(
         v not in doc["headers"] for v in mapping.columns.values() if v
     ):
@@ -286,6 +344,7 @@ def normalized(conn, s, doc, mapping):
             return raw.get(mapping.columns.get(key, ""), "").strip()
 
         try:
+            kind = mapping.kind
             value = val("amount").replace("£", "").strip()
             if mapping.amount_mode == "quantity_price":
                 if mapping.kind != "reported_sales" or mapping.decimal_format != "dot":
@@ -305,24 +364,12 @@ def normalized(conn, s, doc, mapping):
                 value = str(
                     (quantity * price).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
                 )
-            if value.startswith("(") and value.endswith(")"):
-                value = "-" + value[1:-1]
-            pattern = (
-                r"-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?"
-                if mapping.decimal_format == "dot"
-                else r"-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?"
-            )
-            if not re.fullmatch(pattern, value):
-                raise ValueError(
-                    "Amount is missing or incompatible with the selected numeric format"
+            if mapping.amount_mode == "bank_columns":
+                kind, amount = bank_observation(
+                    val("credit"), val("debit"), mapping.decimal_format
                 )
-            amount = Decimal(
-                value.replace(",", "")
-                if mapping.decimal_format == "dot"
-                else value.replace(".", "").replace(",", ".")
-            )
-            if abs(amount) >= 10**12:
-                raise ValueError("Amount exceeds supported range")
+            else:
+                amount = parse_source_amount(value, mapping.decimal_format)
             currency = val("currency") or mapping.currency
             if currency != s.currency:
                 raise ValueError(
@@ -374,7 +421,7 @@ def normalized(conn, s, doc, mapping):
                 row_number=row["row_number"],
                 record_key=key,
                 raw_hash=digest,
-                kind=mapping.kind,
+                kind=kind,
                 amount=amount,
                 currency=currency,
                 occurred_on=day,
@@ -534,6 +581,8 @@ def facts(
     end: date | None = None,
     offset: int = Query(0, ge=0),
     customer_id: str | None = None,
+    counterparty: str | None = Query(default=None, max_length=200),
+    currency: str | None = Query(default=None, pattern="^[A-Z]{3}$"),
     s=Depends(scope),
     conn=Depends(connection, scope="function"),
 ):
@@ -542,6 +591,10 @@ def facts(
     if customer_id:
         customer_exists(conn, s, customer_id)
         predicate &= table.c.customer_id == customer_id
+    if counterparty is not None:
+        predicate &= table.c.counterparty == counterparty
+    if currency is not None:
+        predicate &= table.c.currency == currency
     if kind:
         predicate &= table.c.kind == kind
     if start:

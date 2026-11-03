@@ -2,6 +2,8 @@
 
 **Investigate changes in customer profitability and trace findings back to business records.**
 
+**3 November 2026 — evidence-first monthly review:** compare recorded sales, spending or bank cash movements with the prior month, inspect exact source-name changes, and see missing-data limits. Guided imports and readable evidence dialogs now support CSV, TSV, XLSX, JSON and supported text PDFs. Bank cash movements never become revenue or profit automatically. The `/pricing` page presents three proposed pilot plans, not active subscriptions. [Changes, demonstration and verification](docs/PRODUCT_REVIEW_2026-11-03.md) · [Zoho comparison and positioning](docs/research/zoho-books-comparison-2026-11-03.md).
+
 ProfitLens is a 12-week B.Tech COM-711 group project building a business intelligence web application for small and growing businesses. It connects customer records, invoices, attributed expenses and PDF contracts with deterministic contribution/margin calculations, reviewable discrepancies and permission-scoped evidence investigations.
 
 > **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; a bounded synthetic evidence-selection evaluation is now recorded, while broader conversational quality and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/MINOR_SCOPE_RELEASE_REPORT.md).

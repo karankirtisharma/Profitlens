@@ -1,6 +1,12 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, message } from "../lib/workspace";
+import { Modal } from "./ui";
+import { MonthlyReview } from "./monthly-review";
+import {
+  SourceEvidenceBody,
+  type SourceEvidenceDetail,
+} from "./source-evidence";
 
 type Doc = {
   id: string;
@@ -69,8 +75,74 @@ const kinds = [
   "liability_balance",
 ];
 const label = (s: string) => s.replaceAll("_", " ");
+const kindHelp: Record<string, string> = {
+  reported_sales:
+    "Amounts reported as sales. Tax basis and delivery costs are not assumed.",
+  expenditure:
+    "Spending recorded by this source, including signed credits. It is not automatically a customer cost.",
+  cash_inflow:
+    "Money received into an account. It may include loans or transfers, not only revenue.",
+  cash_outflow:
+    "Money paid from an account. It may include asset purchases or transfers, not only expenses.",
+  commitment: "A promised or approved amount, not proof of payment or expense.",
+  asset_balance:
+    "An asset value at a point in time. Snapshots are not added together.",
+  liability_balance:
+    "An amount owed at a point in time. Snapshots are not added together.",
+};
+const columnLabel = (target: string) =>
+  target === "credit"
+    ? "Money received (bank credit)"
+    : target === "debit"
+      ? "Money paid (bank debit)"
+      : label(target);
+type Suggestion = {
+  column: string;
+  confidence?: string;
+  candidates?: string[];
+};
+function SampleTable({ rows }: { rows: Record<string, unknown>[] }) {
+  const columns = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
+  return (
+    <div className="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={column}>{label(column)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              {columns.map((column) => (
+                <td
+                  key={column}
+                  style={{
+                    maxWidth: 280,
+                    overflowWrap: "anywhere",
+                    whiteSpace: "normal",
+                  }}
+                >
+                  {row[column] === null ||
+                  row[column] === undefined ||
+                  row[column] === ""
+                    ? "Unavailable"
+                    : typeof row[column] === "object"
+                      ? JSON.stringify(row[column])
+                      : String(row[column])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 const initial = (currency: string): MapConfig => ({
-  kind: "expenditure",
+  kind: "",
   columns: {},
   currency,
   date_format: "ISO",
@@ -84,10 +156,19 @@ export function SourceExplorer({
   base,
   currency,
   canWrite,
+  initialFilters = {},
 }: {
   base: string;
   currency: string;
   canWrite: boolean;
+  initialFilters?: {
+    start?: string;
+    end?: string;
+    kind?: string;
+    customer_id?: string;
+    counterparty?: string;
+    currency?: string;
+  };
 }) {
   const [docs, setDocs] = useState<Doc[]>([]),
     [report, setReport] = useState<Report | null>(null),
@@ -95,25 +176,27 @@ export function SourceExplorer({
   const [mapping, setMapping] = useState<MapConfig>(initial(currency)),
     [preview, setPreview] = useState<Preview | null>(null),
     [raw, setRaw] = useState<Record<string, unknown>[]>([]);
+  const [suggested, setSuggested] = useState<Record<string, Suggestion>>({});
   const [profiles, setProfiles] = useState<
     { name: string; mapping: MapConfig; version: number }[]
   >([]);
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
-    [start, setStart] = useState(""),
-    [end, setEnd] = useState(""),
-    [kind, setKind] = useState(""),
+    [start, setStart] = useState(initialFilters.start || ""),
+    [end, setEnd] = useState(initialFilters.end || ""),
+    [kind, setKind] = useState(initialFilters.kind || ""),
     [offset, setOffset] = useState(0);
-  const [detail, setDetail] = useState<{
-    fact: Fact;
-    raw: Record<string, unknown>;
-    filename: string;
-    sha256: string;
-    mapping: MapConfig;
-    allocations: unknown[];
-    can_download: boolean;
-  } | null>(null);
+  const [customerFilter, setCustomerFilter] = useState(
+    initialFilters.customer_id || "",
+  );
+  const [counterpartyFilter, setCounterpartyFilter] = useState<
+    string | undefined
+  >(initialFilters.counterparty);
+  const [currencyFilter, setCurrencyFilter] = useState<string | undefined>(
+    initialFilters.currency,
+  );
+  const [detail, setDetail] = useState<SourceEvidenceDetail | null>(null);
   const generation = useRef(0);
   const refresh = useCallback(async () => {
     const request = ++generation.current;
@@ -121,14 +204,34 @@ export function SourceExplorer({
     if (start) params.set("start", start);
     if (end) params.set("end", end);
     if (kind) params.set("kind", kind);
-    const result = await api<Report>(`${base}/facts?${params}`);
+    if (customerFilter) params.set("customer_id", customerFilter);
+    if (counterpartyFilter !== undefined)
+      params.set("counterparty", counterpartyFilter);
+    if (currencyFilter) params.set("currency", currencyFilter);
+    const [result, documents, savedProfiles] = await Promise.all([
+      api<Report>(`${base}/facts?${params}`),
+      canWrite ? api<Doc[]>(`${base}/sources`) : Promise.resolve([]),
+      canWrite
+        ? api<{ name: string; mapping: MapConfig; version: number }[]>(
+            `${base}/mapping-profiles`,
+          )
+        : Promise.resolve([]),
+    ]);
     if (request !== generation.current) return;
     setReport(result);
-    if (canWrite) {
-      setDocs(await api<Doc[]>(`${base}/sources`));
-      setProfiles(await api(`${base}/mapping-profiles`));
-    }
-  }, [base, canWrite, start, end, kind, offset]);
+    setDocs(documents);
+    setProfiles(savedProfiles);
+  }, [
+    base,
+    canWrite,
+    start,
+    end,
+    kind,
+    offset,
+    customerFilter,
+    counterpartyFilter,
+    currencyFilter,
+  ]);
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
@@ -159,11 +262,15 @@ export function SourceExplorer({
   async function open(d: Doc) {
     setDoc(d);
     setPreview(null);
+    setRaw([]);
+    setSuggested({});
+    setMapping(initial(currency));
     const data = await api<{
       rows: { values: Record<string, unknown> }[];
-      suggestions: Record<string, { column: string }>;
+      suggestions: Record<string, Suggestion>;
     }>(`${base}/sources/${d.id}/raw`);
     setRaw(data.rows.slice(0, 5).map((r) => r.values));
+    setSuggested(data.suggestions);
     setMapping({
       ...initial(currency),
       columns: Object.fromEntries(
@@ -176,13 +283,63 @@ export function SourceExplorer({
   }
   return (
     <div className="view-stack source-explorer">
+      <MonthlyReview
+        base={base}
+        initialPeriod={report?.months
+          .map((m) => m.month)
+          .sort()
+          .at(-1)}
+        onInspect={(filters) => {
+          setStart(filters.start || "");
+          setEnd(filters.end || "");
+          setKind(filters.kind || "");
+          setCustomerFilter(filters.customer_id || "");
+          setCounterpartyFilter(filters.counterparty);
+          setCurrencyFilter(filters.currency);
+          setOffset(0);
+          requestAnimationFrame(() =>
+            document
+              .getElementById("supporting-source-records")
+              ?.scrollIntoView({ behavior: "instant" }),
+          );
+        }}
+      />
       <section className="panel glass">
         <h2>Source records &amp; financial observations</h2>
+        {currencyFilter && <p>Currency filter: {currencyFilter}</p>}
+        {counterpartyFilter !== undefined && (
+          <p className="alert">
+            Exact source name: {counterpartyFilter || "Not supplied"}.{" "}
+            <button
+              className="text-button"
+              onClick={() => {
+                setCounterpartyFilter(undefined);
+                setOffset(0);
+              }}
+            >
+              Clear name filter
+            </button>
+          </p>
+        )}
         <p>
           Import documents without inventing customers, contracts or profit.
           Review mappings before confirmation. Observations stay separate from
           the verified invoice/cost ledger.
         </p>
+        {customerFilter && (
+          <p className="alert">
+            Filtered to customer: <strong>{customerFilter}</strong>.{" "}
+            <button
+              className="text-button"
+              onClick={() => {
+                setCustomerFilter("");
+                setOffset(0);
+              }}
+            >
+              Show all accessible customers
+            </button>
+          </p>
+        )}
         <div className="form-grid">
           <label>
             From date
@@ -209,6 +366,7 @@ export function SourceExplorer({
           <label>
             Financial meaning
             <select
+              aria-label="Financial meaning"
               value={kind}
               onChange={(e) => {
                 setKind(e.target.value);
@@ -227,9 +385,10 @@ export function SourceExplorer({
         {report && (
           <>
             <p>
-              {docs.length} source documents · {report.total} matching
-              observations · {report.unmatched} unmatched to customers. Unknown
-              dates are excluded only when a date filter is applied.
+              {canWrite ? `${docs.length} listed source documents · ` : ""}
+              {report.total} matching observations · {report.unmatched}{" "}
+              unmatched to customers. Unknown dates are excluded only when a
+              date filter is applied.
             </p>
             <div className="form-grid">
               {report.groups.map((g) => (
@@ -301,6 +460,7 @@ export function SourceExplorer({
                     setStart("");
                     setEnd("");
                     setKind("");
+                    setCustomerFilter("");
                     setOffset(0);
                   }}
                 >
@@ -323,7 +483,11 @@ export function SourceExplorer({
       )}
       {canWrite && (
         <section className="panel glass">
-          <h2>Import original data</h2>
+          <h2>1. Upload your source file</h2>
+          <p>
+            Keep your original file. Review its meaning and fields before
+            anything is added to your reports.
+          </p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -340,12 +504,12 @@ export function SourceExplorer({
           >
             <div className="form-grid">
               <label>
-                Original CSV, XLSX, JSON or text PDF
+                Original CSV, TSV, XLSX, JSON or text PDF
                 <input
                   name="file"
                   type="file"
                   required
-                  accept=".csv,.xlsx,.json,.pdf"
+                  accept=".csv,.tsv,.xlsx,.json,.pdf"
                 />
               </label>
               <label>
@@ -372,6 +536,7 @@ export function SourceExplorer({
               <li key={d.id}>
                 <button
                   className="text-button"
+                  disabled={busy}
                   onClick={() => void action(() => open(d))}
                 >
                   {d.filename}
@@ -385,14 +550,12 @@ export function SourceExplorer({
       )}
       {doc && (
         <section className="panel glass">
-          <h2>Review mapping: {doc.filename}</h2>
+          <h2>2. Review mapping: {doc.filename}</h2>
           <p className="footnote">SHA-256: {doc.sha256}</p>
           {raw.length > 0 ? (
             <details>
               <summary>Original sample rows (all columns preserved)</summary>
-              <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-                {JSON.stringify(raw, null, 2)}
-              </pre>
+              <SampleTable rows={raw} />
             </details>
           ) : (
             <details>
@@ -438,17 +601,28 @@ export function SourceExplorer({
                 <label>
                   Record meaning
                   <select
+                    aria-label="Record meaning"
                     value={mapping.kind}
+                    required
                     onChange={(e) =>
-                      setMapping({ ...mapping, kind: e.target.value })
+                      setMapping({
+                        ...mapping,
+                        kind: e.target.value,
+                        amount_mode: "direct",
+                      })
                     }
                   >
+                    <option value="">Choose what these records mean</option>
                     {kinds.map((k) => (
                       <option key={k} value={k}>
                         {label(k)}
                       </option>
                     ))}
                   </select>
+                  <small>
+                    {kindHelp[mapping.kind] ||
+                      "A column named Amount does not tell us whether it is sales, spending, cash or a balance. Please choose."}
+                  </small>
                 </label>
                 <label>
                   Amount derivation
@@ -459,15 +633,24 @@ export function SourceExplorer({
                     }
                   >
                     <option value="direct">Direct source amount</option>
-                    <option value="quantity_price">
-                      Quantity × price (reported sales only)
-                    </option>
+                    {mapping.kind === "reported_sales" && (
+                      <option value="quantity_price">
+                        Quantity × price (reported sales only)
+                      </option>
+                    )}
+                    {["cash_inflow", "cash_outflow"].includes(mapping.kind) && (
+                      <option value="bank_columns">
+                        Bank statement: separate money received / paid
+                      </option>
+                    )}
                   </select>
                 </label>
                 {[
-                  "amount",
-                  "quantity",
-                  "unit_price",
+                  ...(mapping.amount_mode === "quantity_price"
+                    ? ["quantity", "unit_price"]
+                    : mapping.amount_mode === "bank_columns"
+                      ? ["credit", "debit"]
+                      : ["amount"]),
                   "date",
                   "description",
                   "counterparty",
@@ -476,8 +659,9 @@ export function SourceExplorer({
                   "currency",
                 ].map((target) => (
                   <label key={target}>
-                    {label(target)} source column
+                    {columnLabel(target)} source column
                     <select
+                      aria-label={`${columnLabel(target)} source column`}
                       value={mapping.columns[target] || ""}
                       onChange={(e) =>
                         setMapping({
@@ -494,6 +678,16 @@ export function SourceExplorer({
                         <option key={h}>{h}</option>
                       ))}
                     </select>
+                    <small>
+                      {suggested[target]?.confidence === "ambiguous"
+                        ? `Needs review: ${suggested[target].candidates?.join(", ")}`
+                        : suggested[target]?.column &&
+                            mapping.columns[target] === suggested[target].column
+                          ? "Suggested by header — verify against the sample"
+                          : mapping.columns[target]
+                            ? "Selected for your review"
+                            : "Unmapped; kept in the original record"}
+                    </small>
                   </label>
                 ))}
                 <label>
@@ -550,13 +744,23 @@ export function SourceExplorer({
                   />
                 </label>
               </div>
-              <button className="primary" disabled={busy}>
+              {mapping.amount_mode === "bank_columns" && (
+                <p className="alert">
+                  Review the bank account perspective: credits mean money
+                  received; debits mean money paid. Both directions are imported
+                  separately. Blank opposite cells mean no movement in that
+                  direction; both nonzero or negative values are rejected. Cash
+                  movements are not automatically sales or expenses.
+                </p>
+              )}
+              <button className="primary" disabled={busy || !mapping.kind}>
                 Preview normalized records
               </button>
             </form>
           )}
           {preview && (
             <div>
+              <h3>3. Check and confirm</h3>
               <p>
                 {preview.row_count} records · {preview.issues.length} issues
               </p>
@@ -571,11 +775,7 @@ export function SourceExplorer({
               ))}
               <details open>
                 <summary>Normalized preview</summary>
-                <pre
-                  style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
-                >
-                  {JSON.stringify(preview.rows, null, 2)}
-                </pre>
+                <SampleTable rows={preview.rows} />
               </details>
               <p>{preview.notice}</p>
               <button
@@ -606,7 +806,7 @@ export function SourceExplorer({
       )}
       {report && (
         <section className="panel glass">
-          <h2>Supporting records</h2>
+          <h2 id="supporting-source-records">Supporting records</h2>
           <div className="table-scroll">
             <table>
               <thead>
@@ -668,26 +868,20 @@ export function SourceExplorer({
         </section>
       )}
       {detail && (
-        <section className="panel glass">
-          <h2>Evidence: {detail.filename}</h2>
-          <p>
-            Source record {detail.fact.row_number} · {detail.sha256}
-          </p>
-          <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-            {JSON.stringify(
-              {
-                original: detail.raw,
-                mapping: detail.mapping,
-                allocations: detail.allocations,
-              },
-              null,
-              2,
-            )}
-          </pre>
-          {detail.can_download && (
-            <a href={`/api${base}/sources/${detail.fact.document_id}/file`}>
-              Download unchanged original
-            </a>
+        <Modal
+          heading={`Evidence: ${detail.filename}`}
+          close={() => setDetail(null)}
+        >
+          <SourceEvidenceBody detail={detail} base={base} />
+          {error && (
+            <p className="alert error" role="alert">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p className="alert" role="status">
+              {notice}
+            </p>
           )}
           {canWrite && (
             <form
@@ -743,7 +937,7 @@ export function SourceExplorer({
           <button className="secondary" onClick={() => setDetail(null)}>
             Close source
           </button>
-        </section>
+        </Modal>
       )}
     </div>
   );

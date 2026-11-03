@@ -85,6 +85,7 @@ export function Login({
       <header className="login-top">
         <Logo />
         <div className="login-top-actions">
+          <a href="/pricing">Plans</a>
           <SoundToggle />
           <ThemeToggle />
         </div>
@@ -96,8 +97,8 @@ export function Login({
           <span>behind every figure.</span>
         </h1>
         <p>
-          Customers, invoices, expenses and contracts in one scoped workspace.
-          Every number traces back to its CSV row or PDF page.
+          Review sales, spending and bank exports with their original evidence.
+          Contracts are optional. Missing information stays visible.
         </p>
       </div>
       <div className="pane-stage" ref={stage}>

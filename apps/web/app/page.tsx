@@ -633,10 +633,11 @@ export default function Home() {
               )}
               {view === "data" && org && (
                 <SourceExplorer
-                  key={org}
+                  key={`${org}:${JSON.stringify(chatDestination?.source_filters || {})}`}
                   base={base}
                   currency={workspace?.currency || "INR"}
                   canWrite={canWrite}
+                  initialFilters={chatDestination?.source_filters}
                 />
               )}
               {view === "overview" && org && !error && (
@@ -1266,6 +1267,7 @@ export default function Home() {
           )}
           <footer className="page-footer">
             <Logo />
+            <a href="/pricing">Plans &amp; limits</a>
             <span>
               Financial analysis & verified evidence ·{" "}
               {workspace?.currency || "INR"}
