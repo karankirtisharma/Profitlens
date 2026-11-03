@@ -1,0 +1,211 @@
+.focus-dashboard {
+  display: grid;
+  gap: 24px;
+}
+.focus-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 0 12px;
+}
+.focus-intro h2 {
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: -0.04em;
+  margin: 10px 0;
+}
+.focus-intro p {
+  max-width: 660px;
+  line-height: 1.65;
+}
+.focus-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #399d91;
+}
+.focus-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.focus-kpi {
+  padding: 22px !important;
+  display: grid !important;
+  text-align: left;
+  gap: 14px !important;
+  border-radius: 20px !important;
+}
+.focus-kpi strong {
+  font-size: 36px;
+  font-weight: 550;
+  letter-spacing: -0.04em;
+}
+.focus-kpi small,
+.focus-chart small,
+.focus-section-heading p {
+  opacity: 0.7;
+  font-size: 12px;
+}
+.focus-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.focus-section-heading label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.focus-charts,
+.focus-bottom {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.focus-chart {
+  padding: 26px;
+  border-radius: 24px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.focus-chart h3,
+.focus-chart p {
+  margin: 0;
+}
+.focus-latest {
+  font-size: clamp(22px, 2.5vw, 34px);
+  letter-spacing: -0.04em;
+}
+.focus-bars {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  min-height: 165px;
+  padding-top: 12px;
+}
+.focus-bars > div {
+  flex: 1;
+  min-width: 30px;
+  text-align: center;
+}
+.focus-bar-track {
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-bottom: 1px solid #78908c40;
+}
+.focus-bar-track span {
+  width: 64%;
+  max-width: 45px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(#60cdb8, #318d80);
+}
+.focus-bar-track .negative {
+  background: #c27863;
+}
+.focus-bars small {
+  font-size: 10px;
+}
+.focus-chart summary,
+.focus-dashboard > details summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+.focus-balances {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.focus-balances button {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+  padding: 16px;
+}
+.focus-balances strong {
+  font-size: 22px;
+}
+.focus-task {
+  display: block !important;
+  width: 100%;
+  margin-top: 12px;
+  text-align: left;
+  min-height: 70px;
+  padding: 14px !important;
+}
+.focus-task small {
+  display: block;
+  margin-top: 6px;
+  opacity: 0.7;
+}
+.operation-form {
+  display: grid;
+  gap: 16px;
+}
+.operation-form label {
+  display: grid;
+  gap: 8px;
+}
+.operation-form fieldset {
+  border: 1px solid #78908c50;
+  border-radius: 14px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+.operation-form input,
+.operation-form select,
+.operation-form textarea {
+  width: 100%;
+  min-height: 42px;
+}
+.operation-form input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+}
+.operations-panel > label {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+.operations-panel td small {
+  display: block;
+}
+.focus-chart table {
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .focus-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .focus-intro {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 600px) {
+  .focus-charts,
+  .focus-bottom {
+    grid-template-columns: 1fr;
+  }
+  .focus-kpis {
+    gap: 10px;
+  }
+  .focus-kpi {
+    padding: 16px !important;
+  }
+  .focus-section-heading {
+    flex-wrap: wrap;
+  }
+  .focus-balances {
+    grid-template-columns: 1fr;
+  }
+  .focus-chart {
+    padding: 20px;
+  }
+}
