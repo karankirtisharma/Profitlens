@@ -69,6 +69,8 @@ export type View =
   | "bills"
   | "payments"
   | "accounts"
+  | "recurring"
+  | "orders"
   | "team";
 export const fields: Record<Kind, string[]> = {
   customers: ["customer_id", "name", "industry"],

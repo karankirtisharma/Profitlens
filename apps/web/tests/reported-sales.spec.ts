@@ -11,7 +11,7 @@ test("source-first CSV mapping, signed amounts, monthly drill-down and original 
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Source data & insights", exact: true })
@@ -90,7 +90,7 @@ test("reported sales preview, confirmation, adaptive overview and source inspect
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   const account = await (await page.request.get("/api/auth/me")).json();
   const org = account.workspaces[0].id;
@@ -120,15 +120,11 @@ test("reported sales preview, confirmation, adaptive overview and source inspect
   await expect(page.getByText(/Import confirmed/i)).toBeVisible();
   await page.getByRole("button", { name: "Overview", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Reported sales by month" }),
+    page.getByRole("heading", { name: "Reported sales" }),
   ).toBeVisible();
-  await expect(
-    page.getByText(
-      "Contracts not provided. Optional for sales reporting; pricing compliance unavailable.",
-    ),
-  ).toBeVisible();
+  await expect(page.getByText(/costs and tax breakdown unknown/)).toBeVisible();
   await page
-    .getByRole("button", { name: /Inspect sales invoice sources/ })
+    .getByRole("button", { name: /Inspect reported sales records/ })
     .click();
   await page.getByRole("button", { name: id, exact: true }).click();
   await expect(page.getByText(/Reported sales amount. Tax/)).toBeVisible();

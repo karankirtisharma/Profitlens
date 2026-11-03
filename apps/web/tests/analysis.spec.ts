@@ -11,7 +11,7 @@ test("profitability, reviewed evidence and honest offline AI status", async ({
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   await page
     .getByLabel("Workspace", { exact: true })

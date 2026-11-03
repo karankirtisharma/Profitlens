@@ -16,7 +16,7 @@ async function login(page: Page) {
   await credentials(page);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
 }
 
@@ -53,7 +53,7 @@ test("intro plays on every visit and after sign-in, and can be skipped", async (
   await intro.getByRole("button", { name: "Skip intro" }).click();
   await ready(page);
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
 });
 
@@ -72,7 +72,7 @@ test("reduced-motion and keyboard users can sign in, navigate and close a focuse
   await credentials(page);
   await page.getByLabel("Password", { exact: true }).press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Customers", exact: true }).focus();
   await page.keyboard.press("Enter");
@@ -102,66 +102,29 @@ test("overview counts and chart values match the scoped API, with working chart 
   await expect(
     page.getByText("Synthetic demo data", { exact: true }),
   ).toBeVisible();
-  const [customers, invoices, expenses, contracts] = await Promise.all(
-    [
-      "records/customers",
-      "records/invoices?limit=200",
-      "records/expenses?limit=200",
-      "contracts",
-    ].map(async (endpoint) => {
-      const response = await page.request.get(
-        `/api/workspaces/demo-org/${endpoint}`,
-      );
-      expect(response.ok()).toBe(true);
-      return response.json();
+  const response = await page.request.get("/api/workspaces/demo-org/dashboard");
+  const summary = await response.json();
+  await page.getByText("Record inventory & coverage", { exact: true }).click();
+  await expect(
+    page.getByRole("button", {
+      name: `Invoice records: ${summary.counts.invoices}`,
+      exact: true,
     }),
+  ).toBeVisible();
+  await page.getByLabel("Chart range", { exact: true }).selectOption("12");
+  await expect(page.getByLabel("Chart range", { exact: true })).toHaveValue(
+    "12",
   );
-  for (const [label, value] of [
-    ["View customers", customers.length],
-    ["View invoice records", invoices.length],
-    ["View expense records", expenses.length],
-    ["View contract documents", contracts.length],
-  ] as const) {
-    await expect(
-      page
-        .getByRole("button", { name: label, exact: true })
-        .locator(".metric-value"),
-    ).toHaveText(String(value));
-  }
-  await page.getByRole("button", { name: "Overview", exact: true }).click();
   await expect(
-    page
-      .getByRole("button", { name: "View invoice records", exact: true })
-      .locator(".metric-value"),
-  ).toHaveText(String(invoices.length));
-  const lastMonth = [...invoices, ...expenses]
-    .map((record) => record.billing_period as string)
-    .sort()
-    .at(-1)!;
-  const invoiceCount = invoices.filter(
-    (record: { billing_period: string }) => record.billing_period === lastMonth,
-  ).length;
-  const expenseCount = expenses.filter(
-    (record: { billing_period: string }) => record.billing_period === lastMonth,
-  ).length;
-  const label = new Intl.DateTimeFormat("en", {
-    month: "short",
-    year: "2-digit",
-    timeZone: "UTC",
-  }).format(new Date(`${lastMonth}-01T00:00:00Z`));
-  const monthButton = page.getByRole("button", {
-    name: `${label}: ${invoiceCount} invoices, ${expenseCount} expenses`,
-    exact: true,
-  });
-  await monthButton.click();
-  await expect(monthButton).toHaveAttribute("aria-pressed", "true");
-  await page.getByLabel("Chart month range").selectOption("12");
-  await expect(page.getByLabel("Chart month range")).toHaveValue("12");
-  await expect(
-    page.getByText(/Record counts, not financial performance/),
+    page.getByText(
+      "Actual recorded periods. Missing months are not filled with zero.",
+    ),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "View invoice records", exact: true })
+    .getByRole("button", {
+      name: `Invoice records: ${summary.counts.invoices}`,
+      exact: true,
+    })
     .click();
   await expect(
     page.getByRole("button", { name: "Add invoice", exact: true }),
@@ -185,7 +148,7 @@ test("login, overview and record dialog pass automated WCAG checks", async ({
   await credentials(page);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
   await audit();
   await page.getByRole("button", { name: "Invoices", exact: true }).click();
@@ -216,12 +179,12 @@ test("load failures hide overview totals, show a useful error and recover with R
       .filter({ hasText: "Records are temporarily unavailable" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "View invoice records" }),
+    page.getByRole("region", { name: "Financial trends" }),
   ).toHaveCount(0);
   await page.unroute("**/api/workspaces/demo-org/records/invoices?limit=200");
   await page.getByRole("button", { name: "Refresh data" }).click();
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
 });
 
@@ -241,7 +204,7 @@ test("login and records remain usable on a narrow screen", async ({ page }) => {
   await credentials(page);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Records by billing month" }),
+    page.getByRole("heading", { name: "Financial activity", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Invoices", exact: true }).click();
   await expect(

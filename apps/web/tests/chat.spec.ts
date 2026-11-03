@@ -99,7 +99,7 @@ test("in-popup conversation, follow-up, citations, context reset and mobile layo
     "800.00 INR",
   );
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   await page.screenshot({ path: "test-results/chat-desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });

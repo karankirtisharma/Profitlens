@@ -12,7 +12,7 @@ async function openFinance(page: Page, account = "karan") {
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
     page.getByRole("heading", {
-      name: "Business data, connected.",
+      name: "Your business, in focus.",
       exact: true,
     }),
   ).toBeVisible();

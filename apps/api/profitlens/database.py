@@ -23,6 +23,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.pool import NullPool
 
 from .config import settings
+from .planning_schema import define as define_planning
 
 metadata = MetaData(
     naming_convention={
@@ -510,4 +511,9 @@ payment_allocations = Table(
     UniqueConstraint(
         "organization_id", "payment_id", "bill_id", name="uq_payment_bill_allocation"
     ),
+)
+
+
+recurring_schedules, recurring_drafts, purchase_orders, purchase_order_lines = (
+    define_planning(metadata)
 )

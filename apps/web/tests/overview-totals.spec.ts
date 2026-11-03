@@ -31,35 +31,17 @@ test("overview renders authoritative totals instead of the loaded record preview
     .getByLabel("Password", { exact: true })
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  const invoices = page.getByRole("button", {
-    name: "View invoice records",
-    exact: true,
-  });
-  await expect(invoices.locator(".metric-value")).toHaveText("501");
-  await expect(invoices.locator(".metric-origin")).toContainText(
-    "of 501 sources loaded",
-  );
+  await page.getByText("Record inventory & coverage", { exact: true }).click();
   await expect(
-    page
-      .getByRole("button", { name: "View expense records", exact: true })
-      .locator(".metric-value"),
-  ).toHaveText("207");
+    page.getByRole("button", { name: "Invoice records: 501", exact: true }),
+  ).toBeVisible();
   await expect(
-    page
-      .getByRole("button", { name: "View contract documents", exact: true })
-      .locator(".metric-value"),
-  ).toHaveText("203");
+    page.getByRole("button", { name: "Expense records: 207", exact: true }),
+  ).toBeVisible();
   await expect(
-    page.getByRole("button", {
-      name: "Nov 26: 501 invoices, 207 expenses",
-      exact: true,
-    }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".evidence-count strong")).toHaveText("2/203");
+    page.getByRole("button", { name: "Contract documents: 203", exact: true }),
+  ).toBeVisible();
   await expect(
-    page.getByText(
-      "Counts include all accessible workspace records, not just the loaded preview.",
-      { exact: false },
-    ),
+    page.getByText("2 reviewed of 203 optional documents"),
   ).toBeVisible();
 });

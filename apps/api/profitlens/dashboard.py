@@ -86,6 +86,11 @@ def summary(conn, scope):
         .select_from(db.financial_facts)
         .where(visible(db.financial_facts, scope))
     )
+    counts["source_counterparties"] = conn.scalar(
+        select(func.count(func.distinct(db.financial_facts.c.counterparty))).where(
+            visible(db.financial_facts, scope), db.financial_facts.c.counterparty != ""
+        )
+    )
     counts["source_documents"] = (
         conn.scalar(
             select(func.count())
@@ -107,8 +112,42 @@ def summary(conn, scope):
         if scope.role != "analyst"
         else 0
     )
+    # Separate semantic series; source observations never become ledger revenue/costs.
+    source_series = [
+        dict(r)
+        for r in conn.execute(
+            select(
+                func.to_char(db.financial_facts.c.occurred_on, "YYYY-MM").label(
+                    "period"
+                ),
+                db.financial_facts.c.kind,
+                func.sum(db.financial_facts.c.amount).label("amount"),
+                func.count().label("records"),
+            )
+            .where(
+                visible(db.financial_facts, scope),
+                db.financial_facts.c.currency == scope.currency,
+            )
+            .group_by("period", db.financial_facts.c.kind)
+            .order_by("period")
+        ).mappings()
+    ]
+    cost_series = [
+        dict(r)
+        for r in conn.execute(
+            select(
+                db.expenses.c.billing_period.label("period"),
+                func.sum(db.expenses.c.amount).label("amount"),
+            )
+            .where(visible(db.expenses, scope))
+            .group_by(db.expenses.c.billing_period)
+            .order_by(db.expenses.c.billing_period)
+        ).mappings()
+    ]
     return wire(
         {
+            "source_series": source_series,
+            "cost_series": cost_series,
             "currency": scope.currency,
             "counts": counts,
             "months": [dict(r) for r in months],

@@ -8,6 +8,10 @@ ProfitLens is a 12-week B.Tech COM-711 group project building a business intelli
 
 > **Implementation update — 15 October 2026.** The data workspace includes profitability, cost-completeness review, financial discrepancy rules, page-attributed BM25 retrieval, extractive investigations and an in-popup AI conversation with current customer/month evidence. Live OpenRouter chat smoke checks passed; a bounded synthetic evidence-selection evaluation is now recorded, while broader conversational quality and container deployment remain unverified. Semantic embeddings/pgvector and quantization are not implemented. [Current results and limitations](docs/MINOR_SCOPE_RELEASE_REPORT.md).
 
+## Recurring billing, purchase orders and a focused dashboard
+
+Create recurring billing schedules, generate due drafts for review, and issue verified invoices into tracked receivables. Create and approve purchase orders, then convert a matching supplier invoice into a bill without treating commitments as expenses. The overview separates financial trends, evidence coverage and review tasks. Refreshed synthetic workflows and licensed 2026 DWP spending remain in separate workspaces. [Workflows, datasets, limitations and verification](docs/PLANNING_AND_SHOWCASE_2026-11-03.md).
+
 ## Business operations and easier navigation
 
 The workspace now includes grouped section search, a document library, a report hub, separate vendor/item records, reviewed bill/invoice opening balances, partial payment allocation and audited payment voiding. Operational records stay separate from profit calculations. See [workflow and limitations](docs/OPERATIONS_GUIDE.md) and the [Zoho public-demo audit](docs/research/zoho-demo-workflow-audit-2026-11-03.md). This is a focused expansion, not full Zoho Books feature parity.

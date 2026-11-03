@@ -10,7 +10,7 @@ async function login(page: Page, account = "karan") {
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   await expect(page.getByText("Loading workspace records…")).not.toBeVisible();
 }
@@ -49,9 +49,9 @@ test("authenticated workspace and manual business-record editing", async ({
   page,
 }) => {
   await login(page);
-  await expect(page.locator(".chart-bar").first()).toHaveCSS(
+  await expect(page.locator(".focus-bar-track span").first()).toHaveCSS(
     "transform",
-    "matrix(1, 0, 0, 1, 0, 0)",
+    "none",
   );
   await page.screenshot({
     path: "test-results/workspace-desktop.png",
@@ -235,9 +235,9 @@ test("mobile workspace has no horizontal overflow", async ({ page }) => {
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  await expect(page.locator(".chart-bar").first()).toHaveCSS(
+  await expect(page.locator(".focus-bar-track span").first()).toHaveCSS(
     "transform",
-    "matrix(1, 0, 0, 1, 0, 0)",
+    "none",
   );
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await page.screenshot({

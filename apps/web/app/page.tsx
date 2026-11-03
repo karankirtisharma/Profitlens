@@ -46,11 +46,8 @@ import { AnimatedInput } from "../components/animated-input";
 import { FinancePanel, FinancialReport } from "../components/finance-panel";
 import { AnalysisPanel } from "../components/analysis-panel";
 import { SourceExplorer } from "../components/source-explorer";
-import {
-  DocumentLibrary,
-  ReportsHub,
-  QuickStart,
-} from "../components/workspace-hubs";
+import { DocumentLibrary, ReportsHub } from "../components/workspace-hubs";
+import { PlanningPanel } from "../components/planning-panel";
 import { OperationsPanel } from "../components/operations-panel";
 import { Stage } from "../components/stage";
 import {
@@ -118,6 +115,7 @@ export default function Home() {
   const [financePeriod, setFinancePeriod] = useState("");
   const [financialReport, setFinancialReport] =
     useState<FinancialReport | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const base = `/workspaces/${encodeURIComponent(org)}`;
   const currentRequest = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
@@ -198,7 +196,12 @@ export default function Home() {
     api<Account>("/auth/me")
       .then((a) => {
         setAccount(a);
-        setOrg(a.workspaces[0]?.id || "");
+        setOrg(
+          a.workspaces.find((w) => w.id === "demo-showcase-2026")?.id ||
+            a.workspaces.find((w) => !w.name.startsWith("Archive -"))?.id ||
+            a.workspaces[0]?.id ||
+            "",
+        );
       })
       .catch(() => {})
       .finally(() => setBoot(false));
@@ -264,7 +267,12 @@ export default function Home() {
       });
       const a = await api<Account>("/auth/me");
       setAccount(a);
-      setOrg(a.workspaces[0]?.id || "");
+      setOrg(
+        a.workspaces.find((w) => w.id === "demo-showcase-2026")?.id ||
+          a.workspaces.find((w) => !w.name.startsWith("Archive -"))?.id ||
+          a.workspaces[0]?.id ||
+          "",
+      );
       play();
     });
   }
@@ -352,6 +360,18 @@ export default function Home() {
     ...(canWrite
       ? [
           {
+            id: "recurring" as View,
+            label: "Recurring invoices",
+            icon: FileSpreadsheet,
+            group: "Sales & purchases",
+          },
+          {
+            id: "orders" as View,
+            label: "Purchase orders",
+            icon: FileText,
+            group: "Sales & purchases",
+          },
+          {
             id: "vendors" as View,
             label: "Vendors",
             icon: Users,
@@ -419,13 +439,28 @@ export default function Home() {
               changeView("overview");
             }}
           >
-            {account.workspaces.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name}
-              </option>
-            ))}
+            {account.workspaces
+              .filter(
+                (w) =>
+                  showArchived ||
+                  !w.name.startsWith("Archive -") ||
+                  w.id === org,
+              )
+              .map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
           </select>
         </div>
+        {account.workspaces.some((w) => w.name.startsWith("Archive -")) && (
+          <button
+            className="quiet"
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            {showArchived ? "Hide earlier demos" : "Show earlier demos"}
+          </button>
+        )}
         <SideNav
           items={nav}
           view={view}
@@ -471,11 +506,15 @@ export default function Home() {
           <div className="topbar-actions">
             <span className="data-badge">
               <Database size={13} aria-hidden="true" />
-              {["demo-fhdc-real", "demo-fhdc-source", "demo-uci-real"].includes(
-                org,
-              )
+              {[
+                "demo-dwp-2026",
+                "demo-fhdc-real",
+                "demo-fhdc-source",
+                "demo-uci-real",
+              ].includes(org)
                 ? "Real-world public data · GBP"
                 : [
+                      "demo-showcase-2026",
                       "demo-org",
                       "other-org",
                       "evaluation-demo",
@@ -493,14 +532,14 @@ export default function Home() {
             <div>
               <h1 id="workspace-title" tabIndex={-1}>
                 {view === "overview"
-                  ? "Business data, connected."
+                  ? "Your business, in focus."
                   : nav.find((item) => item.id === view)?.label || title(view)}
               </h1>
               <p className="lede">
                 {
                   {
                     overview:
-                      "A trusted starting point for your customer profitability investigations.",
+                      "Understand what changed, review what needs attention, and follow the evidence.",
                     data: "Original documents, reviewed mappings and source-linked financial observations.",
                     finance:
                       "Exact recorded amounts, with sources and clear data-quality limits.",
@@ -529,6 +568,10 @@ export default function Home() {
                       "Record supplier bills with explicit payment history.",
                     payments:
                       "Record money already received or paid and allocate it to tracked documents.",
+                    recurring:
+                      "Plan repeat charges and review every invoice before issue.",
+                    orders:
+                      "Track supplier commitments separately from bills and expenses.",
                     accounts:
                       "See outstanding balances only where payment history has been confirmed.",
                   }[view]
@@ -558,6 +601,25 @@ export default function Home() {
               )}
             </div>
           </div>
+          {org === "demo-dwp-2026" && (
+            <aside className="alert">
+              <strong>
+                Real-world public expenditure - DWP - July-September 2026 - OGL
+                v3.0.
+              </strong>{" "}
+              First 200 rows per monthly release. A bounded selection, not total
+              departmental spending. Original paid dates, amounts, supplier
+              names and payment references are retained. No sales, customer
+              profit, contracts or purchase orders are inferred.{" "}
+              <a
+                href="https://www.gov.uk/government/publications/dwp-spending-over-25000-september-2026"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Publisher and licence
+              </a>
+            </aside>
+          )}
           {org === "demo-uci-real" && (
             <aside className="alert" aria-label="Real-world dataset provenance">
               <p>
@@ -655,9 +717,6 @@ export default function Home() {
             </div>
           ) : (
             <PageTransition identity={`${org}:${view}`}>
-              {view === "overview" && org && (
-                <QuickStart canWrite={canWrite} navigate={changeView} />
-              )}
               {view === "documents" && org && (
                 <DocumentLibrary
                   key={org}
@@ -744,23 +803,26 @@ export default function Home() {
                   initialFilters={chatDestination?.source_filters}
                 />
               )}
+              {canWrite && (view === "recurring" || view === "orders") && (
+                <PlanningPanel
+                  key={`${org}:${view}`}
+                  base={base}
+                  view={view}
+                  currency={workspace?.currency || "INR"}
+                  customers={customers}
+                  changeView={changeView}
+                />
+              )}
               {view === "overview" && org && !error && (
                 <Overview
+                  key={org}
+                  base={base}
                   customers={customers}
                   data={overviewData}
                   canWrite={canWrite}
                   changeView={changeView}
                 />
               )}
-              {view === "overview" &&
-                !!overviewData.summary?.counts.financial_facts && (
-                  <SourceExplorer
-                    key={org}
-                    base={base}
-                    currency={workspace?.currency || "INR"}
-                    canWrite={canWrite}
-                  />
-                )}
               {["customers", "invoices", "expenses"].includes(view) && (
                 <section className="panel glass">
                   <div className="table-toolbar">

@@ -29,6 +29,7 @@ from .analysis_api import router as analysis_router
 from .config import settings
 from .ingestion.pdf_contract import extract_contract_text
 from .operations import router as operations_router
+from .planning import router as planning_router
 from .security import (
     COOKIE,
     DUMMY_HASH,
@@ -586,3 +587,6 @@ def financial_report(
     conn=Depends(connection, scope="function"),
 ):
     return finance.report(conn, s, billing_period, customer_id, limit, offset)
+
+
+app.include_router(planning_router)

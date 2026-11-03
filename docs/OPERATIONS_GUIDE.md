@@ -42,4 +42,7 @@ For rollback, redeploy the prior frontend/API commit and leave the additive tabl
 
 ## Scope still missing compared with Zoho Books
 
-Quotes, purchase/sales orders, retainers, recurring billing, inventory, bank feeds, general ledger, tax filing, timesheets, portals and automated payment collection remain unimplemented. The [demo audit](research/zoho-demo-workflow-audit-2026-11-03.md) separates observed competitor capabilities from delivered work.
+Quotes, sales orders, retainers, unattended recurring billing, inventory, bank feeds, general ledger, tax filing, timesheets, portals and automated payment collection remain unimplemented. The [demo audit](research/zoho-demo-workflow-audit-2026-11-03.md) separates observed competitor capabilities from delivered work.
+
+
+Recurring billing drafts and full purchase-order conversion are now supported; see [the planning workflow guide](PLANNING_AND_SHOWCASE_2026-11-03.md).

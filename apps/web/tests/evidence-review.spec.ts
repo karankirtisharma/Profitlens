@@ -14,7 +14,7 @@ test("source chatbot citations open readable evidence and preserve aggregate sco
     .fill("browser-test-only-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Business data, connected." }),
+    page.getByRole("heading", { name: "Your business, in focus." }),
   ).toBeVisible();
   const me = await (await page.request.get("/api/auth/me")).json();
   const base = `/api/workspaces/${me.workspaces[0].id}`;
