@@ -63,3 +63,6 @@ agents.md
 /PRODUCT.md
 /DESIGN.md
 /PROFITLENS_KNOWLEDGE_BASE_VIVA_GUIDE*.pdf
+
+# Generated study PDFs stay local
+/output/pdf/

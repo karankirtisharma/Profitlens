@@ -1,6 +1,6 @@
 # Project-change PDF and evidence snapshot - 3 November 2026
 
-[Download the six-page project briefing](../../output/pdf/ProfitLens_Project_Changes_and_Test_Evidence_2026-11-03.pdf).
+The six-page project briefing is a local-only study document. Generated PDFs are excluded from GitHub.
 
 The final two pages contain executed test evidence and real-data validation. This is a dated snapshot of application commit `7402602`, not a claim that the new release is deployed.
 
@@ -21,3 +21,4 @@ PR #2 was open at report creation. API preview ready; frontend preview failed. V
 ## Reproduce the document
 
 `python scripts/reports/build_changes_report.py` requires ReportLab. Output is a six-page A4 PDF. All six rendered pages were visually inspected with Poppler; no clipped tables or text were observed. Links point to the actual CI run, PR and official dataset/licence pages. Source code contains this dated snapshot, not live status queries.
+
